@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient"
+    tools:context=".MainActivity" >
+
+    <ImageButton
+        android:id="@+id/scan_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="30dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/scan_puzzle"
+        android:onClick="scanTransition"
+        android:src="@drawable/scanner_icon" />
+
+    <ImageButton
+        android:id="@+id/complete_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="30dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/complete_puzzle"
+        android:onClick="gridTransition"
+        android:src="@drawable/crossword_icon" />
+
+    <TextView
+        android:id="@+id/puzzle_scanned"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/scan_button"
+        android:layout_marginLeft="35dp"
+        android:gravity="center"
+        android:text="@string/scan_puzzle"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/grid_correct"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/complete_button"
+        android:layout_marginRight="35dp"
+        android:gravity="center"
+        android:text="@string/complete_puzzle"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+</RelativeLayout>

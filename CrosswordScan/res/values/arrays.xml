@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="button_list">
+        <item>Play Puzzle</item>
+        <item>Puzzle Info</item>
+        <item>Delete Puzzle</item>
+    </string-array>
+
+</resources>

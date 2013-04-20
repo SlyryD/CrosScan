@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="edu.dcc.crosswordscan"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="17" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+"
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="edu.dcc.crosswordscan.MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.ScanActivity"
+            android:label="@string/title_activity_scan" >
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.ConfirmGridActivity"
+            android:label="@string/title_activity_confirm_grid" >
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.NamePuzzleActivity"
+            android:label="@string/title_activity_name_puzzle"
+            android:windowSoftInputMode="adjustPan" >
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.PuzzleListActivity"
+            android:label="@string/title_activity_puzzle_list" >
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.CompletePuzzleActivity"
+            android:label="@string/title_activity_complete_puzzle" >
+        </activity>
+        <activity
+            android:name="edu.dcc.crosswordscan.TestActivity"
+            android:label="@string/title_activity_test"
+            android:parentActivityName="android.app.ListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="android.app.ListActivity" />
+        </activity>
+    </application>
+
+</manifest>
