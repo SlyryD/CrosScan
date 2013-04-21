@@ -18,10 +18,13 @@
  * 
  */
 
-package edu.dcc.grid;
+package edu.dcc.game;
 
 import android.os.Bundle;
 import android.os.SystemClock;
+import edu.dcc.game.command.AbstractCommand;
+import edu.dcc.game.command.CommandStack;
+import edu.dcc.game.command.SetCellValueCommand;
 
 public class CrosswordGame {
 
@@ -77,8 +80,6 @@ public class CrosswordGame {
 
 		mCommandStack = new CommandStack(mGrid);
 		mCommandStack.restoreState(inState);
-
-		validate();
 	}
 
 	public void setCreated(long created) {

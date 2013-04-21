@@ -18,7 +18,7 @@
  * 
  */
 
-package edu.dcc.grid;
+package edu.dcc.game;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +48,8 @@ public class Grid {
 	 */
 	public static int DATA_VERSION_1 = 1;
 
+	public static int acrossClueNum = 1, downClueNum = 1;
+
 	// Cells in this grid.
 	private Cell[][] mCells;
 
@@ -70,6 +72,23 @@ public class Grid {
 						: new Cell();
 			}
 		}
+	}
+
+	/**
+	 * Creates empty crossword.
+	 * 
+	 * @return empty grid
+	 */
+	public static Grid createEmpty() {
+		Cell[][] cells = new Cell[gridSize][gridSize];
+
+		for (int row = 0; row < gridSize; row++) {
+			for (int col = 0; col < gridSize; col++) {
+				cells[row][col] = new Cell();
+			}
+		}
+
+		return new Grid(cells);
 	}
 
 	/**
@@ -207,11 +226,11 @@ public class Grid {
 		mDown = new Entry[gridSize];
 
 		for (int i = 0; i < gridSize; i++) {
-			mAcross[i] = new Entry();
+			mAcross[i] = new Entry(acrossClueNum++);
 		}
 
 		for (int i = 0; i < gridSize; i++) {
-			mDown[i] = new Entry();
+			mDown[i] = new Entry(downClueNum++);
 		}
 
 		for (int row = 0; row < gridSize; row++) {

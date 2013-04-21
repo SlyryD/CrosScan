@@ -18,7 +18,7 @@
  * 
  */
 
-package edu.dcc.grid;
+package edu.dcc.game;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -30,7 +30,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import edu.dcc.crosswordscan.R;
-import edu.dcc.grid.Grid.OnChangeListener;
+import edu.dcc.game.Grid.OnChangeListener;
 
 /**
  * Crossword grid view

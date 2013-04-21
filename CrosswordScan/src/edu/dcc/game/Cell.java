@@ -18,7 +18,7 @@
  * 
  */
 
-package edu.dcc.grid;
+package edu.dcc.game;
 
 import java.util.StringTokenizer;
 

@@ -9,7 +9,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".CompletePuzzleActivity" >
 
-    <edu.dcc.grid.CrosswordGridView
+    <edu.dcc.game.CrosswordGridView
         android:id="@+id/crossword_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,9 +20,10 @@
 
     <LinearLayout
         android:id="@+id/clue_bar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/crossword_grid" >
+        android:layout_below="@id/crossword_grid"
+        android:layout_marginTop="12dp" >
 
         <TextView
             android:id="@+id/puzzle_scanned"
@@ -41,7 +42,6 @@
         android:layout_alignParentBottom="true"
         android:layout_below="@id/clue_bar"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
         android:background="@drawable/gradient"
         android:gravity="center"
         android:text="Keyboard Placeholder"
