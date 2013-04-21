@@ -34,10 +34,7 @@
 
     <!-- Complete Puzzle Activity -->
     <string name="title_activity_complete_puzzle">first puzzle</string>
-    <string name="mock_clue">1 Across --- Baseball Units</string>
-
-    <drawable name="black_cell">#000000</drawable>
-    <drawable name="white_cell">#FFFFFF</drawable>
+    <string name="mock_clue">1a. Baseball units (4)</string>
 
     <!-- Menu -->
     <string name="action_settings">Settings</string>

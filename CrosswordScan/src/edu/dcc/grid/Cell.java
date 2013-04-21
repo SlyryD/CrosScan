@@ -38,7 +38,7 @@ public class Cell {
 	private Entry mDown; // column containing this cell
 	// Information about cell
 	private char mValue;
-	private int mClueNum; // TODO: Implement clue num
+	private int mClueNum = -1; // TODO: Implement clue num
 	private boolean mWhite;
 
 	/**
@@ -175,6 +175,10 @@ public class Cell {
 		return mValue;
 	}
 
+	public Entry getEntry() {
+		return mGrid.isAcrossMode() ? mAcross : mDown;
+	}
+	
 	/**
 	 * @return the mClueNum
 	 */

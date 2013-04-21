@@ -29,7 +29,16 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorReadOnly=0x7f01000b;
+        public static final int backgroundColorBlackCell=0x7f01000b;
+        /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
+"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int backgroundColorEntry=0x7f01000d;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -47,16 +56,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorSelected=0x7f01000d;
-        /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
-"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int backgroundColorTouched=0x7f01000c;
+        public static final int backgroundColorSelected=0x7f01000c;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -137,12 +137,14 @@ containing a value of this type.
     }
     public static final class color {
         public static final int black=0x7f050004;
+        public static final int blue=0x7f050008;
         public static final int candidate_background=0x7f050003;
         public static final int candidate_normal=0x7f050000;
         public static final int candidate_other=0x7f050002;
         public static final int candidate_recommended=0x7f050001;
         public static final int gray=0x7f050005;
         public static final int white=0x7f050006;
+        public static final int yellow=0x7f050007;
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
@@ -156,7 +158,6 @@ containing a value of this type.
         public static final int key_height=0x7f060002;
     }
     public static final class drawable {
-        public static final int black_cell=0x7f020009;
         public static final int camera=0x7f020000;
         public static final int check=0x7f020001;
         public static final int crossword_grid=0x7f020002;
@@ -165,27 +166,27 @@ containing a value of this type.
         public static final int help=0x7f020005;
         public static final int ic_launcher=0x7f020006;
         public static final int scanner_icon=0x7f020007;
-        public static final int white_cell=0x7f02000a;
         public static final int x_icon=0x7f020008;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a0010;
-        public static final int button_list=0x7f0a000a;
-        public static final int camera_preview=0x7f0a000c;
-        public static final int complete_button=0x7f0a0006;
-        public static final int confirmButton=0x7f0a0003;
+        public static final int action_settings=0x7f0a0011;
+        public static final int button_list=0x7f0a000b;
+        public static final int camera_preview=0x7f0a000d;
+        public static final int clue_bar=0x7f0a0001;
+        public static final int complete_button=0x7f0a0007;
+        public static final int confirmButton=0x7f0a0004;
         public static final int crossword_grid=0x7f0a0000;
-        public static final int crossword_name=0x7f0a0007;
-        public static final int enter_button=0x7f0a0008;
-        public static final int grid_correct=0x7f0a0002;
-        public static final int menu_help=0x7f0a000e;
-        public static final int menu_settings=0x7f0a000f;
-        public static final int photo_button=0x7f0a000d;
-        public static final int puzzle_list_layout=0x7f0a0009;
-        public static final int puzzle_scanned=0x7f0a0001;
-        public static final int rejectButton=0x7f0a0004;
-        public static final int relativeLayout1=0x7f0a000b;
-        public static final int scan_button=0x7f0a0005;
+        public static final int crossword_name=0x7f0a0008;
+        public static final int enter_button=0x7f0a0009;
+        public static final int grid_correct=0x7f0a0003;
+        public static final int menu_help=0x7f0a000f;
+        public static final int menu_settings=0x7f0a0010;
+        public static final int photo_button=0x7f0a000e;
+        public static final int puzzle_list_layout=0x7f0a000a;
+        public static final int puzzle_scanned=0x7f0a0002;
+        public static final int rejectButton=0x7f0a0005;
+        public static final int relativeLayout1=0x7f0a000c;
+        public static final int scan_button=0x7f0a0006;
     }
     public static final class layout {
         public static final int activity_complete_puzzle=0x7f030000;
@@ -287,10 +288,10 @@ containing a value of this type.
            <colgroup align="left" />
            <tr><th>Attribute</th><th>Description</th></tr>
            <tr><td><code>{@link #CrosswordGridView_backgroundColor edu.dcc.crosswordscan:backgroundColor}</code></td><td></td></tr>
-           <tr><td><code>{@link #CrosswordGridView_backgroundColorReadOnly edu.dcc.crosswordscan:backgroundColorReadOnly}</code></td><td></td></tr>
+           <tr><td><code>{@link #CrosswordGridView_backgroundColorBlackCell edu.dcc.crosswordscan:backgroundColorBlackCell}</code></td><td></td></tr>
+           <tr><td><code>{@link #CrosswordGridView_backgroundColorEntry edu.dcc.crosswordscan:backgroundColorEntry}</code></td><td></td></tr>
            <tr><td><code>{@link #CrosswordGridView_backgroundColorSecondary edu.dcc.crosswordscan:backgroundColorSecondary}</code></td><td></td></tr>
            <tr><td><code>{@link #CrosswordGridView_backgroundColorSelected edu.dcc.crosswordscan:backgroundColorSelected}</code></td><td></td></tr>
-           <tr><td><code>{@link #CrosswordGridView_backgroundColorTouched edu.dcc.crosswordscan:backgroundColorTouched}</code></td><td></td></tr>
            <tr><td><code>{@link #CrosswordGridView_lineColor edu.dcc.crosswordscan:lineColor}</code></td><td></td></tr>
            <tr><td><code>{@link #CrosswordGridView_sectorLineColor edu.dcc.crosswordscan:sectorLineColor}</code></td><td></td></tr>
            <tr><td><code>{@link #CrosswordGridView_textColor edu.dcc.crosswordscan:textColor}</code></td><td></td></tr>
@@ -298,10 +299,10 @@ containing a value of this type.
            <tr><td><code>{@link #CrosswordGridView_textColorReadOnly edu.dcc.crosswordscan:textColorReadOnly}</code></td><td></td></tr>
            </table>
            @see #CrosswordGridView_backgroundColor
-           @see #CrosswordGridView_backgroundColorReadOnly
+           @see #CrosswordGridView_backgroundColorBlackCell
+           @see #CrosswordGridView_backgroundColorEntry
            @see #CrosswordGridView_backgroundColorSecondary
            @see #CrosswordGridView_backgroundColorSelected
-           @see #CrosswordGridView_backgroundColorTouched
            @see #CrosswordGridView_lineColor
            @see #CrosswordGridView_sectorLineColor
            @see #CrosswordGridView_textColor
@@ -329,7 +330,7 @@ containing a value of this type.
         */
         public static final int CrosswordGridView_backgroundColor = 5;
         /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColorReadOnly}
+          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColorBlackCell}
           attribute's value can be found in the {@link #CrosswordGridView} array.
 
 
@@ -340,9 +341,24 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColorReadOnly
+          @attr name android:backgroundColorBlackCell
         */
-        public static final int CrosswordGridView_backgroundColorReadOnly = 7;
+        public static final int CrosswordGridView_backgroundColorBlackCell = 7;
+        /**
+          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColorEntry}
+          attribute's value can be found in the {@link #CrosswordGridView} array.
+
+
+          <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
+"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name android:backgroundColorEntry
+        */
+        public static final int CrosswordGridView_backgroundColorEntry = 9;
         /**
           <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColorSecondary}
           attribute's value can be found in the {@link #CrosswordGridView} array.
@@ -372,22 +388,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name android:backgroundColorSelected
         */
-        public static final int CrosswordGridView_backgroundColorSelected = 9;
-        /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColorTouched}
-          attribute's value can be found in the {@link #CrosswordGridView} array.
-
-
-          <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
-"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name android:backgroundColorTouched
-        */
-        public static final int CrosswordGridView_backgroundColorTouched = 8;
+        public static final int CrosswordGridView_backgroundColorSelected = 8;
         /**
           <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#lineColor}
           attribute's value can be found in the {@link #CrosswordGridView} array.

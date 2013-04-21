@@ -14,8 +14,8 @@
 		<attr name="textColorNote" format="color"/>
 		<attr name="backgroundColor" format="color"/>
 		<attr name="backgroundColorSecondary" format="color"/>
-		<attr name="backgroundColorReadOnly" format="color"/>
-		<attr name="backgroundColorTouched" format="color"/>
+		<attr name="backgroundColorBlackCell" format="color"/>
 		<attr name="backgroundColorSelected" format="color"/>
+		<attr name="backgroundColorEntry" format="color"/>
 	</declare-styleable>
 </resources>

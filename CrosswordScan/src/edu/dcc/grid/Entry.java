@@ -22,5 +22,9 @@ public class Entry {
 		mCells[mPos] = cell;
 		mPos++;
 	}
+	
+	public Cell[] getCells() {
+		return mCells;
+	}
 
 }

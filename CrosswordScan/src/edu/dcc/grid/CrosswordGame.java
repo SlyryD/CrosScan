@@ -34,7 +34,7 @@ public class CrosswordGame {
 	private int mState;
 	private long mTime;
 	private long mLastPlayed;
-	private Grid mCells;
+	private Grid mGrid;
 
 	private CommandStack mCommandStack;
 	// Time when current activity has become active.
@@ -42,7 +42,7 @@ public class CrosswordGame {
 
 	public static CrosswordGame createEmptyGame() {
 		CrosswordGame game = new CrosswordGame();
-		game.setCells(Grid.createEmpty());
+		game.setGrid(Grid.createEmpty());
 		// set creation time
 		game.setCreated(System.currentTimeMillis());
 		return game;
@@ -62,7 +62,7 @@ public class CrosswordGame {
 		outState.putInt("state", mState);
 		outState.putLong("time", mTime);
 		outState.putLong("lastPlayed", mLastPlayed);
-		outState.putString("cells", mCells.serialize());
+		outState.putString("cells", mGrid.serialize());
 
 		mCommandStack.saveState(outState);
 	}
@@ -73,9 +73,9 @@ public class CrosswordGame {
 		mState = inState.getInt("state");
 		mTime = inState.getLong("time");
 		mLastPlayed = inState.getLong("lastPlayed");
-		mCells = Grid.deserialize(inState.getString("cells"));
+		mGrid = Grid.deserialize(inState.getString("cells"));
 
-		mCommandStack = new CommandStack(mCells);
+		mCommandStack = new CommandStack(mGrid);
 		mCommandStack.restoreState(inState);
 
 		validate();
@@ -127,13 +127,13 @@ public class CrosswordGame {
 		return mLastPlayed;
 	}
 
-	public void setCells(Grid cells) {
-		mCells = cells;
-		mCommandStack = new CommandStack(mCells);
+	public void setGrid(Grid cells) {
+		mGrid = cells;
+		mCommandStack = new CommandStack(mGrid);
 	}
 
-	public Grid getCells() {
-		return mCells;
+	public Grid getGrid() {
+		return mGrid;
 	}
 
 	public void setId(long id) {
@@ -231,7 +231,7 @@ public class CrosswordGame {
 	public void reset() {
 		for (int row = 0; row < Grid.gridSize; row++) {
 			for (int col = 0; col < Grid.gridSize; col++) {
-				Cell cell = mCells.getCell(row, col);
+				Cell cell = mGrid.getCell(row, col);
 				if (cell.isWhite()) {
 					cell.setValue((char) 0);
 				}

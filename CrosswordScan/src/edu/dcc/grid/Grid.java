@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 public class Grid {
 
 	// TODO: Get these values somehow
-	public static int gridSize = 13;
+	public static final int gridSize = 13;
 
 	/**
 	 * String is expected to be in format "00002343243202...", where each number
@@ -55,12 +55,14 @@ public class Grid {
 	private Entry[] mAcross;
 	private Entry[] mDown;
 
+	private boolean mAcrossMode;
+
 	private boolean mOnChangeEnabled = true;
 
 	private final List<OnChangeListener> mChangeListeners = new ArrayList<OnChangeListener>();
 
 	public Grid(int size, int[][] cells) {
-		this.gridSize = size;
+		// this.gridSize = size;
 		mCells = new Cell[size][size];
 		for (int row = 0; row < size; row++) {
 			for (int col = 0; col < size; col++) {
@@ -125,6 +127,21 @@ public class Grid {
 
 	public Cell[][] getCells() {
 		return mCells;
+	}
+
+	/**
+	 * @return the acrossMode
+	 */
+	public boolean isAcrossMode() {
+		return mAcrossMode;
+	}
+
+	/**
+	 * @param acrossMode
+	 *            the acrossMode to set
+	 */
+	public void setAcrossMode(boolean acrossMode) {
+		this.mAcrossMode = acrossMode;
 	}
 
 	/**

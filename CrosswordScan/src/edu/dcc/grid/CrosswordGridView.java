@@ -20,8 +20,6 @@
 
 package edu.dcc.grid;
 
-import java.util.Collection;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -41,7 +39,7 @@ import edu.dcc.grid.Grid.OnChangeListener;
  */
 public class CrosswordGridView extends View {
 
-	public static final int DEFAULT_BOARD_SIZE = 169;
+	public static final int DEFAULT_BOARD_SIZE = 100;
 
 	/**
 	 * "Color not set" value. (In relation to {@link Color}, it is in fact black
@@ -55,37 +53,26 @@ public class CrosswordGridView extends View {
 	private Cell mTouchedCell;
 	// TODO: should I synchronize access to mSelectedCell?
 	private Cell mSelectedCell;
-	private boolean mReadonly = false;
-	private boolean mHighlightWrongVals = true;
-	private boolean mHighlightTouchedCell = true;
-	private boolean mAutoHideTouchedCellHint = true;
 
 	private CrosswordGame mGame;
-	private Grid mCells;
+	private Grid mGrid;
 
 	private OnCellTappedListener mOnCellTappedListener;
 	private OnCellSelectedListener mOnCellSelectedListener;
 
 	private Paint mLinePaint;
-	// private Paint mSectorLinePaint;
 	private Paint mCellValuePaint;
 	private Paint mClueNumPaint;
 	private int mNumberLeft;
 	private int mNumberTop;
-	private float mNoteTop;
-	private int mSectorLineWidth;
-	private Paint mBackgroundColorSecondary;
-	private Paint mBackgroundColorReadOnly;
-	private Paint mBackgroundColorTouched;
+	private float mClueNumTop;
+	private Paint mBackgroundColorBlackCell;
 	private Paint mBackgroundColorSelected;
+	private Paint mBackgroundColorEntry;
 
 	public CrosswordGridView(Context context) {
 		this(context, null);
 	}
-
-	// public CrosswordGridView(Context context, AttributeSet attrs) {
-	// this(context, attrs, R.attr.sudokuBoardViewStyle);
-	// }
 
 	public CrosswordGridView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -96,10 +83,9 @@ public class CrosswordGridView extends View {
 		mLinePaint = new Paint();
 		mCellValuePaint = new Paint();
 		mClueNumPaint = new Paint();
-		mBackgroundColorSecondary = new Paint();
-		mBackgroundColorReadOnly = new Paint();
-		mBackgroundColorTouched = new Paint();
+		mBackgroundColorBlackCell = new Paint();
 		mBackgroundColorSelected = new Paint();
+		mBackgroundColorEntry = new Paint();
 
 		mCellValuePaint.setAntiAlias(true);
 		mClueNumPaint.setAntiAlias(true);
@@ -115,16 +101,12 @@ public class CrosswordGridView extends View {
 				R.styleable.CrosswordGridView_textColorNote, Color.BLACK));
 		setBackgroundColor(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColor, Color.WHITE));
-		setBackgroundColorSecondary(a.getColor(
-				R.styleable.CrosswordGridView_backgroundColorSecondary,
-				NO_COLOR));
-		setBackgroundColorReadOnly(a
-				.getColor(
-						R.styleable.CrosswordGridView_backgroundColorReadOnly,
-						NO_COLOR));
-		setBackgroundColorTouched(a.getColor(
-				R.styleable.CrosswordGridView_backgroundColorTouched,
-				Color.rgb(50, 50, 255)));
+		setBackgroundColorBlackCell(a.getColor(
+				R.styleable.CrosswordGridView_backgroundColorBlackCell,
+				Color.BLACK));
+		setBackgroundColorEntry(a.getColor(
+				R.styleable.CrosswordGridView_backgroundColorEntry,
+				R.color.blue));
 		setBackgroundColorSelected(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorSelected,
 				Color.YELLOW));
@@ -156,29 +138,21 @@ public class CrosswordGridView extends View {
 		mClueNumPaint.setColor(color);
 	}
 
-	public int getBackgroundColorSecondary() {
-		return mBackgroundColorSecondary.getColor();
+	public int getBackgroundColorBlackCell() {
+		return mBackgroundColorBlackCell.getColor();
 	}
 
-	public void setBackgroundColorSecondary(int color) {
-		mBackgroundColorSecondary.setColor(color);
+	public void setBackgroundColorBlackCell(int color) {
+		mBackgroundColorBlackCell.setColor(color);
 	}
 
-	public int getBackgroundColorReadOnly() {
-		return mBackgroundColorReadOnly.getColor();
+	public int getBackgroundColorEntry() {
+		return mBackgroundColorEntry.getColor();
 	}
 
-	public void setBackgroundColorReadOnly(int color) {
-		mBackgroundColorReadOnly.setColor(color);
-	}
-
-	public int getBackgroundColorTouched() {
-		return mBackgroundColorTouched.getColor();
-	}
-
-	public void setBackgroundColorTouched(int color) {
-		mBackgroundColorTouched.setColor(color);
-		mBackgroundColorTouched.setAlpha(100);
+	public void setBackgroundColorEntry(int color) {
+		mBackgroundColorEntry.setColor(color);
+		mBackgroundColorEntry.setAlpha(100);
 	}
 
 	public int getBackgroundColorSelected() {
@@ -192,20 +166,18 @@ public class CrosswordGridView extends View {
 
 	public void setGame(CrosswordGame game) {
 		mGame = game;
-		setCells(game.getCells());
+		setCells(game.getGrid());
 	}
 
-	public void setCells(Grid cells) {
-		mCells = cells;
+	public void setCells(Grid grid) {
+		mGrid = grid;
 
-		if (mCells != null) {
-			if (!mReadonly) {
-				// select first cell by default
-				mSelectedCell = mCells.getCell(0, 0);
-				onCellSelected(mSelectedCell);
-			}
+		if (mGrid != null) {
+			// select first cell by default
+			mSelectedCell = mGrid.getCell(0, 0);
+			onCellSelected(mSelectedCell);
 
-			mCells.addOnChangeListener(new OnChangeListener() {
+			mGrid.addOnChangeListener(new OnChangeListener() {
 				@Override
 				public void onChange() {
 					postInvalidate();
@@ -217,45 +189,11 @@ public class CrosswordGridView extends View {
 	}
 
 	public Grid getCells() {
-		return mCells;
+		return mGrid;
 	}
 
 	public Cell getSelectedCell() {
 		return mSelectedCell;
-	}
-
-	public void setReadOnly(boolean readonly) {
-		mReadonly = readonly;
-		postInvalidate();
-	}
-
-	public boolean isReadOnly() {
-		return mReadonly;
-	}
-
-	public void setHighlightWrongVals(boolean highlightWrongVals) {
-		mHighlightWrongVals = highlightWrongVals;
-		postInvalidate();
-	}
-
-	public boolean getHighlightWrongVals() {
-		return mHighlightWrongVals;
-	}
-
-	public void setHighlightTouchedCell(boolean highlightTouchedCell) {
-		mHighlightTouchedCell = highlightTouchedCell;
-	}
-
-	public boolean getHighlightTouchedCell() {
-		return mHighlightTouchedCell;
-	}
-
-	public void setAutoHideTouchedCellHint(boolean autoHideTouchedCellHint) {
-		mAutoHideTouchedCellHint = autoHideTouchedCellHint;
-	}
-
-	public boolean getAutoHideTouchedCellHint() {
-		return mAutoHideTouchedCellHint;
 	}
 
 	/**
@@ -281,11 +219,6 @@ public class CrosswordGridView extends View {
 	 */
 	public void setOnCellSelectedListener(OnCellSelectedListener l) {
 		mOnCellSelectedListener = l;
-	}
-
-	public void hideTouchedCellHint() {
-		mTouchedCell = null;
-		postInvalidate();
 	}
 
 	protected void onCellSelected(Cell cell) {
@@ -338,267 +271,170 @@ public class CrosswordGridView extends View {
 		if (heightMode == MeasureSpec.AT_MOST && height > heightSize) {
 			height = heightSize;
 		}
-
-		mCellWidth = (width - getPaddingLeft() - getPaddingRight()) / 9.0f;
-		mCellHeight = (height - getPaddingTop() - getPaddingBottom()) / 9.0f;
+		mCellWidth = (width - getPaddingLeft() - getPaddingRight())
+				/ (float) Grid.gridSize;
+		mCellHeight = (height - getPaddingTop() - getPaddingBottom())
+				/ (float) Grid.gridSize;
 
 		setMeasuredDimension(width, height);
 
 		float cellTextSize = mCellHeight * 0.75f;
 		mCellValuePaint.setTextSize(cellTextSize);
 		mClueNumPaint.setTextSize(mCellHeight / 3.0f);
-		// compute offsets in each cell to center the rendered number
-		mNumberLeft = (int) ((mCellWidth - mCellValuePaint.measureText("9")) / 2);
+		// Compute offsets in each cell to center the rendered number
+		mNumberLeft = (int) ((mCellWidth - mCellValuePaint.measureText("M")) / 2);
 		mNumberTop = (int) ((mCellHeight - mCellValuePaint.getTextSize()) / 2);
 
-		// add some offset because in some resolutions notes are cut-off in the
-		// top
-		mNoteTop = mCellHeight / 50.0f;
-
-		computeSectorLineWidth(width, height);
-	}
-
-	private void computeSectorLineWidth(int widthInPx, int heightInPx) {
-		int sizeInPx = widthInPx < heightInPx ? widthInPx : heightInPx;
-		float dipScale = getContext().getResources().getDisplayMetrics().density;
-		float sizeInDip = sizeInPx / dipScale;
-
-		float sectorLineWidthInDip = 2.0f;
-
-		if (sizeInDip > 150) {
-			sectorLineWidthInDip = 3.0f;
-		}
-
-		mSectorLineWidth = (int) (sectorLineWidthInDip * dipScale);
+		// Add offset to avoid cutting off clue numbers
+		mClueNumTop = mCellHeight / 50.0f;
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		// some notes:
-		// Drawable has its own draw() method that takes your Canvas as an
-		// arguement
+		// Drawable has its own draw() method that takes Canvas as argument
 
-		// TODO: I don't get this, why do I need to substract padding only from
-		// one side?
 		int width = getWidth() - getPaddingRight();
 		int height = getHeight() - getPaddingBottom();
 
 		int paddingLeft = getPaddingLeft();
 		int paddingTop = getPaddingTop();
 
-		// draw secondary background
-		if (mBackgroundColorSecondary.getColor() != NO_COLOR) {
-			canvas.drawRect(3 * mCellWidth, 0, 6 * mCellWidth, 3 * mCellWidth,
-					mBackgroundColorSecondary);
-			canvas.drawRect(0, 3 * mCellWidth, 3 * mCellWidth, 6 * mCellWidth,
-					mBackgroundColorSecondary);
-			canvas.drawRect(6 * mCellWidth, 3 * mCellWidth, 9 * mCellWidth,
-					6 * mCellWidth, mBackgroundColorSecondary);
-			canvas.drawRect(3 * mCellWidth, 6 * mCellWidth, 6 * mCellWidth,
-					9 * mCellWidth, mBackgroundColorSecondary);
-		}
-
-		// draw cells
+		// Draw cells
 		int cellLeft, cellTop;
-		if (mCells != null) {
-
-			boolean hasBackgroundColorReadOnly = mBackgroundColorReadOnly
-					.getColor() != NO_COLOR;
-
-			float numberAscent = mCellValuePaint.ascent();
-			float noteAscent = mClueNumPaint.ascent();
-			float noteWidth = mCellWidth / 3f;
-			for (int row = 0; row < 9; row++) {
-				for (int col = 0; col < 9; col++) {
-					Cell cell = mCells.getCell(row, col);
+		if (mGrid != null) {
+			float valueAscent = mCellValuePaint.ascent();
+			float clueNumAscent = mClueNumPaint.ascent();
+			for (int row = 0; row < Grid.gridSize; row++) {
+				for (int col = 0; col < Grid.gridSize; col++) {
+					Cell cell = mGrid.getCell(row, col);
 
 					cellLeft = Math.round((col * mCellWidth) + paddingLeft);
 					cellTop = Math.round((row * mCellHeight) + paddingTop);
 
-					// draw read-only field background
-					if (!cell.isWhite() && hasBackgroundColorReadOnly) {
-						if (mBackgroundColorReadOnly.getColor() != NO_COLOR) {
+					// Draw black cells
+					if (!cell.isWhite()) {
+						if (mBackgroundColorBlackCell.getColor() != NO_COLOR) {
 							canvas.drawRect(cellLeft, cellTop, cellLeft
 									+ mCellWidth, cellTop + mCellHeight,
-									mBackgroundColorReadOnly);
+									mBackgroundColorBlackCell);
 						}
 					}
 
-					// draw cell Text
+					// Draw cell text
 					int value = cell.getValue();
 					if (value != 0) {
-						Paint cellValuePaint = cell.isWhite() ? mCellValuePaint
-								: mCellValueReadonlyPaint;
-
-						if (mHighlightWrongVals && !cell.isValid()) {
-							cellValuePaint = mCellValueInvalidPaint;
-						}
 						canvas.drawText(Integer.toString(value), cellLeft
 								+ mNumberLeft, cellTop + mNumberTop
-								- numberAscent, cellValuePaint);
+								- valueAscent, mCellValuePaint);
 					} else {
-						if (!cell.getNote().isEmpty()) {
-							Collection<Integer> numbers = cell.getNote()
-									.getNotedNumbers();
-							for (Integer number : numbers) {
-								int n = number - 1;
-								int c = n % 3;
-								int r = n / 3;
-								// canvas.drawText(Integer.toString(number),
-								// cellLeft + c*noteWidth + 2, cellTop +
-								// noteAscent + r*noteWidth - 1, mNotePaint);
-								canvas.drawText(Integer.toString(number),
-										cellLeft + c * noteWidth + 2, cellTop
-												+ mNoteTop - noteAscent + r
-												* noteWidth - 1, mClueNumPaint);
-							}
+						int clueNum = cell.getClueNum();
+						if (clueNum > 0) {
+							canvas.drawText(Integer.toString(clueNum),
+									cellLeft + 2, cellTop + mClueNumTop
+											- clueNumAscent - 1, mClueNumPaint);
 						}
 					}
 
 				}
 			}
 
-			// highlight selected cell
-			if (!mReadonly && mSelectedCell != null) {
-				cellLeft = Math.round(mSelectedCell.getColumn() * mCellWidth)
-						+ paddingLeft;
-				cellTop = Math.round(mSelectedCell.getRow() * mCellHeight)
-						+ paddingTop;
-				canvas.drawRect(cellLeft, cellTop, cellLeft + mCellWidth,
-						cellTop + mCellHeight, mBackgroundColorSelected);
+			// Highlight selected cell and entry
+			if (mSelectedCell != null) {
+				for (Cell cell : mSelectedCell.getEntry().getCells()) {
+					cellLeft = Math.round(cell.getColumn() * mCellWidth)
+							+ paddingLeft;
+					cellTop = Math.round(cell.getRow() * mCellHeight)
+							+ paddingTop;
+					canvas.drawRect(cellLeft, cellTop, cellLeft + mCellWidth,
+							cellTop + mCellHeight,
+							cell == mSelectedCell ? mBackgroundColorSelected
+									: mBackgroundColorEntry);
+				}
 			}
-
-			// visually highlight cell under the finger (to cope with touch
-			// screen
-			// imprecision)
-			if (mHighlightTouchedCell && mTouchedCell != null) {
-				cellLeft = Math.round(mTouchedCell.getColumn() * mCellWidth)
-						+ paddingLeft;
-				cellTop = Math.round(mTouchedCell.getRow() * mCellHeight)
-						+ paddingTop;
-				canvas.drawRect(cellLeft, paddingTop, cellLeft + mCellWidth,
-						height, mBackgroundColorTouched);
-				canvas.drawRect(paddingLeft, cellTop, width, cellTop
-						+ mCellHeight, mBackgroundColorTouched);
-			}
-
 		}
 
 		// draw vertical lines
-		for (int c = 0; c <= 9; c++) {
-			float x = (c * mCellWidth) + paddingLeft;
+		for (int col = 0; col <= Grid.gridSize; col++) {
+			float x = (col * mCellWidth) + paddingLeft;
 			canvas.drawLine(x, paddingTop, x, height, mLinePaint);
 		}
 
 		// draw horizontal lines
-		for (int r = 0; r <= 9; r++) {
-			float y = r * mCellHeight + paddingTop;
+		for (int row = 0; row <= Grid.gridSize; row++) {
+			float y = row * mCellHeight + paddingTop;
 			canvas.drawLine(paddingLeft, y, width, y, mLinePaint);
 		}
-
-		int sectorLineWidth1 = mSectorLineWidth / 2;
-		int sectorLineWidth2 = sectorLineWidth1 + (mSectorLineWidth % 2);
-
-		// draw sector (thick) lines
-		// for (int c = 0; c <= 9; c = c + 3) {
-		// float x = (c * mCellWidth) + paddingLeft;
-		// canvas.drawRect(x - sectorLineWidth1, paddingTop, x
-		// + sectorLineWidth2, height, mSectorLinePaint);
-		// }
-
-		// for (int r = 0; r <= 9; r = r + 3) {
-		// float y = r * mCellHeight + paddingTop;
-		// canvas.drawRect(paddingLeft, y - sectorLineWidth1, width, y
-		// + sectorLineWidth2, mSectorLinePaint);
-		// }
-
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 
-		if (!mReadonly) {
-			int x = (int) event.getX();
-			int y = (int) event.getY();
+		int x = (int) event.getX();
+		int y = (int) event.getY();
 
-			switch (event.getAction()) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_MOVE:
-				mTouchedCell = getCellAtPoint(x, y);
-				break;
-			case MotionEvent.ACTION_UP:
-				mSelectedCell = getCellAtPoint(x, y);
-				invalidate(); // selected cell has changed, update board as soon
-								// as you can
+		switch (event.getAction()) {
+		case MotionEvent.ACTION_DOWN:
+		case MotionEvent.ACTION_MOVE:
+			mTouchedCell = getCellAtPoint(x, y);
+			break;
+		case MotionEvent.ACTION_UP:
+			mSelectedCell = getCellAtPoint(x, y);
+			invalidate(); // Update board when selected cell changes
 
-				if (mSelectedCell != null) {
-					onCellTapped(mSelectedCell);
-					onCellSelected(mSelectedCell);
-				}
-
-				if (mAutoHideTouchedCellHint) {
-					mTouchedCell = null;
-				}
-				break;
-			case MotionEvent.ACTION_CANCEL:
-				mTouchedCell = null;
-				break;
+			if (mSelectedCell != null) {
+				onCellTapped(mSelectedCell);
+				onCellSelected(mSelectedCell);
 			}
+
+			break;
+		case MotionEvent.ACTION_CANCEL:
+			mTouchedCell = null;
+			break;
+		default:
 			postInvalidate();
+			return false;
 		}
 
-		return !mReadonly;
+		postInvalidate();
+		return true;
 	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (!mReadonly) {
-			switch (keyCode) {
-			case KeyEvent.KEYCODE_DPAD_UP:
-				return moveCellSelection(0, -1);
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-				return moveCellSelection(1, 0);
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				return moveCellSelection(0, 1);
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-				return moveCellSelection(-1, 0);
-			case KeyEvent.KEYCODE_0:
-			case KeyEvent.KEYCODE_SPACE:
-			case KeyEvent.KEYCODE_DEL:
-				// clear value in selected cell
-				// TODO: I'm not really sure that this is thread-safe
-				if (mSelectedCell != null) {
-					if (event.isShiftPressed() || event.isAltPressed()) {
-						setCellNote(mSelectedCell, CellNote.EMPTY);
-					} else {
-						setCellValue(mSelectedCell, 0);
-						moveCellSelectionRight();
-					}
-				}
-				return true;
-			case KeyEvent.KEYCODE_DPAD_CENTER:
-				if (mSelectedCell != null) {
-					onCellTapped(mSelectedCell);
-				}
-				return true;
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_UP:
+			return moveCellSelection(0, -1);
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+			return moveCellSelection(1, 0);
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+			return moveCellSelection(0, 1);
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+			return moveCellSelection(-1, 0);
+		case KeyEvent.KEYCODE_0:
+		case KeyEvent.KEYCODE_SPACE:
+		case KeyEvent.KEYCODE_DEL:
+			// Clear value in selected cell
+			if (mSelectedCell != null) {
+				setCellValue(mSelectedCell, (char) 0);
+				moveCellSelectionRight();
 			}
-
-			if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9) {
-				int selNumber = keyCode - KeyEvent.KEYCODE_0;
-				Cell cell = mSelectedCell;
-
-				if (event.isShiftPressed() || event.isAltPressed()) {
-					// add or remove number in cell's note
-					setCellNote(cell, cell.getNote().toggleNumber(selNumber));
-				} else {
-					// enter number in cell
-					setCellValue(cell, selNumber);
-					moveCellSelectionRight();
-				}
-				return true;
+			return true;
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+			if (mSelectedCell != null) {
+				onCellTapped(mSelectedCell);
 			}
+			return true;
+		}
+
+		if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z) {
+			int selChar = keyCode + 36;
+			Cell cell = mSelectedCell;
+			// Enter number in cell
+			setCellValue(cell, (char) selChar);
+			moveCellSelectionRight();
+			return true;
 		}
 
 		return false;
@@ -619,22 +455,12 @@ public class CrosswordGridView extends View {
 		postInvalidate();
 	}
 
-	private void setCellValue(Cell cell, int value) {
+	private void setCellValue(Cell cell, char value) {
 		if (cell.isWhite()) {
 			if (mGame != null) {
 				mGame.setCellValue(cell, value);
 			} else {
 				cell.setValue(value);
-			}
-		}
-	}
-
-	private void setCellNote(Cell cell, CellNote note) {
-		if (cell.isWhite()) {
-			if (mGame != null) {
-				mGame.setCellNote(cell, note);
-			} else {
-				cell.setNote(note);
 			}
 		}
 	}
@@ -666,12 +492,16 @@ public class CrosswordGridView extends View {
 	 * @param row
 	 *            Row index of cell which should be selected.
 	 * @param col
-	 *            Columnd index of cell which should be selected.
-	 * @return True, if cell was successfuly selected.
+	 *            Column index of cell which should be selected.
+	 * @return True, if cell was successfully selected.
 	 */
 	private boolean moveCellSelectionTo(int row, int col) {
 		if (col >= 0 && col < Grid.gridSize && row >= 0 && row < Grid.gridSize) {
-			mSelectedCell = mCells.getCell(row, col);
+			Cell newCell = mGrid.getCell(row, col);
+			if (!newCell.isWhite()) {
+				return false;
+			}
+			mSelectedCell = newCell;
 			onCellSelected(mSelectedCell);
 
 			postInvalidate();
@@ -682,15 +512,14 @@ public class CrosswordGridView extends View {
 	}
 
 	/**
-	 * Returns cell at given screen coordinates. Returns null if no cell is
-	 * found.
+	 * Returns cell at given screen coordinates or null if not found.
 	 * 
 	 * @param x
 	 * @param y
-	 * @return
+	 * @return cell at point
 	 */
 	private Cell getCellAtPoint(int x, int y) {
-		// take into account padding
+		// Take into account padding
 		int lx = x - getPaddingLeft();
 		int ly = y - getPaddingTop();
 
@@ -698,7 +527,7 @@ public class CrosswordGridView extends View {
 		int col = (int) (lx / mCellWidth);
 
 		if (col >= 0 && col < Grid.gridSize && row >= 0 && row < Grid.gridSize) {
-			return mCells.getCell(row, col);
+			return mGrid.getCell(row, col);
 		} else {
 			return null;
 		}
@@ -721,25 +550,4 @@ public class CrosswordGridView extends View {
 	public interface OnCellSelectedListener {
 		void onCellSelected(Cell cell);
 	}
-
-	// private String getMeasureSpecModeString(int mode) {
-	// String modeString = null;
-	// switch (mode) {
-	// case MeasureSpec.AT_MOST:
-	// modeString = "MeasureSpec.AT_MOST";
-	// break;
-	// case MeasureSpec.EXACTLY:
-	// modeString = "MeasureSpec.EXACTLY";
-	// break;
-	// case MeasureSpec.UNSPECIFIED:
-	// modeString = "MeasureSpec.UNSPECIFIED";
-	// break;
-	// }
-	//
-	// if (modeString == null)
-	// modeString = new Integer(mode).toString();
-	//
-	// return modeString;
-	// }
-
 }
