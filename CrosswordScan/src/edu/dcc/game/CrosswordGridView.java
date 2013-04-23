@@ -94,22 +94,22 @@ public class CrosswordGridView extends View {
 				R.styleable.CrosswordGridView);
 
 		setLineColor(a.getColor(R.styleable.CrosswordGridView_lineColor,
-				Color.BLACK));
+				R.color.black));
 		setTextColor(a.getColor(R.styleable.CrosswordGridView_textColor,
-				Color.BLACK));
+				R.color.black));
 		setTextColorClueNum(a.getColor(
-				R.styleable.CrosswordGridView_textColorNote, Color.BLACK));
+				R.styleable.CrosswordGridView_textColorNote, R.color.black));
 		setBackgroundColor(a.getColor(
-				R.styleable.CrosswordGridView_backgroundColor, Color.WHITE));
+				R.styleable.CrosswordGridView_backgroundColor, R.color.white));
 		setBackgroundColorBlackCell(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorBlackCell,
-				Color.BLACK));
+				R.color.black));
 		setBackgroundColorEntry(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorEntry,
 				R.color.blue));
 		setBackgroundColorSelected(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorSelected,
-				Color.YELLOW));
+				R.color.yellow));
 
 		a.recycle();
 	}
@@ -315,11 +315,9 @@ public class CrosswordGridView extends View {
 
 					// Draw black cells
 					if (!cell.isWhite()) {
-						if (mBackgroundColorBlackCell.getColor() != NO_COLOR) {
-							canvas.drawRect(cellLeft, cellTop, cellLeft
-									+ mCellWidth, cellTop + mCellHeight,
-									mBackgroundColorBlackCell);
-						}
+						canvas.drawRect(cellLeft, cellTop, cellLeft
+								+ mCellWidth, cellTop + mCellHeight,
+								mBackgroundColorBlackCell);
 					}
 
 					// Draw cell text

@@ -18,11 +18,11 @@
     <string name="no">No</string>
 
     <!-- Name Puzzle Activity -->
-    <string name="title_activity_name_puzzle">Name This Puzzle</string>
+    <string name="title_activity_name_puzzle">Name Your Puzzle</string>
     <string name="enter">Enter</string>
     <string name="puzzle_scanned">Puzzle Scanned!</string>
     <string name="crossword_grid">Crossword Grid</string>
-    <string name="grid_correct">Press back if this grid does not look correct.</string>
+    <string name="grid_correct">Press back if this grid is incorrect</string>
 
     <!-- Scanned Puzzles Activity -->
     <string name="title_activity_puzzle_list">Puzzle List</string>
