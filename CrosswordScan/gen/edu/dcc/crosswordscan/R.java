@@ -169,7 +169,7 @@ containing a value of this type.
         public static final int x_icon=0x7f020008;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a0010;
+        public static final int action_settings=0x7f0a0011;
         public static final int button_list=0x7f0a000e;
         public static final int camera_preview=0x7f0a000b;
         public static final int clue_bar=0x7f0a0001;
@@ -180,12 +180,13 @@ containing a value of this type.
         public static final int enter_button=0x7f0a0009;
         public static final int grid_correct=0x7f0a0003;
         public static final int menu_help=0x7f0a000d;
-        public static final int menu_settings=0x7f0a000f;
+        public static final int menu_settings=0x7f0a0010;
         public static final int photo_button=0x7f0a000c;
         public static final int puzzle_scanned=0x7f0a0002;
         public static final int rejectButton=0x7f0a0005;
         public static final int relativeLayout1=0x7f0a000a;
         public static final int scan_button=0x7f0a0006;
+        public static final int title=0x7f0a000f;
     }
     public static final class layout {
         public static final int activity_complete_puzzle=0x7f030000;
@@ -197,6 +198,7 @@ containing a value of this type.
         public static final int activity_test=0x7f030006;
         public static final int menu=0x7f030007;
         public static final int puzzle_actions_list=0x7f030008;
+        public static final int puzzle_list_item=0x7f030009;
     }
     public static final class menu {
         public static final int activity_grid=0x7f090000;
