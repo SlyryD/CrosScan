@@ -31,10 +31,20 @@
     <string name="play_puzzle">Play Puzzle</string>
     <string name="puzzle_info">Puzzle Info</string>
     <string name="delete_puzzle">Delete Puzzle</string>
+    <string name="delete_puzzle_confirm">Are you sure you want to delete selected puzzle?</string>
+    <string name="reset_puzzle_confirm">Are you sure you want to reset selected puzzle?</string>
+    <string name="no_puzzles">No puzzles</string>
+    <string name="one_puzzle">1 puzzle</string>
+    <string name="n_puzzles">%s puzzles</string>
+    <string name="n_playing">%s playing</string>
 
     <!-- Complete Puzzle Activity -->
     <string name="title_activity_complete_puzzle">first puzzle</string>
     <string name="mock_clue">1a. Baseball units (4)</string>
+    <string name="undo">Undo</string>
+    <string name="restart">Restart</string>
+    <string name="restart_confirm">Are you sure you want to restart this game?</string>
+    <string name="settings">Settings</string>
 
     <!-- Menu -->
     <string name="action_settings">Settings</string>
@@ -42,5 +52,6 @@
     <string name="title_activity_list_view_loader">ListViewLoader</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_test">TestActivity</string>
+    <string name="title_activity_puzzle_info">PuzzleInfoActivity</string>
 
 </resources>

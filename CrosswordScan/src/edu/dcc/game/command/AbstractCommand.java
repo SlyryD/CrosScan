@@ -24,7 +24,7 @@ import android.os.Bundle;
 
 /**
  * Generic interface for command in application.
- *
+ * 
  * @author romario
  */
 public abstract class AbstractCommand {
@@ -33,7 +33,8 @@ public abstract class AbstractCommand {
 		if (commandClass.equals(SetCellValueCommand.class.getSimpleName())) {
 			return new SetCellValueCommand();
 		} else {
-			throw new IllegalArgumentException(String.format("Unknown command class '%s'.", commandClass));
+			throw new IllegalArgumentException(String.format(
+					"Unknown command class '%s'.", commandClass));
 		}
 	}
 

@@ -30,7 +30,7 @@ public class Grid {
 
 	// Cells in this grid.
 	private Cell[][] mCells;
-	
+
 	// Clue numbers
 	public int acrossClueNum, downClueNum;
 
@@ -68,7 +68,7 @@ public class Grid {
 		acrossClueNum = downClueNum = 0;
 		mAcross = new ArrayList<Entry>();
 		mDown = new ArrayList<Entry>();
-	
+
 		// Traverse grid
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
@@ -282,15 +282,13 @@ public class Grid {
 	public static Grid fromString(String data) {
 		Cell[][] cells = new Cell[gridSize][gridSize];
 
-		int pos = 0;
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
 				char value = 0;
-				while (pos < data.length()) {
-					pos++;
-					if ((data.charAt(pos - 1) >= 65 && data.charAt(pos - 1) <= 90)
-							|| data.charAt(pos - 1) == 0) {
-						value = data.charAt(pos - 1);
+				for (int pos = 0; pos < data.length(); pos++) {
+					if ((data.charAt(pos) >= 65 && data.charAt(pos) <= 90)
+							|| data.charAt(pos) == 0) {
+						value = data.charAt(pos);
 						break;
 					}
 				}

@@ -193,12 +193,13 @@ containing a value of this type.
         public static final int activity_confirm_grid=0x7f030001;
         public static final int activity_main=0x7f030002;
         public static final int activity_name_puzzle=0x7f030003;
-        public static final int activity_puzzle_list=0x7f030004;
-        public static final int activity_scan=0x7f030005;
-        public static final int activity_test=0x7f030006;
-        public static final int menu=0x7f030007;
-        public static final int puzzle_actions_list=0x7f030008;
-        public static final int puzzle_list_item=0x7f030009;
+        public static final int activity_puzzle_info=0x7f030004;
+        public static final int activity_puzzle_list=0x7f030005;
+        public static final int activity_scan=0x7f030006;
+        public static final int activity_test=0x7f030007;
+        public static final int menu=0x7f030008;
+        public static final int puzzle_actions_list=0x7f030009;
+        public static final int puzzle_list_item=0x7f03000a;
     }
     public static final class menu {
         public static final int activity_grid=0x7f090000;
@@ -207,26 +208,32 @@ containing a value of this type.
         public static final int complete_puzzle=0x7f090003;
         public static final int confirm_grid=0x7f090004;
         public static final int name_puzzle=0x7f090005;
-        public static final int puzzle_list=0x7f090006;
-        public static final int test=0x7f090007;
+        public static final int puzzle_info=0x7f090006;
+        public static final int puzzle_list=0x7f090007;
+        public static final int test=0x7f090008;
     }
     public static final class string {
         /**  Menu 
          */
-        public static final int action_settings=0x7f070015;
+        public static final int action_settings=0x7f07001f;
         /**  Main Activity 
          */
         public static final int app_name=0x7f070000;
         public static final int complete_puzzle=0x7f070003;
         public static final int crossword_grid=0x7f07000d;
         public static final int delete_puzzle=0x7f070012;
+        public static final int delete_puzzle_confirm=0x7f070013;
         public static final int enter=0x7f07000b;
         public static final int grid_correct=0x7f07000e;
-        public static final int hello_world=0x7f070018;
-        public static final int help=0x7f070016;
+        public static final int hello_world=0x7f070022;
+        public static final int help=0x7f070020;
         public static final int menu_settings=0x7f070001;
-        public static final int mock_clue=0x7f070014;
+        public static final int mock_clue=0x7f07001a;
+        public static final int n_playing=0x7f070018;
+        public static final int n_puzzles=0x7f070017;
         public static final int no=0x7f070009;
+        public static final int no_puzzles=0x7f070015;
+        public static final int one_puzzle=0x7f070016;
         public static final int photo=0x7f070006;
         public static final int placeholder=0x7f070005;
         /**  Puzzle List Activity 
@@ -234,24 +241,30 @@ containing a value of this type.
         public static final int play_puzzle=0x7f070010;
         public static final int puzzle_info=0x7f070011;
         public static final int puzzle_scanned=0x7f07000c;
+        public static final int reset_puzzle_confirm=0x7f070014;
+        public static final int restart=0x7f07001c;
+        public static final int restart_confirm=0x7f07001d;
         public static final int scan_puzzle=0x7f070002;
+        public static final int settings=0x7f07001e;
         /**  Complete Puzzle Activity 
          */
-        public static final int title_activity_complete_puzzle=0x7f070013;
+        public static final int title_activity_complete_puzzle=0x7f070019;
         /**  Confirm Grid Activity 
          */
         public static final int title_activity_confirm_grid=0x7f070007;
-        public static final int title_activity_list_view_loader=0x7f070017;
+        public static final int title_activity_list_view_loader=0x7f070021;
         /**  Name Puzzle Activity 
          */
         public static final int title_activity_name_puzzle=0x7f07000a;
+        public static final int title_activity_puzzle_info=0x7f070024;
         /**  Scanned Puzzles Activity 
          */
         public static final int title_activity_puzzle_list=0x7f07000f;
         /**  Scan Activity 
          */
         public static final int title_activity_scan=0x7f070004;
-        public static final int title_activity_test=0x7f070019;
+        public static final int title_activity_test=0x7f070023;
+        public static final int undo=0x7f07001b;
         public static final int yes=0x7f070008;
     }
     public static final class style {

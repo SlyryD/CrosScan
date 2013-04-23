@@ -6,11 +6,11 @@ import android.os.AsyncTask;
 public class ScanTask extends AsyncTask<Void, Void, Void> {
 
 	ProgressDialog progressDialog;
-	
+
 	public ScanTask(ProgressDialog progressDialog) {
 		this.progressDialog = progressDialog;
 	}
-	
+
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
@@ -18,13 +18,13 @@ public class ScanTask extends AsyncTask<Void, Void, Void> {
 		progressDialog.setMessage("Please Wait...");
 		progressDialog.show();
 	}
-	
+
 	@Override
 	protected void onPostExecute(Void result) {
-//		super.onPostExecute(result);
+		// super.onPostExecute(result);
 		progressDialog.dismiss();
 	}
-	
+
 	@Override
 	protected Void doInBackground(Void... arg0) {
 		try {
@@ -34,6 +34,5 @@ public class ScanTask extends AsyncTask<Void, Void, Void> {
 		}
 		return null;
 	}
-	
-	
+
 }

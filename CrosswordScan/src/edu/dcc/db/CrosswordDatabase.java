@@ -122,9 +122,6 @@ public class CrosswordDatabase {
 				}
 
 				folder.puzzleCount += count;
-				if (state == CrosswordGame.GAME_STATE_COMPLETED) {
-					folder.solvedCount += count;
-				}
 				if (state == CrosswordGame.GAME_STATE_PLAYING) {
 					folder.playingCount += count;
 				}
@@ -246,8 +243,6 @@ public class CrosswordDatabase {
 	 *            Primary key of folder.
 	 */
 	public void deleteFolder(long folderID) {
-
-		// TODO: should run in transaction
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		// delete all puzzles in folder we are going to delete
 		db.delete(CROSSWORD_TABLE_NAME, CrosswordColumns.FOLDER_ID + "="
@@ -263,27 +258,12 @@ public class CrosswordDatabase {
 	 *            Primary key of folder.
 	 * @return
 	 */
-	public Cursor getCrosswordList(long folderID, CrosswordListFilter filter) {
+	public Cursor getCrosswordList(long folderID) {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
 		qb.setTables(CROSSWORD_TABLE_NAME);
 		// qb.setProjectionMap(sPlacesProjectionMap);
 		qb.appendWhere(CrosswordColumns.FOLDER_ID + "=" + folderID);
-
-		if (filter != null) {
-			if (!filter.showStateCompleted) {
-				qb.appendWhere(" and " + CrosswordColumns.STATE + "!="
-						+ CrosswordGame.GAME_STATE_COMPLETED);
-			}
-			if (!filter.showStateNotStarted) {
-				qb.appendWhere(" and " + CrosswordColumns.STATE + "!="
-						+ CrosswordGame.GAME_STATE_NOT_STARTED);
-			}
-			if (!filter.showStatePlaying) {
-				qb.appendWhere(" and " + CrosswordColumns.STATE + "!="
-						+ CrosswordGame.GAME_STATE_PLAYING);
-			}
-		}
 
 		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		return qb.query(db, null, null, null, null, null, "created DESC");
@@ -321,17 +301,14 @@ public class CrosswordDatabase {
 						.getColumnIndex(CrosswordColumns.LAST_PLAYED));
 				int state = c.getInt(c.getColumnIndex(CrosswordColumns.STATE));
 				long time = c.getLong(c.getColumnIndex(CrosswordColumns.TIME));
-				String note = c.getString(c
-						.getColumnIndex(CrosswordColumns.PUZZLE_NOTE));
 
 				s = new CrosswordGame();
 				s.setId(id);
 				s.setCreated(created);
-				s.setCells(Grid.deserialize(data));
+				s.setGrid(Grid.deserialize(data));
 				s.setLastPlayed(lastPlayed);
 				s.setState(state);
 				s.setTime(time);
-				s.setNote(note);
 			}
 		} finally {
 			if (c != null)
@@ -353,12 +330,11 @@ public class CrosswordDatabase {
 	public long insertCrossword(long folderID, CrosswordGame crossword) {
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getCells().serialize());
+		values.put(CrosswordColumns.DATA, crossword.getGrid().serialize());
 		values.put(CrosswordColumns.CREATED, crossword.getCreated());
 		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());
-		values.put(CrosswordColumns.PUZZLE_NOTE, crossword.getNote());
 		values.put(CrosswordColumns.FOLDER_ID, folderID);
 
 		long rowId = db
@@ -448,11 +424,10 @@ public class CrosswordDatabase {
 	 */
 	public void updateCrossword(CrosswordGame crossword) {
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getCells().serialize());
+		values.put(CrosswordColumns.DATA, crossword.getGrid().serialize());
 		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());
-		values.put(CrosswordColumns.PUZZLE_NOTE, crossword.getNote());
 
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		db.update(CROSSWORD_TABLE_NAME, values, CrosswordColumns._ID + "="

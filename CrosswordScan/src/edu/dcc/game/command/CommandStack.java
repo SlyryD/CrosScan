@@ -28,7 +28,8 @@ public class CommandStack {
 		int stackSize = inState.getInt("cmdStack.size");
 		for (int i = 0; i < stackSize; i++) {
 			Bundle commandState = inState.getBundle("cmdStack." + i);
-			AbstractCommand command = AbstractCommand.newInstance(commandState.getString("commandClass"));
+			AbstractCommand command = AbstractCommand.newInstance(commandState
+					.getString("commandClass"));
 			command.restoreState(commandState);
 			push(command);
 		}
@@ -67,8 +68,8 @@ public class CommandStack {
 
 	public void undoToCheckpoint() {
 		/*
-		 * I originally planned to just call undo but this way it doesn't need to 
-		 * validateCells() until the run is complete
+		 * I originally planned to just call undo but this way it doesn't need
+		 * to validateCells() until the run is complete
 		 */
 		AbstractCommand c;
 		while (!mCommandStack.empty()) {
@@ -80,7 +81,6 @@ public class CommandStack {
 			}
 		}
 	}
-
 
 	public boolean hasSomethingToUndo() {
 		return mCommandStack.size() != 0;

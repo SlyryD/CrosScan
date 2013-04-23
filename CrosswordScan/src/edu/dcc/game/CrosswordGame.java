@@ -30,7 +30,6 @@ public class CrosswordGame {
 
 	public static final int GAME_STATE_PLAYING = 0;
 	public static final int GAME_STATE_NOT_STARTED = 1;
-	public static final int GAME_STATE_COMPLETED = 2;
 
 	private long mId;
 	private long mCreated;
@@ -223,7 +222,6 @@ public class CrosswordGame {
 	 */
 	private void finish() {
 		pause();
-		mState = GAME_STATE_COMPLETED;
 	}
 
 	/**
