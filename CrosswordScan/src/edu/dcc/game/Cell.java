@@ -78,7 +78,7 @@ public class Cell {
 	}
 
 	private Cell(char value, int clueNum, boolean white) {
-		if (value != 0 || value < 65 || value > 90) {
+		if ((value != 0 && value < 65) || value > 90) {
 			throw new IllegalArgumentException("Value must be a character.");
 		}
 
@@ -130,8 +130,10 @@ public class Cell {
 		mAcross = across;
 		mDown = down;
 
-		across.addCell(this);
-		down.addCell(this);
+		if (across != null && down != null) {
+			across.addCell(this);
+			down.addCell(this);
+		}
 	}
 
 	/**
@@ -159,7 +161,7 @@ public class Cell {
 	 *            Character or 0 if cell is empty.
 	 */
 	public void setValue(char value) {
-		if (value != 0 || value < 65 || value > 90) {
+		if ((value != 0 && value < 65) || value > 90) {
 			throw new IllegalArgumentException("Value must be a character.");
 		}
 		mValue = value;
@@ -178,7 +180,7 @@ public class Cell {
 	public Entry getEntry() {
 		return mGrid.isAcrossMode() ? mAcross : mDown;
 	}
-	
+
 	/**
 	 * @return the mClueNum
 	 */
@@ -222,9 +224,9 @@ public class Cell {
 	 */
 	public static Cell deserialize(StringTokenizer data) {
 		Cell cell = new Cell();
+		cell.setWhite(data.nextToken().equals("1"));
 		cell.setValue(data.nextToken().charAt(0));
 		cell.setClueNum(Integer.parseInt(data.nextToken()));
-		cell.setWhite(data.nextToken().equals("1"));
 
 		return cell;
 	}
@@ -249,13 +251,13 @@ public class Cell {
 	 * @param data
 	 */
 	public void serialize(StringBuilder data) {
+		data.append(mWhite ? "1" : "0").append("|");
 		data.append(mValue).append("|");
-		if (mClueNum == 0) {
+		if (mClueNum < 1) {
 			data.append("-").append("|");
 		} else {
 			data.append(mClueNum).append("|");
 		}
-		data.append(mWhite ? "1" : "0").append("|");
 	}
 
 	public String serialize() {

@@ -155,8 +155,8 @@ public class CrosswordGame {
 		if (cell == null) {
 			throw new IllegalArgumentException("Cell cannot be null.");
 		}
-		if (value != 0 || value < 65 || value > 90) {
-			throw new IllegalArgumentException("Value must be between 0-9.");
+		if ((value != 0 && value < 65) || value > 90) {
+			throw new IllegalArgumentException("Value must be a character.");
 		}
 
 		if (cell.isWhite()) {

@@ -1,23 +1,3 @@
-/* 
- * Copyright (C) 2009 Roman Masek
- * 
- * This file is part of OpenSudoku.
- * 
- * OpenSudoku is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * OpenSudoku is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with OpenSudoku.  If not, see <http://www.gnu.org/licenses/>.
- * 
- */
-
 package edu.dcc.game;
 
 import java.util.ArrayList;
@@ -34,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public class Grid {
 
-	// TODO: Get these values somehow
+	// TODO: Get this value somehow
 	public static final int gridSize = 13;
 
 	/**
@@ -48,14 +28,15 @@ public class Grid {
 	 */
 	public static int DATA_VERSION_1 = 1;
 
-	public static int acrossClueNum = 1, downClueNum = 1;
-
 	// Cells in this grid.
 	private Cell[][] mCells;
+	
+	// Clue numbers
+	public int acrossClueNum, downClueNum;
 
 	// Helper arrays containing references to crossword entries
-	private Entry[] mAcross;
-	private Entry[] mDown;
+	private ArrayList<Entry> mAcross;
+	private ArrayList<Entry> mDown;
 
 	private boolean mAcrossMode;
 
@@ -63,13 +44,50 @@ public class Grid {
 
 	private final List<OnChangeListener> mChangeListeners = new ArrayList<OnChangeListener>();
 
-	public Grid(int size, int[][] cells) {
-		// this.gridSize = size;
-		mCells = new Cell[size][size];
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+	/**
+	 * Create black and white grid from cells given
+	 * 
+	 * @param cells
+	 */
+	public Grid(int[][] cells) {
+		mCells = new Cell[gridSize][gridSize];
+		for (int row = 0; row < gridSize; row++) {
+			for (int col = 0; col < gridSize; col++) {
 				mCells[row][col] = (cells[row][col] == 1) ? new Cell(true)
 						: new Cell();
+			}
+		}
+		initGrid();
+	}
+
+	/**
+	 * Initializes grid: Groups of cells that contain entries, row and column
+	 * index for each cell.
+	 */
+	private void initGrid() {
+		acrossClueNum = downClueNum = 0;
+		mAcross = new ArrayList<Entry>();
+		mDown = new ArrayList<Entry>();
+	
+		// Traverse grid
+		for (int row = 0; row < gridSize; row++) {
+			for (int col = 0; col < gridSize; col++) {
+				if (mCells[row][col].isWhite()) {
+					// Create Across and Down entries for white cell
+					if (row == 0 || !mCells[row - 1][col].isWhite()) {
+						downClueNum++;
+						mDown.add(new Entry(downClueNum));
+					}
+					if (col == 0 || !mCells[row][col - 1].isWhite()) {
+						acrossClueNum++;
+						mAcross.add(new Entry(acrossClueNum));
+					}
+					// Initialize cell index and add to entry
+					mCells[row][col].initGrid(this, row, col,
+							mAcross.get(acrossClueNum), mDown.get(downClueNum));
+				} else {
+					mCells[row][col].initGrid(this, row, col, null, null);
+				}
 			}
 		}
 	}
@@ -209,39 +227,6 @@ public class Grid {
 	}
 
 	/**
-	 * Initializes grid: 1) 2) Groups of cells which must contain unique numbers
-	 * are created. 3) Row and column index for each cell is set.
-	 */
-	private void initGrid() {
-
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
-				mCells[row][col].initGrid(this, row, col, mAcross[col],
-						mDown[row]);
-			}
-		}
-
-		// TODO: Num of Across and down clues not dependent on grid size
-		mAcross = new Entry[gridSize];
-		mDown = new Entry[gridSize];
-
-		for (int i = 0; i < gridSize; i++) {
-			mAcross[i] = new Entry(acrossClueNum++);
-		}
-
-		for (int i = 0; i < gridSize; i++) {
-			mDown[i] = new Entry(downClueNum++);
-		}
-
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
-				mCells[row][col].initGrid(this, row, col, mAcross[col],
-						mDown[row]);
-			}
-		}
-	}
-
-	/**
 	 * Creates instance from given <code>StringTokenizer</code>.
 	 * 
 	 * @param data
@@ -295,8 +280,6 @@ public class Grid {
 	 * @return grid
 	 */
 	public static Grid fromString(String data) {
-		// TODO: validate
-
 		Cell[][] cells = new Cell[gridSize][gridSize];
 
 		int pos = 0;
@@ -305,9 +288,8 @@ public class Grid {
 				char value = 0;
 				while (pos < data.length()) {
 					pos++;
-					if (data.charAt(pos - 1) >= '0'
-							&& data.charAt(pos - 1) <= '9') {
-						// value=Integer.parseInt(data.substring(pos-1, pos));
+					if ((data.charAt(pos - 1) >= 65 && data.charAt(pos - 1) <= 90)
+							|| data.charAt(pos - 1) == 0) {
 						value = data.charAt(pos - 1);
 						break;
 					}
@@ -393,29 +375,6 @@ public class Grid {
 			mChangeListeners.remove(listener);
 		}
 	}
-
-	/**
-	 * Returns whether change notification is enabled.
-	 * 
-	 * If true, change notifications are distributed to the listeners registered
-	 * by {@link #addOnChangeListener(OnChangeListener)}.
-	 * 
-	 * @return
-	 */
-	// public boolean isOnChangeEnabled() {
-	// return mOnChangeEnabled;
-	// }
-	//
-	// /**
-	// * Enables or disables change notifications, that are distributed to the
-	// listeners
-	// * registered by {@link #addOnChangeListener(OnChangeListener)}.
-	// *
-	// * @param onChangeEnabled
-	// */
-	// public void setOnChangeEnabled(boolean onChangeEnabled) {
-	// mOnChangeEnabled = onChangeEnabled;
-	// }
 
 	/**
 	 * Notify all registered listeners that something has changed.
