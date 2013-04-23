@@ -94,22 +94,22 @@ public class CrosswordGridView extends View {
 				R.styleable.CrosswordGridView);
 
 		setLineColor(a.getColor(R.styleable.CrosswordGridView_lineColor,
-				R.color.black));
+				Color.BLACK));
 		setTextColor(a.getColor(R.styleable.CrosswordGridView_textColor,
-				R.color.black));
+				Color.BLACK));
 		setTextColorClueNum(a.getColor(
-				R.styleable.CrosswordGridView_textColorNote, R.color.black));
+				R.styleable.CrosswordGridView_textColorNote, Color.BLACK));
 		setBackgroundColor(a.getColor(
-				R.styleable.CrosswordGridView_backgroundColor, R.color.white));
+				R.styleable.CrosswordGridView_backgroundColor, Color.WHITE));
 		setBackgroundColorBlackCell(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorBlackCell,
-				R.color.black));
+				Color.BLACK));
 		setBackgroundColorEntry(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorEntry,
-				R.color.blue));
+				Color.rgb(50, 50, 255)));
 		setBackgroundColorSelected(a.getColor(
 				R.styleable.CrosswordGridView_backgroundColorSelected,
-				R.color.yellow));
+				Color.YELLOW));
 
 		a.recycle();
 	}

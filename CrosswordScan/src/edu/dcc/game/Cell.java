@@ -23,7 +23,7 @@ package edu.dcc.game;
 import java.util.StringTokenizer;
 
 /**
- * Crossword cell. Every cell has value, some notes attached to it and some
+ * Crossword cell. Every cell has value, some clueNums attached to it and some
  * basic state (whether it is white and valid).
  * 
  * @author Ryan
@@ -276,5 +276,9 @@ public class Cell {
 			}
 
 		}
+	}
+	
+	public String toString() {
+		return mWhite ? "O" : "X";
 	}
 }

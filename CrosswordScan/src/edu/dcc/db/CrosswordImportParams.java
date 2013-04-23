@@ -8,7 +8,7 @@ public class CrosswordImportParams {
 	public long time;
 	public long lastPlayed;
 	public String data;
-	public String note;
+	public String title;
 
 	public void clear() {
 		created = 0;
@@ -16,6 +16,6 @@ public class CrosswordImportParams {
 		time = 0;
 		lastPlayed = 0;
 		data = null;
-		note = null;
+		title = null;
 	}
 }

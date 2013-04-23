@@ -84,7 +84,7 @@ public class Grid {
 					}
 					// Initialize cell index and add to entry
 					mCells[row][col].initGrid(this, row, col,
-							mAcross.get(acrossClueNum), mDown.get(downClueNum));
+							mAcross.get(acrossClueNum - 1), mDown.get(downClueNum - 1));
 				} else {
 					mCells[row][col].initGrid(this, row, col, null, null);
 				}
@@ -273,8 +273,8 @@ public class Grid {
 
 	/**
 	 * Creates grid instance from given string. String is expected to be in
-	 * format "00002343243202...", where each number represents cell value, no
-	 * other information can be set using this method.
+	 * format "1A1B1C00000000...", where each number represents cell color and
+	 * each letter its entry.
 	 * 
 	 * @param data
 	 * @return grid
@@ -282,21 +282,21 @@ public class Grid {
 	public static Grid fromString(String data) {
 		Cell[][] cells = new Cell[gridSize][gridSize];
 
+		int pos = 0;
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
 				char value = 0;
-				for (int pos = 0; pos < data.length(); pos++) {
-					if ((data.charAt(pos) >= 65 && data.charAt(pos) <= 90)
-							|| data.charAt(pos) == 0) {
-						value = data.charAt(pos);
-						break;
-					}
+				Cell cell = data.charAt(pos++) == '1' ? new Cell(true)
+						: new Cell();
+				if ((data.charAt(pos) >= 65 && data.charAt(pos) <= 90)) {
+					value = data.charAt(pos);
 				}
-				Cell cell = new Cell();
+				pos++;
 				cell.setValue(value);
-				cell.setWhite(value == 0);
 				cells[row][col] = cell;
+				System.out.print(cell);
 			}
+			System.out.println();
 		}
 
 		return new Grid(cells);
@@ -327,7 +327,7 @@ public class Grid {
 	private static Pattern DATA_PATTERN_VERSION_PLAIN = Pattern
 			.compile("^\\d{81}$");
 	private static Pattern DATA_PATTERN_VERSION_1 = Pattern
-			.compile("^version: 1\\n((?#value)\\d\\|(?#note)((\\d,)+|-)\\|(?#editable)[01]\\|){0,81}$");
+			.compile("^version: 1\\n((?#white)[01]\\|(?#value)\\w\\|(?#clueNum)((\\d,)+|-)\\|){0,81}$");
 
 	/**
 	 * Returns true, if given <code>data</code> conform to format of given data

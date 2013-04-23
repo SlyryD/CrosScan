@@ -32,6 +32,7 @@ public class CrosswordGame {
 	public static final int GAME_STATE_NOT_STARTED = 1;
 
 	private long mId;
+	private String mTitle;
 	private long mCreated;
 	private int mState;
 	private long mTime;
@@ -65,6 +66,7 @@ public class CrosswordGame {
 		outState.putLong("time", mTime);
 		outState.putLong("lastPlayed", mLastPlayed);
 		outState.putString("cells", mGrid.serialize());
+		outState.putString("title", mTitle);
 
 		mCommandStack.saveState(outState);
 	}
@@ -76,6 +78,7 @@ public class CrosswordGame {
 		mTime = inState.getLong("time");
 		mLastPlayed = inState.getLong("lastPlayed");
 		mGrid = Grid.deserialize(inState.getString("cells"));
+		mTitle = inState.getString("title");
 
 		mCommandStack = new CommandStack(mGrid);
 		mCommandStack.restoreState(inState);
@@ -142,6 +145,20 @@ public class CrosswordGame {
 
 	public long getId() {
 		return mId;
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return mTitle;
+	}
+
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.mTitle = title;
 	}
 
 	/**

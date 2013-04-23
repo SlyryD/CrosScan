@@ -22,7 +22,7 @@ import edu.dcc.game.CrosswordGridView;
 
 public class CompletePuzzleActivity extends Activity {
 
-	public static final String EXTRA_SUDOKU_ID = "crossword_id";
+	public static final String EXTRA_CROSSWORD_ID = "crossword_id";
 
 	public static final int MENU_ITEM_RESTART = Menu.FIRST;
 
@@ -37,7 +37,7 @@ public class CompletePuzzleActivity extends Activity {
 
 	private ViewGroup mRootLayout;
 	private CrosswordGridView mCrosswordGrid;
-	private TextView mTimeLabel;
+//	private TextView mTimeLabel;
 
 	// private IMControlPanel mIMControlPanel;
 	// private IMControlPanelStatePersister mIMControlPanelStatePersister;
@@ -67,7 +67,7 @@ public class CompletePuzzleActivity extends Activity {
 			mFullScreen = true;
 		}
 
-		// mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
+		mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
 		mCrosswordGrid = (CrosswordGridView) findViewById(R.id.crossword_grid);
 		// mTimeLabel = (TextView) findViewById(R.id.time_label);
 
@@ -79,7 +79,7 @@ public class CompletePuzzleActivity extends Activity {
 		// create crossword game instance
 		if (savedInstanceState == null) {
 			// activity runs for the first time, read game from database
-			mCrosswordGameID = getIntent().getLongExtra(EXTRA_SUDOKU_ID, 0);
+			mCrosswordGameID = getIntent().getLongExtra(EXTRA_CROSSWORD_ID, 0);
 			mCrosswordGame = mDatabase.getCrossword(mCrosswordGameID);
 		} else {
 			// activity has been running before, restore its state
@@ -122,8 +122,8 @@ public class CompletePuzzleActivity extends Activity {
 				mGameTimer.start();
 			}
 		}
-		mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE
-				: View.GONE);
+//		mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE
+//				: View.GONE);
 
 		// mIMPopup.setEnabled(gameSettings.getBoolean("im_popup", true));
 		// mIMSingleNumber.setEnabled(gameSettings.getBoolean("im_single_number",
@@ -281,8 +281,8 @@ public class CompletePuzzleActivity extends Activity {
 	void updateTime() {
 		if (mShowTime) {
 			setTitle(mGameTimeFormatter.format(mCrosswordGame.getTime()));
-			mTimeLabel.setText(mGameTimeFormatter.format(mCrosswordGame
-					.getTime()));
+			// mTimeLabel.setText(mGameTimeFormatter.format(mCrosswordGame
+			// .getTime()));
 		} else {
 			setTitle(R.string.app_name);
 		}

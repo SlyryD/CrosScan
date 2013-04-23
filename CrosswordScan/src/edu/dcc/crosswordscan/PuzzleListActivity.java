@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.TextView;
 import edu.dcc.db.CrosswordColumns;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.db.FolderDetailLoader;
@@ -55,12 +54,14 @@ public class PuzzleListActivity extends ListActivity {
 		mDatabase = new CrosswordDatabase(getApplicationContext());
 		mFolderDetailLoader = new FolderDetailLoader(getApplicationContext());
 
+		mFolderID = 1;
+
 		mAdapter = new SimpleCursorAdapter(this, R.layout.puzzle_list_item,
 				null, new String[] { CrosswordColumns.TITLE },
 				new int[] { R.id.title });
 
-		mAdapter.setViewText((TextView) findViewById(R.id.title),
-				CrosswordColumns.TITLE);
+		// mAdapter.setViewText((TextView) findViewById(R.id.title),
+		// CrosswordColumns.TITLE);
 		updateList();
 		setListAdapter(mAdapter);
 	}
@@ -171,7 +172,7 @@ public class PuzzleListActivity extends ListActivity {
 		case MENU_ITEM_INFO:
 			Intent intent = new Intent(this, PuzzleInfoActivity.class);
 			intent.setAction(Intent.ACTION_EDIT);
-			// intent.putExtra(PuzzleInfoActivity.EXTRA_SUDOKU_ID, info.id);
+			// intent.putExtra(PuzzleInfoActivity.EXTRA_CROSSWORD_ID, info.id);
 			startActivity(intent);
 			return true;
 		case MENU_ITEM_DELETE:
@@ -214,6 +215,9 @@ public class PuzzleListActivity extends ListActivity {
 			stopManagingCursor(mCursor);
 		}
 		mCursor = mDatabase.getCrosswordList(mFolderID);
+		for (String name : mCursor.getColumnNames()) {
+			System.out.println(name);
+		}
 		startManagingCursor(mCursor);
 		mAdapter.changeCursor(mCursor);
 	}
@@ -221,7 +225,7 @@ public class PuzzleListActivity extends ListActivity {
 	/** Called when the user clicks the Play Puzzle button */
 	public void playTransition(long id) {
 		Intent intent = new Intent(this, CompletePuzzleActivity.class);
-		intent.putExtra(CompletePuzzleActivity.EXTRA_SUDOKU_ID, id);
+		intent.putExtra(CompletePuzzleActivity.EXTRA_CROSSWORD_ID, id);
 		startActivity(intent);
 	}
 

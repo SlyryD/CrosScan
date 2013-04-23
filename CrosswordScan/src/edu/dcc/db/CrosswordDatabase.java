@@ -27,7 +27,6 @@ import edu.dcc.game.Grid;
  */
 public class CrosswordDatabase {
 	public static final String DATABASE_NAME = "crosswordscan";
-
 	public static final String CROSSWORD_TABLE_NAME = "crossword";
 	public static final String FOLDER_TABLE_NAME = "folder";
 
@@ -198,7 +197,7 @@ public class CrosswordDatabase {
 	 *            Time of folder creation.
 	 * @return
 	 */
-	public FolderInfo insertFolder(String name, Long created) {
+	public FolderInfo insertFolder(String name, long created) {
 		ContentValues values = new ContentValues();
 		values.put(FolderColumns.CREATED, created);
 		values.put(FolderColumns.NAME, name);
@@ -262,7 +261,6 @@ public class CrosswordDatabase {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
 		qb.setTables(CROSSWORD_TABLE_NAME);
-		// qb.setProjectionMap(sPlacesProjectionMap);
 		qb.appendWhere(CrosswordColumns.FOLDER_ID + "=" + folderID);
 
 		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
@@ -301,9 +299,12 @@ public class CrosswordDatabase {
 						.getColumnIndex(CrosswordColumns.LAST_PLAYED));
 				int state = c.getInt(c.getColumnIndex(CrosswordColumns.STATE));
 				long time = c.getLong(c.getColumnIndex(CrosswordColumns.TIME));
+				String title = c.getString(c
+						.getColumnIndex(CrosswordColumns.TITLE));
 
 				s = new CrosswordGame();
 				s.setId(id);
+				s.setTitle(title);
 				s.setCreated(created);
 				s.setGrid(Grid.deserialize(data));
 				s.setLastPlayed(lastPlayed);
@@ -336,6 +337,7 @@ public class CrosswordDatabase {
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());
 		values.put(CrosswordColumns.FOLDER_ID, folderID);
+		values.put(CrosswordColumns.TITLE, crossword.getTitle());
 
 		long rowId = db
 				.insert(CROSSWORD_TABLE_NAME, FolderColumns.NAME, values);
@@ -363,7 +365,7 @@ public class CrosswordDatabase {
 		if (mInsertCrosswordStatement == null) {
 			SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 			mInsertCrosswordStatement = db
-					.compileStatement("insert into crossword (folder_id, created, state, time, last_played, data, puzzle_note) values (?, ?, ?, ?, ?, ?, ?)");
+					.compileStatement("insert into crossword (folder_id, created, state, time, last_played, data, title) values (?, ?, ?, ?, ?, ?, ?)");
 		}
 
 		mInsertCrosswordStatement.bindLong(1, folderID);
@@ -372,11 +374,7 @@ public class CrosswordDatabase {
 		mInsertCrosswordStatement.bindLong(4, pars.time);
 		mInsertCrosswordStatement.bindLong(5, pars.lastPlayed);
 		mInsertCrosswordStatement.bindString(6, pars.data);
-		if (pars.note == null) {
-			mInsertCrosswordStatement.bindNull(7);
-		} else {
-			mInsertCrosswordStatement.bindString(7, pars.note);
-		}
+		mInsertCrosswordStatement.bindString(7, pars.title);
 
 		long rowId = mInsertCrosswordStatement.executeInsert();
 		if (rowId > 0) {
@@ -384,37 +382,6 @@ public class CrosswordDatabase {
 		}
 
 		throw new SQLException("Failed to insert crossword.");
-	}
-
-	/**
-	 * Returns List of crosswords to export.
-	 * 
-	 * @param folderID
-	 *            Id of folder to export, -1 if all folders will be exported.
-	 * @return
-	 */
-	public Cursor exportFolder(long folderID) {
-		String query = "select f._id as folder_id, f.name as folder_name, f.created as folder_created, s.created, s.state, s.time, s.last_played, s.data, s.puzzle_note from folder f left outer join crossword s on f._id = s.folder_id";
-		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-		if (folderID != -1) {
-			query += " where f._id = ?";
-		}
-		return db.rawQuery(query,
-				folderID != -1 ? new String[] { String.valueOf(folderID) }
-						: null);
-	}
-
-	/**
-	 * Returns one concrete crossword to export. Folder context is not exported
-	 * in this case.
-	 * 
-	 * @param crosswordID
-	 * @return
-	 */
-	public Cursor exportCrossword(long crosswordID) {
-		String query = "select f._id as folder_id, f.name as folder_name, f.created as folder_created, s.created, s.state, s.time, s.last_played, s.data, s.puzzle_note from crossword s inner join folder f on s.folder_id = f._id where s._id = ?";
-		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-		return db.rawQuery(query, new String[] { String.valueOf(crosswordID) });
 	}
 
 	/**
