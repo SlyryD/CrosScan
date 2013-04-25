@@ -38,7 +38,7 @@ public class Grid {
 	private ArrayList<Entry> mAcross;
 	private ArrayList<Entry> mDown;
 
-	private boolean mAcrossMode;
+	private boolean mAcrossMode = true;
 
 	private boolean mOnChangeEnabled = true;
 

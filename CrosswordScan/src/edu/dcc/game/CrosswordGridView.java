@@ -345,7 +345,9 @@ public class CrosswordGridView extends View {
 
 			// Highlight selected cell and entry
 			if (mSelectedCell != null) {
-				for (Cell cell : mSelectedCell.getAcrossEntry().getCells()) {
+				for (Cell cell : mGrid.isAcrossMode() ? mSelectedCell
+						.getAcrossEntry().getCells() : mSelectedCell
+						.getDownEntry().getCells()) {
 					cellLeft = Math.round(cell.getColumn() * mCellWidth)
 							+ paddingLeft;
 					cellTop = Math.round(cell.getRow() * mCellHeight)
@@ -383,11 +385,11 @@ public class CrosswordGridView extends View {
 			// TODO: Move view?
 			break;
 		case MotionEvent.ACTION_UP:
-			// TODO: Change modes
-//			if (getCellAtPoint(x, y) == mSelectedCell) {
-//				grid.
-//			}
-			mSelectedCell = getCellAtPoint(x, y);
+			if (getCellAtPoint(x, y) == mSelectedCell) {
+				mGrid.setAcrossMode(!mGrid.isAcrossMode());
+			} else {
+				mSelectedCell = getCellAtPoint(x, y);
+			}
 			invalidate(); // Update board when selected cell changes
 
 			if (mSelectedCell != null) {
