@@ -119,7 +119,7 @@ public class Cell {
 	 * @param down
 	 *            Reference to column group in which cell is included.
 	 */
-	protected void initGrid(Grid grid, int row, int col, Entry across,
+	protected void initGrid(Grid grid, int row, int col, int clueNum, Entry across,
 			Entry down) {
 		synchronized (mGridLock) {
 			mGrid = grid;
@@ -127,6 +127,7 @@ public class Cell {
 
 		mRow = row;
 		mColumn = col;
+		mClueNum = clueNum;
 		mAcross = across;
 		mDown = down;
 
@@ -177,8 +178,12 @@ public class Cell {
 		return mValue;
 	}
 
-	public Entry getEntry() {
-		return mGrid.isAcrossMode() ? mAcross : mDown;
+	public Entry getAcrossEntry() {
+		return mAcross;
+	}
+
+	public Entry getDownEntry() {
+		return mDown;
 	}
 
 	/**
@@ -226,7 +231,6 @@ public class Cell {
 		Cell cell = new Cell();
 		cell.setWhite(data.nextToken().equals("1"));
 		cell.setValue(data.nextToken().charAt(0));
-		cell.setClueNum(Integer.parseInt(data.nextToken()));
 
 		return cell;
 	}
@@ -253,11 +257,6 @@ public class Cell {
 	public void serialize(StringBuilder data) {
 		data.append(mWhite ? "1" : "0").append("|");
 		data.append(mValue).append("|");
-		if (mClueNum < 1) {
-			data.append("-").append("|");
-		} else {
-			data.append(mClueNum).append("|");
-		}
 	}
 
 	public String serialize() {
@@ -277,8 +276,8 @@ public class Cell {
 
 		}
 	}
-	
+
 	public String toString() {
-		return mWhite ? "O" : "X";
+		return mWhite ? "(" + (mValue == 0 ? " " : mValue) + ")" : " X ";
 	}
 }

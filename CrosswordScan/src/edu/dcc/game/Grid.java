@@ -32,7 +32,7 @@ public class Grid {
 	private Cell[][] mCells;
 
 	// Clue numbers
-	public int acrossClueNum, downClueNum;
+	public int clueNum;
 
 	// Helper arrays containing references to crossword entries
 	private ArrayList<Entry> mAcross;
@@ -65,7 +65,7 @@ public class Grid {
 	 * index for each cell.
 	 */
 	private void initGrid() {
-		acrossClueNum = downClueNum = 0;
+		clueNum = 0;
 		mAcross = new ArrayList<Entry>();
 		mDown = new ArrayList<Entry>();
 
@@ -73,20 +73,33 @@ public class Grid {
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
 				if (mCells[row][col].isWhite()) {
+					// Entries to add white cell to
+					Entry acrossEntry, downEntry;
+					boolean firstCell = false;
+					// Increment clueNum if necessary
+					if (row == 0 || col == 0 || !mCells[row - 1][col].isWhite()
+							|| !mCells[row][col - 1].isWhite()) {
+						clueNum++;
+						firstCell = true;
+					}
 					// Create Across and Down entries for white cell
 					if (row == 0 || !mCells[row - 1][col].isWhite()) {
-						downClueNum++;
-						mDown.add(new Entry(downClueNum));
+						downEntry = new Entry(clueNum);
+						mDown.add(downEntry);
+					} else {
+						downEntry = mCells[row - 1][col].getDownEntry();
 					}
 					if (col == 0 || !mCells[row][col - 1].isWhite()) {
-						acrossClueNum++;
-						mAcross.add(new Entry(acrossClueNum));
+						acrossEntry = new Entry(clueNum);
+						mAcross.add(acrossEntry);
+					} else {
+						acrossEntry = mCells[row][col - 1].getAcrossEntry();
 					}
 					// Initialize cell index and add to entry
 					mCells[row][col].initGrid(this, row, col,
-							mAcross.get(acrossClueNum - 1), mDown.get(downClueNum - 1));
+							firstCell ? clueNum : 0, acrossEntry, downEntry);
 				} else {
-					mCells[row][col].initGrid(this, row, col, null, null);
+					mCells[row][col].initGrid(this, row, col, 0, null, null);
 				}
 			}
 		}
@@ -325,9 +338,9 @@ public class Grid {
 	}
 
 	private static Pattern DATA_PATTERN_VERSION_PLAIN = Pattern
-			.compile("^\\d{81}$");
+			.compile("^\\d*$");
 	private static Pattern DATA_PATTERN_VERSION_1 = Pattern
-			.compile("^version: 1\\n((?#white)[01]\\|(?#value)\\w\\|(?#clueNum)((\\d,)+|-)\\|){0,81}$");
+			.compile("^version: 1\\n((?#white)[01]\\|(?#value)\\w\\|)*$");
 
 	/**
 	 * Returns true, if given <code>data</code> conform to format of given data

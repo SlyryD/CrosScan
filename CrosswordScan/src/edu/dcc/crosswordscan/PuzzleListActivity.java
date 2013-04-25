@@ -215,9 +215,6 @@ public class PuzzleListActivity extends ListActivity {
 			stopManagingCursor(mCursor);
 		}
 		mCursor = mDatabase.getCrosswordList(mFolderID);
-		for (String name : mCursor.getColumnNames()) {
-			System.out.println(name);
-		}
 		startManagingCursor(mCursor);
 		mAdapter.changeCursor(mCursor);
 	}

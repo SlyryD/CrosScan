@@ -29,11 +29,10 @@
             android:id="@+id/puzzle_scanned"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:gravity="center"
             android:text="@string/mock_clue"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/yellow" />
+            android:textColor="@color/black" />
     </LinearLayout>
 
     <TextView

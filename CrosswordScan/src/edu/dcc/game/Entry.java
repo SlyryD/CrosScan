@@ -34,6 +34,10 @@ public class Entry {
 	public List<Cell> getCells() {
 		return mCells;
 	}
+	
+	public Cell getCell(int index) {
+		return mCells.get(index);
+	}
 
 	public int getClueNum() {
 		return clueNum;
