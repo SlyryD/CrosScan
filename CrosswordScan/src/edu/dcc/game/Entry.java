@@ -49,5 +49,14 @@ public class Entry {
 	public int getSize() {
 		return size;
 	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(clueNum);
+		for (Cell cell : mCells) {
+			sb.append(cell.getValue());
+		}
+		return sb.toString();
+	}
 
 }

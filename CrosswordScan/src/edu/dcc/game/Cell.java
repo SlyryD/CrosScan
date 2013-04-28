@@ -119,8 +119,8 @@ public class Cell {
 	 * @param down
 	 *            Reference to column group in which cell is included.
 	 */
-	protected void initGrid(Grid grid, int row, int col, int clueNum, Entry across,
-			Entry down) {
+	protected void initGrid(Grid grid, int row, int col, int clueNum,
+			Entry across, Entry down) {
 		synchronized (mGridLock) {
 			mGrid = grid;
 		}
@@ -135,24 +135,6 @@ public class Cell {
 			across.addCell(this);
 			down.addCell(this);
 		}
-	}
-
-	/**
-	 * Returns row containing this cell.
-	 * 
-	 * @return Row containing this cell.
-	 */
-	public Entry getAcross() {
-		return mAcross;
-	}
-
-	/**
-	 * Returns column containing this cell.
-	 * 
-	 * @return Column containing this cell.
-	 */
-	public Entry getDown() {
-		return mDown;
 	}
 
 	/**
@@ -178,12 +160,12 @@ public class Cell {
 		return mValue;
 	}
 
-	public Entry getAcrossEntry() {
-		return mAcross;
-	}
-
-	public Entry getDownEntry() {
-		return mDown;
+	public Entry getEntry(boolean acrossMode) {
+		if (acrossMode) {
+			return mAcross;
+		} else {
+			return mDown;
+		}
 	}
 
 	/**

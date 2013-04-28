@@ -35,16 +35,13 @@
             android:textColor="@color/black" />
     </LinearLayout>
 
-    <TextView
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboard_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/clue_bar"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/gradient"
-        android:gravity="center"
-        android:text="Keyboard Placeholder"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_below="@+id/clue_bar"
+        android:visibility="visible" />
 
     <!--
         TextView

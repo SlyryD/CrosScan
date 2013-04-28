@@ -41,16 +41,9 @@ public class CrosswordGridView extends View {
 
 	public static final int DEFAULT_BOARD_SIZE = 100;
 
-	/**
-	 * "Color not set" value. (In relation to {@link Color}, it is in fact black
-	 * color with alpha channel set to 0 => that means it is completely
-	 * transparent).
-	 */
-	private static final int NO_COLOR = 0;
-
 	private float mCellWidth;
 	private float mCellHeight;
-	// TODO: should I synchronize access to mSelectedCell?
+
 	private Cell mSelectedCell;
 
 	private CrosswordGame mGame;
@@ -80,13 +73,14 @@ public class CrosswordGridView extends View {
 		setFocusableInTouchMode(true);
 
 		mLinePaint = new Paint();
-		mLinePaint.getStyle();
 		mCellValuePaint = new Paint();
 		mClueNumPaint = new Paint();
 		mBackgroundColorBlackCell = new Paint();
 		mBackgroundColorSelected = new Paint();
 		mBackgroundColorEntry = new Paint();
 
+		mLinePaint.setStyle(Paint.Style.STROKE);
+		mLinePaint.setStrokeWidth(3);
 		mCellValuePaint.setAntiAlias(true);
 		mClueNumPaint.setAntiAlias(true);
 
@@ -234,11 +228,6 @@ public class CrosswordGridView extends View {
 		int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 		int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-		// Log.d(TAG, "widthMode=" + getMeasureSpecModeString(widthMode));
-		// Log.d(TAG, "widthSize=" + widthSize);
-		// Log.d(TAG, "heightMode=" + getMeasureSpecModeString(heightMode));
-		// Log.d(TAG, "heightSize=" + heightSize);
-
 		int width = -1, height = -1;
 		if (widthMode == MeasureSpec.EXACTLY) {
 			width = widthSize;
@@ -319,12 +308,12 @@ public class CrosswordGridView extends View {
 					} else {
 						// Draw clue numbers
 						// Possible to be both but only needs to be drawn once
-						if (cell.getAcrossEntry().getCell(0) == cell) {
+						if (cell.getEntry(true).getCell(0) == cell) {
 							canvas.drawText(
 									Integer.toString(cell.getClueNum()),
 									cellLeft + 2, cellTop + mClueNumTop
 											- clueNumAscent - 1, mClueNumPaint);
-						} else if (cell.getDownEntry().getCell(0) == cell) {
+						} else if (cell.getEntry(false).getCell(0) == cell) {
 							canvas.drawText(
 									Integer.toString(cell.getClueNum()),
 									cellLeft + 2, cellTop + mClueNumTop
@@ -345,9 +334,8 @@ public class CrosswordGridView extends View {
 
 			// Highlight selected cell and entry
 			if (mSelectedCell != null) {
-				for (Cell cell : mGrid.isAcrossMode() ? mSelectedCell
-						.getAcrossEntry().getCells() : mSelectedCell
-						.getDownEntry().getCells()) {
+				for (Cell cell : mSelectedCell.getEntry(mGrid.isAcrossMode())
+						.getCells()) {
 					cellLeft = Math.round(cell.getColumn() * mCellWidth)
 							+ paddingLeft;
 					cellTop = Math.round(cell.getRow() * mCellHeight)
@@ -385,10 +373,13 @@ public class CrosswordGridView extends View {
 			// TODO: Move view?
 			break;
 		case MotionEvent.ACTION_UP:
-			if (getCellAtPoint(x, y) == mSelectedCell) {
+			Cell selected = getCellAtPoint(x, y);
+			if (!selected.isWhite()) {
+				// Do nothing for black cell
+			} else if (selected == mSelectedCell) {
 				mGrid.setAcrossMode(!mGrid.isAcrossMode());
 			} else {
-				mSelectedCell = getCellAtPoint(x, y);
+				mSelectedCell = selected;
 			}
 			invalidate(); // Update board when selected cell changes
 
@@ -427,7 +418,7 @@ public class CrosswordGridView extends View {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
 				setCellValue(mSelectedCell, (char) 0);
-				moveCellSelectionRight();
+				moveCellSelection();
 			}
 			return true;
 		case KeyEvent.KEYCODE_DPAD_CENTER:
@@ -442,7 +433,7 @@ public class CrosswordGridView extends View {
 			Cell cell = mSelectedCell;
 			// Enter number in cell
 			setCellValue(cell, (char) selChar);
-			moveCellSelectionRight();
+			moveCellSelection();
 			return true;
 		}
 
@@ -450,16 +441,18 @@ public class CrosswordGridView extends View {
 	}
 
 	/**
-	 * Moves selected cell by one cell to the right. If edge is reached,
-	 * selection skips on beginning of another line.
+	 * Moves selected cell by one. If edge or black cell is reached, selection
+	 * moves to next entry.
 	 */
-	public void moveCellSelectionRight() {
-		if (!moveCellSelection(1, 0)) {
-			int selRow = mSelectedCell.getRow();
-			selRow++;
-			if (!moveCellSelectionTo(selRow, 0)) {
-				moveCellSelectionTo(0, 0);
-			}
+	public void moveCellSelection() {
+		boolean acrossMode = mGrid.isAcrossMode();
+		if (!moveCellSelection(acrossMode ? 1 : 0, acrossMode ? 0 : 1)) {
+			// Move to next entry
+			System.out.println("Current entry: "
+					+ mSelectedCell.getEntry(acrossMode));
+			System.out.println("Next entry: " + getNextEntry());
+			Cell nextCell = getNextEntry().getCell(0);
+			moveCellSelectionTo(nextCell.getRow(), nextCell.getColumn());
 		}
 		postInvalidate();
 	}
@@ -518,6 +511,17 @@ public class CrosswordGridView extends View {
 		}
 
 		return false;
+	}
+
+	private Entry getNextEntry() {
+		int entryNum = mSelectedCell.getEntry(mGrid.isAcrossMode()).getCell(0)
+				.getClueNum();
+		Entry entry = null;
+		for (int num = entryNum; entry == null; num = (num + 1)
+				% (mGrid.getNumClues() + 1)) {
+			entry = mGrid.getEntry(num + 1);
+		}
+		return entry;
 	}
 
 	/**

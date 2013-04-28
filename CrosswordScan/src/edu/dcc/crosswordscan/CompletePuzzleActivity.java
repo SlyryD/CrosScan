@@ -6,16 +6,18 @@ import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.inputmethodservice.Keyboard;
+import android.inputmethodservice.KeyboardView;
+import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.TextView;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.CrosswordGame;
 import edu.dcc.game.CrosswordGridView;
@@ -37,13 +39,10 @@ public class CompletePuzzleActivity extends Activity {
 
 	private ViewGroup mRootLayout;
 	private CrosswordGridView mCrosswordGrid;
-//	private TextView mTimeLabel;
+	// private TextView mTimeLabel;
 
-	// private IMControlPanel mIMControlPanel;
-	// private IMControlPanelStatePersister mIMControlPanelStatePersister;
-	// private IMPopup mIMPopup;
-	// private IMSingleNumber mIMSingleNumber;
-	// private IMNumpad mIMNumpad;
+	private Keyboard mKeyboard;
+	private KeyboardView mKeyboardView;
 
 	private boolean mShowTime = true;
 	private GameTimer mGameTimer;
@@ -70,6 +69,12 @@ public class CompletePuzzleActivity extends Activity {
 		mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
 		mCrosswordGrid = (CrosswordGridView) findViewById(R.id.crossword_grid);
 		// mTimeLabel = (TextView) findViewById(R.id.time_label);
+		mKeyboard = new Keyboard(this, R.xml.keyboard);
+		mKeyboardView = (KeyboardView) findViewById(R.id.keyboard_view);
+		mKeyboardView.setKeyboard(mKeyboard);
+		mKeyboardView
+				.setOnKeyboardActionListener(new BasicOnKeyboardActionListener(
+						this));
 
 		mDatabase = new CrosswordDatabase(getApplicationContext());
 		mGameTimer = new GameTimer();
@@ -95,20 +100,6 @@ public class CompletePuzzleActivity extends Activity {
 		}
 
 		mCrosswordGrid.setGame(mCrosswordGame);
-
-		// mIMControlPanel = (IMControlPanel) findViewById(R.id.input_methods);
-		// mIMControlPanel.initialize(mCrosswordGrid, mCrosswordGame,
-		// mHintsQueue);
-		//
-		// mIMControlPanelStatePersister = new
-		// IMControlPanelStatePersister(this);
-		//
-		// mIMPopup = mIMControlPanel
-		// .getInputMethod(IMControlPanel.INPUT_METHOD_POPUP);
-		// mIMSingleNumber = mIMControlPanel
-		// .getInputMethod(IMControlPanel.INPUT_METHOD_SINGLE_NUMBER);
-		// mIMNumpad = mIMControlPanel
-		// .getInputMethod(IMControlPanel.INPUT_METHOD_NUMPAD);
 	}
 
 	@Override
@@ -122,32 +113,8 @@ public class CompletePuzzleActivity extends Activity {
 				mGameTimer.start();
 			}
 		}
-//		mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE
-//				: View.GONE);
-
-		// mIMPopup.setEnabled(gameSettings.getBoolean("im_popup", true));
-		// mIMSingleNumber.setEnabled(gameSettings.getBoolean("im_single_number",
-		// true));
-		// mIMNumpad.setEnabled(gameSettings.getBoolean("im_numpad", true));
-		// mIMNumpad.setMoveCellSelectionOnPress(gameSettings.getBoolean(
-		// "im_numpad_move_right", false));
-		// mIMPopup.setHighlightCompletedValues(gameSettings.getBoolean(
-		// "highlight_completed_values", true));
-		// mIMPopup.setShowNumberTotals(gameSettings.getBoolean(
-		// "show_number_totals", false));
-		// mIMSingleNumber.setHighlightCompletedValues(gameSettings.getBoolean(
-		// "highlight_completed_values", true));
-		// mIMSingleNumber.setShowNumberTotals(gameSettings.getBoolean(
-		// "show_number_totals", false));
-		// mIMNumpad.setHighlightCompletedValues(gameSettings.getBoolean(
-		// "highlight_completed_values", true));
-		// mIMNumpad.setShowNumberTotals(gameSettings.getBoolean(
-		// "show_number_totals", false));
-		//
-		// mIMControlPanel.activateFirstInputMethod(); // make sure that some
-		// input
-		// // method is activated
-		// mIMControlPanelStatePersister.restoreState(mIMControlPanel);
+		// mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE
+		// : View.GONE);
 
 		updateTime();
 	}
@@ -157,10 +124,6 @@ public class CompletePuzzleActivity extends Activity {
 		super.onWindowFocusChanged(hasFocus);
 
 		if (hasFocus) {
-			// FIXME: When activity is resumed, title isn't sometimes hidden
-			// properly (there is black
-			// empty space at the top of the screen). This is desperate
-			// workaround.
 			if (mFullScreen) {
 				mGuiHandler.postDelayed(new Runnable() {
 					@Override
@@ -184,8 +147,6 @@ public class CompletePuzzleActivity extends Activity {
 		mDatabase.updateCrossword(mCrosswordGame);
 
 		mGameTimer.stop();
-		// mIMControlPanel.pause();
-		// mIMControlPanelStatePersister.saveState(mIMControlPanel);
 	}
 
 	@Override
@@ -287,6 +248,66 @@ public class CompletePuzzleActivity extends Activity {
 			setTitle(R.string.app_name);
 		}
 
+	}
+
+	public class BasicOnKeyboardActionListener implements
+			OnKeyboardActionListener {
+
+		private Activity mTargetActivity;
+
+		/**
+		 * 
+		 * @param targetActivity
+		 */
+		public BasicOnKeyboardActionListener(Activity targetActivity) {
+			mTargetActivity = targetActivity;
+		}
+
+		@Override
+		public void swipeUp() {
+			// Do nothing
+		}
+
+		@Override
+		public void swipeRight() {
+			// Do nothing
+		}
+
+		@Override
+		public void swipeLeft() {
+			// Do nothing
+		}
+
+		@Override
+		public void swipeDown() {
+			// Do nothing
+		}
+
+		@Override
+		public void onText(CharSequence text) {
+			// Do nothing
+		}
+
+		@Override
+		public void onRelease(int primaryCode) {
+			// Do nothing
+		}
+
+		@Override
+		public void onPress(int primaryCode) {
+			// Do nothing
+		}
+
+		@Override
+		public void onKey(int primaryCode, int[] keyCodes) {
+			long eventTime = System.currentTimeMillis();
+			KeyEvent event = new KeyEvent(eventTime, eventTime,
+					KeyEvent.ACTION_DOWN, primaryCode, 0,
+					primaryCode == KeyEvent.KEYCODE_DEL ? 0 : 193, 0, 0,
+					KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
+
+			mTargetActivity.dispatchKeyEvent(event);
+		}
 	}
 
 	// This class implements the game clock. All it does is update the

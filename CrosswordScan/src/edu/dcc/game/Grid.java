@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 /**
@@ -35,8 +36,8 @@ public class Grid {
 	public int clueNum;
 
 	// Helper arrays containing references to crossword entries
-	private ArrayList<Entry> mAcross;
-	private ArrayList<Entry> mDown;
+	private TreeMap<Integer, Entry> mAcross;
+	private TreeMap<Integer, Entry> mDown;
 
 	private boolean mAcrossMode = true;
 
@@ -66,8 +67,8 @@ public class Grid {
 	 */
 	private void initGrid() {
 		clueNum = 0;
-		mAcross = new ArrayList<Entry>();
-		mDown = new ArrayList<Entry>();
+		mAcross = new TreeMap<Integer, Entry>();
+		mDown = new TreeMap<Integer, Entry>();
 
 		// Traverse grid
 		for (int row = 0; row < gridSize; row++) {
@@ -85,15 +86,15 @@ public class Grid {
 					// Create Across and Down entries for white cell
 					if (row == 0 || !mCells[row - 1][col].isWhite()) {
 						downEntry = new Entry(clueNum);
-						mDown.add(downEntry);
+						mDown.put(clueNum, downEntry);
 					} else {
-						downEntry = mCells[row - 1][col].getDownEntry();
+						downEntry = mCells[row - 1][col].getEntry(false);
 					}
 					if (col == 0 || !mCells[row][col - 1].isWhite()) {
 						acrossEntry = new Entry(clueNum);
-						mAcross.add(acrossEntry);
+						mAcross.put(clueNum, acrossEntry);
 					} else {
-						acrossEntry = mCells[row][col - 1].getAcrossEntry();
+						acrossEntry = mCells[row][col - 1].getEntry(true);
 					}
 					// Initialize cell index and add to entry
 					mCells[row][col].initGrid(this, row, col,
@@ -138,45 +139,16 @@ public class Grid {
 		return true;
 	}
 
-	/**
-	 * Generates debug game.
-	 * 
-	 * @return
-	 */
-	public static Grid createDebugGame() {
-		Grid debugGame = new Grid(new Cell[][] {
-				{ new Cell(true), new Cell(true), new Cell(true), new Cell(),
-						new Cell(), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(true), },
-				{ new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(true), },
-				{ new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(true), },
-				{ new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(), new Cell(true), },
-				{ new Cell(), new Cell(), new Cell(), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(),
-						new Cell(true), new Cell(true), },
-				{ new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(),
-						new Cell(true), new Cell(true), new Cell(true), },
-				{ new Cell(true), new Cell(true), new Cell(true), new Cell(),
-						new Cell(), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(), },
-				{ new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(true),
-						new Cell(true), new Cell(), new Cell(), },
-				{ new Cell(), new Cell(), new Cell(), new Cell(true),
-						new Cell(true), new Cell(true), new Cell(), new Cell(),
-						new Cell(), } });
-		return debugGame;
+	public int getNumClues() {
+		return clueNum;
 	}
-
+	
 	public Cell[][] getCells() {
 		return mCells;
+	}
+
+	public Entry getEntry(int entryNum) {
+		return mAcrossMode ? mAcross.get(entryNum) : mDown.get(entryNum);
 	}
 
 	/**
