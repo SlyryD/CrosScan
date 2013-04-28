@@ -78,19 +78,18 @@ public class Grid {
 					Entry acrossEntry, downEntry;
 					boolean firstCell = false;
 					// Increment clueNum if necessary
-					if (row == 0 || col == 0 || !mCells[row - 1][col].isWhite()
-							|| !mCells[row][col - 1].isWhite()) {
+					if (cellNeedsNewEntry(row, col)) {
 						clueNum++;
 						firstCell = true;
 					}
 					// Create Across and Down entries for white cell
-					if (row == 0 || !mCells[row - 1][col].isWhite()) {
+					if (cellNeedsNewDownEntry(row, col)) {
 						downEntry = new Entry(clueNum);
 						mDown.put(clueNum, downEntry);
 					} else {
 						downEntry = mCells[row - 1][col].getEntry(false);
 					}
-					if (col == 0 || !mCells[row][col - 1].isWhite()) {
+					if (cellNeedsNewAcrossEntry(row, col)) {
 						acrossEntry = new Entry(clueNum);
 						mAcross.put(clueNum, acrossEntry);
 					} else {
@@ -102,8 +101,37 @@ public class Grid {
 				} else {
 					mCells[row][col].initGrid(this, row, col, 0, null, null);
 				}
+				if (row == 12 && col==0) {
+					Cell cell = mCells[row][col];
+					System.out.println("Cell (" + row + ", " + col + "): " + cell);
+					System.out.println("Across Entry: " + cell.getEntry(true));
+					System.out.println("Down Entry: " + cell.getEntry(false));
+				}
 			}
 		}
+		System.out.println("Across entries");
+		for (Entry entry : mAcross.values()) {
+			System.out.println(entry);
+		}
+		System.out.println("Down entries");
+		for (Entry entry : mDown.values()) {
+			System.out.println(entry);
+		}
+	}
+
+	private boolean cellNeedsNewEntry(int row, int col) {
+		return (cellNeedsNewDownEntry(row, col) || cellNeedsNewAcrossEntry(row,
+				col));
+	}
+
+	private boolean cellNeedsNewDownEntry(int row, int col) {
+		return (row == 0 || !mCells[row - 1][col].isWhite())
+				&& (row + 1 < gridSize && mCells[row + 1][col].isWhite());
+	}
+
+	private boolean cellNeedsNewAcrossEntry(int row, int col) {
+		return (col == 0 || !mCells[row][col - 1].isWhite())
+				&& (col + 1 < gridSize && mCells[row][col + 1].isWhite());
 	}
 
 	/**
@@ -142,7 +170,7 @@ public class Grid {
 	public int getNumClues() {
 		return clueNum;
 	}
-	
+
 	public Cell[][] getCells() {
 		return mCells;
 	}

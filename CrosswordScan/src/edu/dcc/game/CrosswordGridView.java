@@ -307,13 +307,10 @@ public class CrosswordGridView extends View {
 								mBackgroundColorBlackCell);
 					} else {
 						// Draw clue numbers
-						// Possible to be both but only needs to be drawn once
-						if (cell.getEntry(true).getCell(0) == cell) {
-							canvas.drawText(
-									Integer.toString(cell.getClueNum()),
-									cellLeft + 2, cellTop + mClueNumTop
-											- clueNumAscent - 1, mClueNumPaint);
-						} else if (cell.getEntry(false).getCell(0) == cell) {
+						if ((cell.getEntry(true) != null && cell.getEntry(true)
+								.getCell(0) == cell)
+								|| (cell.getEntry(false) != null && cell
+										.getEntry(false).getCell(0) == cell)) {
 							canvas.drawText(
 									Integer.toString(cell.getClueNum()),
 									cellLeft + 2, cellTop + mClueNumTop
@@ -334,8 +331,13 @@ public class CrosswordGridView extends View {
 
 			// Highlight selected cell and entry
 			if (mSelectedCell != null) {
-				for (Cell cell : mSelectedCell.getEntry(mGrid.isAcrossMode())
-						.getCells()) {
+				boolean acrossMode = mGrid.isAcrossMode();
+				Entry entry = mSelectedCell.getEntry(acrossMode);
+				if (entry == null) {
+					mGrid.setAcrossMode(!acrossMode);
+					entry = mSelectedCell.getEntry(!acrossMode);
+				}
+				for (Cell cell : entry.getCells()) {
 					cellLeft = Math.round(cell.getColumn() * mCellWidth)
 							+ paddingLeft;
 					cellTop = Math.round(cell.getRow() * mCellHeight)

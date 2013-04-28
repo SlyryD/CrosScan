@@ -34,7 +34,7 @@ public class Entry {
 	public List<Cell> getCells() {
 		return mCells;
 	}
-	
+
 	public Cell getCell(int index) {
 		return mCells.get(index);
 	}
@@ -49,7 +49,7 @@ public class Entry {
 	public int getSize() {
 		return size;
 	}
-	
+
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(clueNum);

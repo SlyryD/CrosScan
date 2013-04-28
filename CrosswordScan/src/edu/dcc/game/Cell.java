@@ -131,8 +131,10 @@ public class Cell {
 		mAcross = across;
 		mDown = down;
 
-		if (across != null && down != null) {
+		if (across != null) {
 			across.addCell(this);
+		}
+		if (down != null) {
 			down.addCell(this);
 		}
 	}

@@ -34,7 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ " TEXT" + ");");
 
 		insertFolder(db, 1, "crosswords");
-		insertCrossword(db, 1, 1, "My Puzzle 1", "1A1B1C1D001010101010001010"
+		insertCrossword(db, 1, 1, "My Puzzle 1", "10101010001010101010001010"
 				+ "10101010001010101010001010" + "10101010001010101010001010"
 				+ "10101010100000101010101010" + "00000010101010001010101000"
 				+ "10101010101010100010101010" + "10101000101010101000101010"
