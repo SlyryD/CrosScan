@@ -18,6 +18,7 @@ public class CrosswordGame {
 	private long mTime;
 	private long mLastPlayed;
 	private Grid mGrid;
+	private Clues mClues;
 
 	private CommandStack mCommandStack;
 	// Time when current activity has become active.
@@ -26,6 +27,7 @@ public class CrosswordGame {
 	public static CrosswordGame createEmptyGame() {
 		CrosswordGame game = new CrosswordGame();
 		game.setGrid(Grid.createEmpty());
+		game.setClues(Clues.createEmpty());
 		// set creation time
 		game.setCreated(System.currentTimeMillis());
 		return game;
@@ -47,6 +49,7 @@ public class CrosswordGame {
 		outState.putLong("lastPlayed", mLastPlayed);
 		outState.putString("cells", mGrid.serialize());
 		outState.putString("title", mTitle);
+		// TODO: Add clues
 
 		mCommandStack.saveState(outState);
 	}
@@ -59,6 +62,7 @@ public class CrosswordGame {
 		mLastPlayed = inState.getLong("lastPlayed");
 		mGrid = Grid.deserialize(inState.getString("cells"));
 		mTitle = inState.getString("title");
+		// TODO: Add clues
 
 		mCommandStack = new CommandStack(mGrid);
 		mCommandStack.restoreState(inState);
@@ -117,6 +121,14 @@ public class CrosswordGame {
 
 	public Grid getGrid() {
 		return mGrid;
+	}
+	
+	public Clues getClues() {
+		return mClues;
+	}
+	
+	public void setClues(Clues clues) {
+		mClues = clues;
 	}
 
 	public void setId(long id) {

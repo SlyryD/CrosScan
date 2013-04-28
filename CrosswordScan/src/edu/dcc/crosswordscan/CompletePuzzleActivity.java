@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
@@ -18,9 +19,13 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 import edu.dcc.db.CrosswordDatabase;
+import edu.dcc.game.Cell;
 import edu.dcc.game.CrosswordGame;
 import edu.dcc.game.CrosswordGridView;
+import edu.dcc.game.CrosswordGridView.OnCellSelectedListener;
+import edu.dcc.game.Entry;
 
 public class CompletePuzzleActivity extends Activity {
 
@@ -40,6 +45,9 @@ public class CompletePuzzleActivity extends Activity {
 	private ViewGroup mRootLayout;
 	private CrosswordGridView mCrosswordGrid;
 	// private TextView mTimeLabel;
+
+	private TextView mAcrossClue;
+	private TextView mDownClue;
 
 	private Keyboard mKeyboard;
 	private KeyboardView mKeyboardView;
@@ -69,6 +77,12 @@ public class CompletePuzzleActivity extends Activity {
 		mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
 		mCrosswordGrid = (CrosswordGridView) findViewById(R.id.crossword_grid);
 		// mTimeLabel = (TextView) findViewById(R.id.time_label);
+
+		mAcrossClue = (TextView) findViewById(R.id.across_clue);
+		mDownClue = (TextView) findViewById(R.id.down_clue);
+		mAcrossClue.setText("1a. ACROSS CLUE HERE");
+		mDownClue.setText("1d. DOWN CLUE HERE");
+
 		mKeyboard = new Keyboard(this, R.xml.keyboard);
 		mKeyboardView = (KeyboardView) findViewById(R.id.keyboard_view);
 		mKeyboardView.setKeyboard(mKeyboard);
@@ -100,6 +114,28 @@ public class CompletePuzzleActivity extends Activity {
 		}
 
 		mCrosswordGrid.setGame(mCrosswordGame);
+		mCrosswordGrid.setOnCellSelectedListener(new OnCellSelectedListener() {
+
+			@Override
+			public void onCellSelected(Cell cell) {
+				Entry acrossEntry = cell.getEntry(true);
+				Entry downEntry = cell.getEntry(false);
+				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
+						.getClueNum() + "a. ACROSS CLUE HERE");
+				mDownClue.setText(downEntry == null ? "" : downEntry
+						.getClueNum() + "d. DOWN CLUE HERE");
+				if (acrossEntry != null
+						&& mCrosswordGame.getGrid().isAcrossMode()) {
+					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+					mDownClue.setTextColor(Color.BLACK);
+				} else if (downEntry != null
+						&& !mCrosswordGame.getGrid().isAcrossMode()) {
+					mDownClue.setTextColor(Color.rgb(50, 50, 255));
+					mAcrossClue.setTextColor(Color.BLACK);
+				}
+			}
+
+		});
 	}
 
 	@Override

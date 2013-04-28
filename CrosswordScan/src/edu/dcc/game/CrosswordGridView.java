@@ -205,6 +205,10 @@ public class CrosswordGridView extends View {
 		}
 	}
 
+	public OnCellSelectedListener getOnCellSelectedListener() {
+		return mOnCellSelectedListener;
+	}
+
 	/**
 	 * Registers callback which will be invoked when cell is selected. Cell
 	 * selection can change without user interaction.
@@ -507,7 +511,6 @@ public class CrosswordGridView extends View {
 			}
 			mSelectedCell = newCell;
 			onCellSelected(mSelectedCell);
-
 			postInvalidate();
 			return true;
 		}

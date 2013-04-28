@@ -62,6 +62,16 @@ public class Grid {
 	}
 
 	/**
+	 * Wraps given array in this object.
+	 * 
+	 * @param cells
+	 */
+	private Grid(Cell[][] cells) {
+		mCells = cells;
+		initGrid();
+	}
+
+	/**
 	 * Initializes grid: Groups of cells that contain entries, row and column
 	 * index for each cell.
 	 */
@@ -101,9 +111,10 @@ public class Grid {
 				} else {
 					mCells[row][col].initGrid(this, row, col, 0, null, null);
 				}
-				if (row == 12 && col==0) {
+				if (row == 12 && col == 0) {
 					Cell cell = mCells[row][col];
-					System.out.println("Cell (" + row + ", " + col + "): " + cell);
+					System.out.println("Cell (" + row + ", " + col + "): "
+							+ cell);
 					System.out.println("Across Entry: " + cell.getEntry(true));
 					System.out.println("Down Entry: " + cell.getEntry(false));
 				}
@@ -152,7 +163,7 @@ public class Grid {
 	}
 
 	/**
-	 * Return true, if no value is entered in any of cells.
+	 * Return true, if no values in any cells.
 	 * 
 	 * @return empty
 	 */
@@ -192,16 +203,6 @@ public class Grid {
 	 */
 	public void setAcrossMode(boolean acrossMode) {
 		this.mAcrossMode = acrossMode;
-	}
-
-	/**
-	 * Wraps given array in this object.
-	 * 
-	 * @param cells
-	 */
-	private Grid(Cell[][] cells) {
-		mCells = cells;
-		initGrid();
 	}
 
 	/**

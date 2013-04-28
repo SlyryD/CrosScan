@@ -3,6 +3,7 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     tools:context=".CompletePuzzleActivity" >
 
     <edu.dcc.game.CrosswordGridView
@@ -21,14 +22,44 @@
         android:layout_below="@id/crossword_grid"
         android:layout_marginTop="12dp" >
 
-        <TextView
-            android:id="@+id/puzzle_scanned"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:id="@+id/previous_clue"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:src="@android:drawable/arrow_up_float" />
+
+        <LinearLayout
+            android:id="@+id/clue_texts"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:gravity="center"
-            android:text="@string/mock_clue"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/black" />
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/across_clue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/mock_clue"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/down_clue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/mock_clue"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/next_clue"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:src="@android:drawable/arrow_down_float" />
     </LinearLayout>
 
     <android.inputmethodservice.KeyboardView
@@ -37,15 +68,5 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:visibility="visible" />
-
-    <!--
-        TextView
-        android:id="@+id/time_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#77333333"
-        android:textColor="#FFFFFFFF"
-    -->
 
 </RelativeLayout>
