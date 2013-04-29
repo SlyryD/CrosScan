@@ -1,23 +1,3 @@
-/* 
- * Copyright (C) 2009 Roman Masek
- * 
- * This file is part of OpenSudoku.
- * 
- * OpenSudoku is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * OpenSudoku is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with OpenSudoku.  If not, see <http://www.gnu.org/licenses/>.
- * 
- */
-
 package edu.dcc.game;
 
 import android.content.Context;
@@ -39,7 +19,7 @@ import edu.dcc.game.Grid.OnChangeListener;
  */
 public class CrosswordGridView extends View {
 
-	public static final int DEFAULT_BOARD_SIZE = 100;
+	public static final int DEFAULT_BOARD_SIZE = 240;
 
 	private float mCellWidth;
 	private float mCellHeight;
@@ -337,10 +317,12 @@ public class CrosswordGridView extends View {
 			if (mSelectedCell != null) {
 				boolean acrossMode = mGrid.isAcrossMode();
 				Entry entry = mSelectedCell.getEntry(acrossMode);
+
 				if (entry == null) {
 					mGrid.setAcrossMode(!acrossMode);
 					entry = mSelectedCell.getEntry(!acrossMode);
 				}
+
 				for (Cell cell : entry.getCells()) {
 					cellLeft = Math.round(cell.getColumn() * mCellWidth)
 							+ paddingLeft;
@@ -380,15 +362,14 @@ public class CrosswordGridView extends View {
 			break;
 		case MotionEvent.ACTION_UP:
 			Cell selected = getCellAtPoint(x, y);
-			if (!selected.isWhite()) {
-				// Do nothing for black cell
+			if (selected == null || !selected.isWhite()) {
+				return false;
 			} else if (selected == mSelectedCell) {
 				mGrid.setAcrossMode(!mGrid.isAcrossMode());
 			} else {
 				mSelectedCell = selected;
 			}
 			invalidate(); // Update board when selected cell changes
-
 			if (mSelectedCell != null) {
 				onCellTapped(mSelectedCell);
 				onCellSelected(mSelectedCell);
@@ -409,38 +390,23 @@ public class CrosswordGridView extends View {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_DPAD_UP:
-			return moveCellSelection(0, -1);
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			return moveCellSelection(1, 0);
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			return moveCellSelection(0, 1);
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			return moveCellSelection(-1, 0);
-		case KeyEvent.KEYCODE_0:
-		case KeyEvent.KEYCODE_SPACE:
-		case KeyEvent.KEYCODE_DEL:
+		if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z) {
+			// Enter letter in cell
+			setCellValue(mSelectedCell, (char) (keyCode + 36));
+			moveCellSelection();
+			return true;
+		} else if (keyCode == KeyEvent.KEYCODE_DEL) {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
 				setCellValue(mSelectedCell, (char) 0);
-				moveCellSelection();
+				if (!moveCellSelection(-1, 0)) {
+					Entry previousEntry = getPreviousEntry();
+					Cell previousCell = previousEntry.getCell(previousEntry
+							.getSize() - 1);
+					moveCellSelectionTo(previousCell.getRow(),
+							previousCell.getColumn());
+				}
 			}
-			return true;
-		case KeyEvent.KEYCODE_DPAD_CENTER:
-			if (mSelectedCell != null) {
-				onCellTapped(mSelectedCell);
-			}
-			return true;
-		}
-
-		if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z) {
-			int selChar = keyCode + 36;
-			Cell cell = mSelectedCell;
-			// Enter number in cell
-			setCellValue(cell, (char) selChar);
-			moveCellSelection();
-			return true;
 		}
 
 		return false;
@@ -518,6 +484,16 @@ public class CrosswordGridView extends View {
 		return false;
 	}
 
+	public void previousClue() {
+		Cell cell = getPreviousEntry().getCell(0);
+		moveCellSelectionTo(cell.getRow(), cell.getColumn());
+	}
+
+	public void nextClue() {
+		Cell cell = getNextEntry().getCell(0);
+		moveCellSelectionTo(cell.getRow(), cell.getColumn());
+	}
+
 	private Entry getNextEntry() {
 		int entryNum = mSelectedCell.getEntry(mGrid.isAcrossMode()).getCell(0)
 				.getClueNum();
@@ -525,6 +501,17 @@ public class CrosswordGridView extends View {
 		for (int num = entryNum; entry == null; num = (num + 1)
 				% (mGrid.getNumClues() + 1)) {
 			entry = mGrid.getEntry(num + 1);
+		}
+		return entry;
+	}
+
+	private Entry getPreviousEntry() {
+		int entryNum = mSelectedCell.getEntry(mGrid.isAcrossMode()).getCell(0)
+				.getClueNum();
+		Entry entry = null;
+		for (int num = entryNum; entry == null; num = (num == 1) ? mGrid
+				.getNumClues() + 1 : (num - 1)) {
+			entry = mGrid.getEntry(num - 1);
 		}
 		return entry;
 	}

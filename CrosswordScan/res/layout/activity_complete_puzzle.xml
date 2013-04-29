@@ -15,18 +15,21 @@
         android:adjustViewBounds="true"
         android:contentDescription="@string/crossword_grid" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/clue_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/crossword_grid"
-        android:layout_marginTop="12dp" >
+        android:layout_above="@+id/keyboard_view"
+        android:layout_below="@+id/crossword_grid" >
 
         <ImageButton
             android:id="@+id/previous_clue"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
             android:layout_gravity="left"
+            android:contentDescription="@string/previous_clue"
+            android:onClick="previousClue"
             android:src="@android:drawable/arrow_up_float" />
 
         <LinearLayout
@@ -34,6 +37,8 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:layout_toLeftOf="@+id/next_clue"
+            android:layout_toRightOf="@+id/previous_clue"
             android:gravity="center"
             android:orientation="vertical" >
 
@@ -58,9 +63,11 @@
             android:id="@+id/next_clue"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="right"
+            android:layout_alignParentRight="true"
+            android:contentDescription="@string/next_clue"
+            android:onClick="nextClue"
             android:src="@android:drawable/arrow_down_float" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <android.inputmethodservice.KeyboardView
         android:id="@+id/keyboard_view"

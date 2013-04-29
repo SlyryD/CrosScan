@@ -16,6 +16,7 @@ import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -41,8 +42,8 @@ public class CompletePuzzleActivity extends Activity {
 	private CrosswordDatabase mDatabase;
 
 	private Handler mGuiHandler;
-
 	private ViewGroup mRootLayout;
+
 	private CrosswordGridView mCrosswordGrid;
 	// private TextView mTimeLabel;
 
@@ -120,22 +121,37 @@ public class CompletePuzzleActivity extends Activity {
 			public void onCellSelected(Cell cell) {
 				Entry acrossEntry = cell.getEntry(true);
 				Entry downEntry = cell.getEntry(false);
+				boolean acrossMode = mCrosswordGame.getGrid().isAcrossMode();
+
 				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
 						.getClueNum() + "a. ACROSS CLUE HERE");
 				mDownClue.setText(downEntry == null ? "" : downEntry
 						.getClueNum() + "d. DOWN CLUE HERE");
-				if (acrossEntry != null
-						&& mCrosswordGame.getGrid().isAcrossMode()) {
+
+				if (downEntry == null) {
 					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
 					mDownClue.setTextColor(Color.BLACK);
-				} else if (downEntry != null
-						&& !mCrosswordGame.getGrid().isAcrossMode()) {
+				} else if (acrossEntry == null) {
+					mDownClue.setTextColor(Color.rgb(50, 50, 255));
+					mAcrossClue.setTextColor(Color.BLACK);
+				} else if (acrossMode) {
+					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+					mDownClue.setTextColor(Color.BLACK);
+				} else if (!acrossMode) {
 					mDownClue.setTextColor(Color.rgb(50, 50, 255));
 					mAcrossClue.setTextColor(Color.BLACK);
 				}
 			}
 
 		});
+	}
+
+	public void previousClue(View view) {
+		mCrosswordGrid.previousClue();
+	}
+
+	public void nextClue(View view) {
+		mCrosswordGrid.nextClue();
 	}
 
 	@Override
