@@ -40,6 +40,7 @@
             android:layout_toLeftOf="@+id/next_clue"
             android:layout_toRightOf="@+id/previous_clue"
             android:gravity="center"
+            android:onClick="switchAcrossMode"
             android:orientation="vertical" >
 
             <TextView

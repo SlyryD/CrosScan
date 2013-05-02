@@ -399,7 +399,8 @@ public class CrosswordGridView extends View {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
 				setCellValue(mSelectedCell, (char) 0);
-				if (!moveCellSelection(-1, 0)) {
+				if (mGrid.isAcrossMode() ? !moveCellSelection(-1, 0)
+						: !moveCellSelection(0, -1)) {
 					Entry previousEntry = getPreviousEntry();
 					Cell previousCell = previousEntry.getCell(previousEntry
 							.getSize() - 1);
@@ -482,6 +483,14 @@ public class CrosswordGridView extends View {
 		}
 
 		return false;
+	}
+
+	public void switchAcrossMode() {
+		mGrid.setAcrossMode(!mGrid.isAcrossMode());
+		invalidate();
+		if (mSelectedCell != null) {
+			onCellSelected(mSelectedCell);
+		}
 	}
 
 	public void previousClue() {

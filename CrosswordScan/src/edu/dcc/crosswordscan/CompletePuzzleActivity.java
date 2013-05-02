@@ -81,8 +81,8 @@ public class CompletePuzzleActivity extends Activity {
 
 		mAcrossClue = (TextView) findViewById(R.id.across_clue);
 		mDownClue = (TextView) findViewById(R.id.down_clue);
-		mAcrossClue.setText("1a. ACROSS CLUE HERE");
-		mDownClue.setText("1d. DOWN CLUE HERE");
+//		mAcrossClue.setText("1a. ACROSS CLUE HERE");
+//		mDownClue.setText("1d. DOWN CLUE HERE");
 
 		mKeyboard = new Keyboard(this, R.xml.keyboard);
 		mKeyboardView = (KeyboardView) findViewById(R.id.keyboard_view);
@@ -114,7 +114,6 @@ public class CompletePuzzleActivity extends Activity {
 			mCrosswordGame.resume();
 		}
 
-		mCrosswordGrid.setGame(mCrosswordGame);
 		mCrosswordGrid.setOnCellSelectedListener(new OnCellSelectedListener() {
 
 			@Override
@@ -144,8 +143,13 @@ public class CompletePuzzleActivity extends Activity {
 			}
 
 		});
+		mCrosswordGrid.setGame(mCrosswordGame);
 	}
 
+	public void switchAcrossMode(View view) {
+		mCrosswordGrid.switchAcrossMode();
+	}
+	
 	public void previousClue(View view) {
 		mCrosswordGrid.previousClue();
 	}
