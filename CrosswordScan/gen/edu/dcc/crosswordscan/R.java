@@ -171,42 +171,39 @@ containing a value of this type.
     }
     public static final class id {
         public static final int across_clue=0x7f0b0007;
-        public static final int action_settings=0x7f0b0018;
-        public static final int button_list=0x7f0b0015;
-        public static final int camera_preview=0x7f0b0012;
+        public static final int action_settings=0x7f0b0016;
+        public static final int button_list=0x7f0b0013;
+        public static final int camera_preview=0x7f0b0010;
         public static final int clue_bar=0x7f0b0002;
         public static final int clue_texts=0x7f0b0005;
-        public static final int complete_button=0x7f0b000e;
-        public static final int confirmButton=0x7f0b000b;
+        public static final int complete_button=0x7f0b000a;
         public static final int crossword_grid=0x7f0b0001;
-        public static final int crossword_name=0x7f0b000f;
+        public static final int crossword_name=0x7f0b000d;
         public static final int down_clue=0x7f0b0008;
-        public static final int enter_button=0x7f0b0010;
-        public static final int grid_correct=0x7f0b000a;
+        public static final int enter_button=0x7f0b000e;
+        public static final int grid_correct=0x7f0b000c;
         public static final int keyboard_view=0x7f0b0003;
-        public static final int menu_help=0x7f0b0014;
-        public static final int menu_settings=0x7f0b0017;
+        public static final int menu_help=0x7f0b0012;
+        public static final int menu_settings=0x7f0b0015;
         public static final int next_clue=0x7f0b0006;
-        public static final int photo_button=0x7f0b0013;
+        public static final int photo_button=0x7f0b0011;
         public static final int previous_clue=0x7f0b0004;
-        public static final int puzzle_scanned=0x7f0b0009;
-        public static final int rejectButton=0x7f0b000c;
-        public static final int relativeLayout1=0x7f0b0011;
+        public static final int puzzle_scanned=0x7f0b000b;
+        public static final int relativeLayout1=0x7f0b000f;
         public static final int root_layout=0x7f0b0000;
-        public static final int scan_button=0x7f0b000d;
-        public static final int title=0x7f0b0016;
+        public static final int scan_button=0x7f0b0009;
+        public static final int title=0x7f0b0014;
     }
     public static final class layout {
         public static final int activity_complete_puzzle=0x7f030000;
-        public static final int activity_confirm_grid=0x7f030001;
-        public static final int activity_main=0x7f030002;
-        public static final int activity_name_puzzle=0x7f030003;
-        public static final int activity_puzzle_info=0x7f030004;
-        public static final int activity_puzzle_list=0x7f030005;
-        public static final int activity_scan=0x7f030006;
-        public static final int menu=0x7f030007;
-        public static final int puzzle_actions_list=0x7f030008;
-        public static final int puzzle_list_item=0x7f030009;
+        public static final int activity_main=0x7f030001;
+        public static final int activity_name_puzzle=0x7f030002;
+        public static final int activity_puzzle_info=0x7f030003;
+        public static final int activity_puzzle_list=0x7f030004;
+        public static final int activity_scan=0x7f030005;
+        public static final int menu=0x7f030006;
+        public static final int puzzle_actions_list=0x7f030007;
+        public static final int puzzle_list_item=0x7f030008;
     }
     public static final class menu {
         public static final int activity_grid=0x7f0a0000;

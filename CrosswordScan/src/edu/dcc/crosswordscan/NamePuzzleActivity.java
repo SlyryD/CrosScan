@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import edu.dcc.game.CrosswordGridView;
 
 public class NamePuzzleActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "edu.dcc.crosswordscan.MESSAGE";
@@ -14,6 +15,8 @@ public class NamePuzzleActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_name_puzzle);
+		CrosswordGridView gridView = (CrosswordGridView) findViewById(R.id.crossword_grid);
+		gridView.setReadOnly();
 	}
 
 	public void completeTransition(View view) {
