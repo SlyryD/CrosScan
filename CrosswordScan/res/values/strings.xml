@@ -42,7 +42,7 @@
     <string name="title_activity_complete_puzzle">first puzzle</string>
     <string name="mock_clue">1a. Baseball units (4)</string>
     <string name="undo">Undo</string>
-    <string name="restart">Restart</string>
+    <string name="restart">Restart Puzzle</string>
     <string name="restart_confirm">Are you sure you want to restart this game?</string>
     <string name="settings">Settings</string>
     <string name="previous_clue">Previous Clue</string>

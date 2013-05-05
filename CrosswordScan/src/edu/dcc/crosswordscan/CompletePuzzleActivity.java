@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
+import edu.dcc.db.CrosswordColumns;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.Cell;
 import edu.dcc.game.CrosswordGame;
@@ -34,8 +35,10 @@ public class CompletePuzzleActivity extends Activity {
 	public static final String EXTRA_CROSSWORD_ID = "crossword_id";
 
 	public static final int MENU_ITEM_RESTART = Menu.FIRST;
+	public static final int MENU_ITEM_DELETE = Menu.FIRST + 1;
 
-	private static final int DIALOG_RESTART = 1;
+	private static final int DIALOG_RESTART = 0;
+	private static final int DIALOG_DELETE_PUZZLE = 1;
 
 	private long mCrosswordGameID;
 	private CrosswordGame mCrosswordGame;
@@ -234,9 +237,10 @@ public class CompletePuzzleActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		menu.add(0, MENU_ITEM_RESTART, 1, R.string.restart)
-				.setShortcut('7', 'r')
-				.setIcon(android.R.drawable.ic_menu_rotate);
+		menu.add(0, MENU_ITEM_RESTART, 0, R.string.restart).setIcon(
+				android.R.drawable.ic_menu_rotate);
+		menu.add(0, MENU_ITEM_DELETE, 1, R.string.delete_puzzle).setIcon(
+				android.R.drawable.ic_delete);
 
 		// Generate any additional actions that can be performed on the
 		// overall list. In a normal install, there are no additional
@@ -257,7 +261,9 @@ public class CompletePuzzleActivity extends Activity {
 		case MENU_ITEM_RESTART:
 			showDialog(DIALOG_RESTART);
 			return true;
-
+		case MENU_ITEM_DELETE:
+			showDialog(DIALOG_DELETE_PUZZLE);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -276,7 +282,7 @@ public class CompletePuzzleActivity extends Activity {
 		case DIALOG_RESTART:
 			return new AlertDialog.Builder(this)
 					.setIcon(android.R.drawable.ic_menu_rotate)
-					.setTitle(R.string.app_name)
+					.setTitle(R.string.restart)
 					.setMessage(R.string.restart_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
@@ -291,7 +297,21 @@ public class CompletePuzzleActivity extends Activity {
 								}
 							}).setNegativeButton(android.R.string.no, null)
 					.create();
-
+		case DIALOG_DELETE_PUZZLE:
+			return new AlertDialog.Builder(this)
+					.setIcon(android.R.drawable.ic_delete)
+					.setTitle(R.string.delete_puzzle)
+					.setMessage(R.string.delete_puzzle_confirm)
+					.setPositiveButton(android.R.string.yes,
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									mDatabase.deleteCrossword(mCrosswordGame
+											.getId());
+									CompletePuzzleActivity.this.finish();
+								}
+							}).setNegativeButton(android.R.string.no, null)
+					.create();
 		}
 		return null;
 	}

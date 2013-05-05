@@ -108,7 +108,7 @@ public class PuzzleListActivity extends ListActivity {
 		case DIALOG_DELETE_PUZZLE:
 			return new AlertDialog.Builder(this)
 					.setIcon(android.R.drawable.ic_delete)
-					.setTitle(CrosswordColumns.TITLE)
+					.setTitle(R.string.delete_puzzle)
 					.setMessage(R.string.delete_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
@@ -122,7 +122,7 @@ public class PuzzleListActivity extends ListActivity {
 		case DIALOG_RESET_PUZZLE:
 			return new AlertDialog.Builder(this)
 					.setIcon(android.R.drawable.ic_menu_rotate)
-					.setTitle("Puzzle")
+					.setTitle(R.string.restart)
 					.setMessage(R.string.reset_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
@@ -199,24 +199,6 @@ public class PuzzleListActivity extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 		playTransition(id);
-		// String puzzle = listItems[position];
-		// try {
-		// LayoutInflater inflater = LayoutInflater
-		// .from(PuzzleListActivity.this);
-		// View puzzleActionsView = inflater.inflate(
-		// R.layout.puzzle_actions_list, null);
-		// ListAdapter la = new ArrayAdapter<String>(PuzzleListActivity.this,
-		// android.R.layout.simple_list_item_1, getResources()
-		// .getStringArray(R.array.button_list));
-		// la.getItemId(0);
-		// // puzzleActionsView.setAdapter(la);
-		// new AlertDialog.Builder(PuzzleListActivity.this)
-		// // .setTitle(puzzle)
-		// .setView(puzzleActionsView)
-		// .setNegativeButton("Cancel", null).show();
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// }
 	}
 
 	/**
