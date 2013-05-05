@@ -17,8 +17,10 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import edu.dcc.db.CrosswordColumns;
 import edu.dcc.db.CrosswordDatabase;
+import edu.dcc.db.DatabaseHelper;
 import edu.dcc.db.FolderDetailLoader;
 import edu.dcc.game.CrosswordGame;
+import edu.dcc.game.Grid;
 
 public class PuzzleListActivity extends ListActivity {
 
@@ -40,8 +42,6 @@ public class PuzzleListActivity extends ListActivity {
 	private CrosswordDatabase mDatabase;
 	private FolderDetailLoader mFolderDetailLoader;
 
-	// ArrayList<String> listItems = new ArrayList<String>();
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -52,6 +52,18 @@ public class PuzzleListActivity extends ListActivity {
 		setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
 
 		mDatabase = new CrosswordDatabase(getApplicationContext());
+
+		Intent intent = getIntent();
+		String title = intent.getStringExtra(NamePuzzleActivity.TITLE);
+		String grid = intent.getStringExtra(ScanActivity.GRID);
+		if (title != null && grid != null) {
+			CrosswordGame crossword = new CrosswordGame();
+			crossword.setId(DatabaseHelper.getNextId());
+			crossword.setTitle(title);
+			crossword.setGrid(Grid.deserialize(grid));
+			mDatabase.insertCrossword(1, crossword);
+		}
+
 		mFolderDetailLoader = new FolderDetailLoader(getApplicationContext());
 
 		mFolderID = 1;

@@ -12,6 +12,7 @@ import edu.dcc.game.CrosswordGame;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	public static final int DATABASE_VERSION = 8;
+	private static int id = 1;
 
 	DatabaseHelper(Context context) {
 		super(context, CrosswordDatabase.DATABASE_NAME, null, DATABASE_VERSION);
@@ -76,7 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("Acid in vinegar|Off course|Variety of lettuce|Mallet|")
 				.append("Amherst sch.|End-of-year temp|Go in headfirst|Nursery rhyme trio|")
 				.append("To boot|Retro art style|007''s alma mater|Skip stones|Tip of a pen");
-		insertCrossword(db, 1, 1, "My Puzzle 1", sb.toString());
+		insertCrossword(db, 1, getNextId(), "My Puzzle 1", sb.toString());
 		sb = new StringBuilder();
 		sb.append("13|");
 		sb.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
@@ -92,9 +93,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("00|00|00|10|10|10|10|00|10|10|10|10|00|")
 				.append("00|10|10|10|10|10|10|10|00|00|10|10|10|")
 				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|");
-		insertCrossword(db, 1, 2, "My Puzzle 2", sb.toString());
+		insertCrossword(db, 1, getNextId(), "My Puzzle 2", sb.toString());
 
 		createIndexes(db);
+	}
+	
+	public static int getNextId() {
+		return id++;
 	}
 
 	private void insertFolder(SQLiteDatabase db, long folderID,
@@ -105,7 +110,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ "');");
 	}
 
-	// TODO: crosswordName is not used
 	private void insertCrossword(SQLiteDatabase db, long folderID,
 			long crosswordID, String crosswordName, String data) {
 		String sql = "INSERT INTO " + CrosswordDatabase.CROSSWORD_TABLE_NAME

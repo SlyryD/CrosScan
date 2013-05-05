@@ -105,7 +105,6 @@ public class Grid {
 						firstCell = true;
 					}
 					// Create Across and Down entries for white cell
-					System.out.println("ROW: " + row + ", COL: " + col);
 					if (cellNeedsNewDownEntry(row, col)) {
 						downEntry = new Entry(clueNum);
 						mDownEntries.put(clueNum, downEntry);

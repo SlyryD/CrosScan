@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Random;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -18,11 +19,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import edu.dcc.game.Grid;
 
 /**
  * Activity that allows user to scan crossword puzzles.
@@ -37,6 +40,8 @@ public class ScanActivity extends Activity {
 	// Request codes
 	public static final int CAMERA_REQUEST = 11, CONFIRM_GRID = 22,
 			REJECT_GRID = 33, MEDIA_TYPE_IMAGE = 44;
+	public static final String GRID = "grid";
+	public static final Random generator = new Random(18293734);
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -141,9 +146,25 @@ public class ScanActivity extends Activity {
 			Camera.Parameters parameters = camera.getParameters();
 			parameters.setPreviewSize(width, height);
 
-			if (Build.VERSION.SDK_INT >= 8)
-				camera.setDisplayOrientation(90);
-			else {
+			if (Build.VERSION.SDK_INT >= 8) {
+				int degrees = 0;
+				switch (ScanActivity.this.getWindowManager()
+						.getDefaultDisplay().getRotation()) {
+				case Surface.ROTATION_0:
+					degrees = 90;
+					break;
+				case Surface.ROTATION_90:
+					degrees = 0;
+					break;
+				case Surface.ROTATION_180:
+					degrees = 270;
+					break;
+				case Surface.ROTATION_270:
+					degrees = 180;
+					break;
+				}
+				camera.setDisplayOrientation(degrees);
+			} else {
 				if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 					parameters.set("orientation", "portrait");
 					parameters.set("rotation", 90);
@@ -264,7 +285,24 @@ public class ScanActivity extends Activity {
 			dialog.dismiss();
 			Intent intent = new Intent(ScanActivity.this,
 					NamePuzzleActivity.class);
+			// TODO: Actually get from scan, instead of random
+			intent.putExtra(GRID, getRandomGrid().serialize());
 			startActivity(intent);
+		}
+
+		private Grid getRandomGrid() {
+			int[][] cells = new int[13][13];
+			for (int i = 0; i < cells.length; i++) {
+				for (int j = 0; j < cells[i].length; j++) {
+					// 1/8 chance of black square
+					if (generator.nextInt(2) == 0 && generator.nextInt(2) == 0) {
+						cells[i][j] = 0;
+					} else {
+						cells[i][j] = 1;
+					}
+				}
+			}
+			return new Grid(cells.length, cells, null);
 		}
 	}
 
