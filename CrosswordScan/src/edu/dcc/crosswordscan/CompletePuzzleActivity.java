@@ -27,6 +27,7 @@ import edu.dcc.game.CrosswordGame;
 import edu.dcc.game.CrosswordGridView;
 import edu.dcc.game.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.game.Entry;
+import edu.dcc.game.Grid;
 
 public class CompletePuzzleActivity extends Activity {
 
@@ -81,8 +82,6 @@ public class CompletePuzzleActivity extends Activity {
 
 		mAcrossClue = (TextView) findViewById(R.id.across_clue);
 		mDownClue = (TextView) findViewById(R.id.down_clue);
-//		mAcrossClue.setText("1a. ACROSS CLUE HERE");
-//		mDownClue.setText("1d. DOWN CLUE HERE");
 
 		mKeyboard = new Keyboard(this, R.xml.keyboard);
 		mKeyboardView = (KeyboardView) findViewById(R.id.keyboard_view);
@@ -120,12 +119,13 @@ public class CompletePuzzleActivity extends Activity {
 			public void onCellSelected(Cell cell) {
 				Entry acrossEntry = cell.getEntry(true);
 				Entry downEntry = cell.getEntry(false);
-				boolean acrossMode = mCrosswordGame.getGrid().isAcrossMode();
+				Grid grid = mCrosswordGame.getGrid();
+				boolean acrossMode = grid.isAcrossMode();
 
-				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
-						.getClueNum() + "a. ACROSS CLUE HERE");
-				mDownClue.setText(downEntry == null ? "" : downEntry
-						.getClueNum() + "d. DOWN CLUE HERE");
+				mAcrossClue.setText(acrossEntry == null ? "" : grid.getClue(
+						acrossEntry.getClueNum(), true));
+				mDownClue.setText(downEntry == null ? "" : grid.getClue(
+						downEntry.getClueNum(), false));
 
 				if (downEntry == null) {
 					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
@@ -149,7 +149,7 @@ public class CompletePuzzleActivity extends Activity {
 	public void switchAcrossMode(View view) {
 		mCrosswordGrid.switchAcrossMode();
 	}
-	
+
 	public void previousClue(View view) {
 		mCrosswordGrid.previousClue();
 	}

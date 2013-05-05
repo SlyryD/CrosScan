@@ -18,7 +18,6 @@ public class CrosswordGame {
 	private long mTime;
 	private long mLastPlayed;
 	private Grid mGrid;
-	private Clues mClues;
 
 	private CommandStack mCommandStack;
 	// Time when current activity has become active.
@@ -27,7 +26,6 @@ public class CrosswordGame {
 	public static CrosswordGame createEmptyGame() {
 		CrosswordGame game = new CrosswordGame();
 		game.setGrid(Grid.createEmpty());
-		game.setClues(Clues.createEmpty());
 		// set creation time
 		game.setCreated(System.currentTimeMillis());
 		return game;
@@ -121,14 +119,6 @@ public class CrosswordGame {
 
 	public Grid getGrid() {
 		return mGrid;
-	}
-	
-	public Clues getClues() {
-		return mClues;
-	}
-	
-	public void setClues(Clues clues) {
-		mClues = clues;
 	}
 
 	public void setId(long id) {

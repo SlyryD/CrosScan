@@ -13,16 +13,9 @@ import java.util.List;
 public class Entry {
 	private ArrayList<Cell> mCells = new ArrayList<Cell>();
 	private int clueNum, size;
-	private String clue = null;
 
 	public Entry(int clueNum) {
 		this.clueNum = clueNum;
-		this.size = 0;
-	}
-
-	public Entry(int clueNum, String clue) {
-		this.clueNum = clueNum;
-		this.clue = clue;
 		this.size = 0;
 	}
 

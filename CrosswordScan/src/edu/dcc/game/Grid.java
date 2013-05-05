@@ -36,8 +36,10 @@ public class Grid {
 	public int clueNum;
 
 	// Helper arrays containing references to crossword entries
-	private TreeMap<Integer, Entry> mAcross;
-	private TreeMap<Integer, Entry> mDown;
+	private TreeMap<Integer, Entry> mAcrossEntries;
+	private TreeMap<Integer, Entry> mDownEntries;
+	private TreeMap<Integer, String> mAcrossClues;
+	private TreeMap<Integer, String> mDownClues;
 
 	private boolean mAcrossMode = true;
 
@@ -59,6 +61,7 @@ public class Grid {
 			}
 		}
 		initGrid();
+		initClues();
 	}
 
 	/**
@@ -69,6 +72,7 @@ public class Grid {
 	private Grid(Cell[][] cells) {
 		mCells = cells;
 		initGrid();
+		initClues();
 	}
 
 	/**
@@ -77,8 +81,8 @@ public class Grid {
 	 */
 	private void initGrid() {
 		clueNum = 0;
-		mAcross = new TreeMap<Integer, Entry>();
-		mDown = new TreeMap<Integer, Entry>();
+		mAcrossEntries = new TreeMap<Integer, Entry>();
+		mDownEntries = new TreeMap<Integer, Entry>();
 
 		// Traverse grid
 		for (int row = 0; row < gridSize; row++) {
@@ -95,13 +99,13 @@ public class Grid {
 					// Create Across and Down entries for white cell
 					if (cellNeedsNewDownEntry(row, col)) {
 						downEntry = new Entry(clueNum);
-						mDown.put(clueNum, downEntry);
+						mDownEntries.put(clueNum, downEntry);
 					} else {
 						downEntry = mCells[row - 1][col].getEntry(false);
 					}
 					if (cellNeedsNewAcrossEntry(row, col)) {
 						acrossEntry = new Entry(clueNum);
-						mAcross.put(clueNum, acrossEntry);
+						mAcrossEntries.put(clueNum, acrossEntry);
 					} else {
 						acrossEntry = mCells[row][col - 1].getEntry(true);
 					}
@@ -111,25 +115,30 @@ public class Grid {
 				} else {
 					mCells[row][col].initGrid(this, row, col, 0, null, null);
 				}
-				if (row == 12 && col == 0) {
-					Cell cell = mCells[row][col];
-					System.out.println("Cell (" + row + ", " + col + "): "
-							+ cell);
-					System.out.println("Across Entry: " + cell.getEntry(true));
-					System.out.println("Down Entry: " + cell.getEntry(false));
-				}
 			}
 		}
+		// TODO: Remove unnecessary print statements
 		System.out.println("Across entries");
-		for (Entry entry : mAcross.values()) {
+		for (Entry entry : mAcrossEntries.values()) {
 			System.out.println(entry);
 		}
 		System.out.println("Down entries");
-		for (Entry entry : mDown.values()) {
+		for (Entry entry : mDownEntries.values()) {
 			System.out.println(entry);
 		}
 	}
 
+	private void initClues() {
+		mAcrossClues = new TreeMap<Integer, String>();
+		mDownClues = new TreeMap<Integer, String>();
+		for (int clueNum : mAcrossEntries.keySet()) {
+			mAcrossClues.put(clueNum, clueNum + "a. " + "ACROSS CLUE");
+		}
+		for (int clueNum : mDownEntries.keySet()) {
+			mDownClues.put(clueNum, clueNum + "d. " + "DOWN CLUE");
+		}
+	}
+	
 	private boolean cellNeedsNewEntry(int row, int col) {
 		return (cellNeedsNewDownEntry(row, col) || cellNeedsNewAcrossEntry(row,
 				col));
@@ -187,7 +196,11 @@ public class Grid {
 	}
 
 	public Entry getEntry(int entryNum) {
-		return mAcrossMode ? mAcross.get(entryNum) : mDown.get(entryNum);
+		return mAcrossMode ? mAcrossEntries.get(entryNum) : mDownEntries.get(entryNum);
+	}
+	
+	public String getClue(int clueNum, boolean acrossMode) {
+		return acrossMode ? mAcrossClues.get(clueNum) : mDownClues.get(clueNum);
 	}
 
 	/**
