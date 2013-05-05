@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<declare-styleable name="SeekBarPreference">
-		<attr name="min" format="integer"/>
-		<attr name="max" format="integer"/>
-		<attr name="value" format="integer"/>
-		<attr name="valueFormat" format="string"/>
-	</declare-styleable>
 	<declare-styleable name="CrosswordGridView">
 		<attr name="lineColor" format="color"/>
 		<attr name="sectorLineColor" format="color"/>

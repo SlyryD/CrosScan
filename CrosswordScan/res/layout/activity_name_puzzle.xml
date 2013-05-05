@@ -32,7 +32,7 @@
             android:id="@+id/enter_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="completeTransition"
+            android:onClick="puzzleListTransition"
             android:text="@string/enter" />
     </LinearLayout>
 

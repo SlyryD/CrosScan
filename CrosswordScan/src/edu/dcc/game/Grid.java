@@ -1,7 +1,9 @@
 package edu.dcc.game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -15,12 +17,10 @@ import java.util.regex.Pattern;
  */
 public class Grid {
 
-	// TODO: Get this value somehow
-	public static final int gridSize = 13;
-
 	/**
-	 * String is expected to be in format "00002343243202...", where each number
-	 * represents cell value, no other information can be set using this method.
+	 * String is expected to be in format "00|00|2343243202...", where each
+	 * number represents cell value, no other information can be set using this
+	 * method.
 	 */
 	public static int DATA_VERSION_PLAIN = 0;
 
@@ -29,7 +29,12 @@ public class Grid {
 	 */
 	public static int DATA_VERSION_1 = 1;
 
-	// Cells in this grid.
+	// Grid size
+	private int mGridSize = 13;
+
+	private Cell mFirstWhiteCell;
+
+	// Cells in this grid
 	private Cell[][] mCells;
 
 	// Clue numbers
@@ -52,7 +57,8 @@ public class Grid {
 	 * 
 	 * @param cells
 	 */
-	public Grid(int[][] cells) {
+	public Grid(int gridSize, int[][] cells, List<String> clues) {
+		this.mGridSize = gridSize;
 		mCells = new Cell[gridSize][gridSize];
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
@@ -60,8 +66,9 @@ public class Grid {
 						: new Cell();
 			}
 		}
+		System.out.println(this);
 		initGrid();
-		initClues();
+		initClues(clues);
 	}
 
 	/**
@@ -69,10 +76,11 @@ public class Grid {
 	 * 
 	 * @param cells
 	 */
-	private Grid(Cell[][] cells) {
+	private Grid(int gridSize, Cell[][] cells, List<String> clues) {
+		this.mGridSize = gridSize;
 		mCells = cells;
 		initGrid();
-		initClues();
+		initClues(clues);
 	}
 
 	/**
@@ -85,11 +93,11 @@ public class Grid {
 		mDownEntries = new TreeMap<Integer, Entry>();
 
 		// Traverse grid
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
+		for (int row = 0; row < mGridSize; row++) {
+			for (int col = 0; col < mGridSize; col++) {
 				if (mCells[row][col].isWhite()) {
 					// Entries to add white cell to
-					Entry acrossEntry, downEntry;
+					Entry acrossEntry = null, downEntry = null;
 					boolean firstCell = false;
 					// Increment clueNum if necessary
 					if (cellNeedsNewEntry(row, col)) {
@@ -97,16 +105,17 @@ public class Grid {
 						firstCell = true;
 					}
 					// Create Across and Down entries for white cell
+					System.out.println("ROW: " + row + ", COL: " + col);
 					if (cellNeedsNewDownEntry(row, col)) {
 						downEntry = new Entry(clueNum);
 						mDownEntries.put(clueNum, downEntry);
-					} else {
+					} else if (row != 0 && mCells[row - 1][col].isWhite()) {
 						downEntry = mCells[row - 1][col].getEntry(false);
 					}
 					if (cellNeedsNewAcrossEntry(row, col)) {
 						acrossEntry = new Entry(clueNum);
 						mAcrossEntries.put(clueNum, acrossEntry);
-					} else {
+					} else if (col != 0 && mCells[row][col - 1].isWhite()) {
 						acrossEntry = mCells[row][col - 1].getEntry(true);
 					}
 					// Initialize cell index and add to entry
@@ -128,17 +137,27 @@ public class Grid {
 		}
 	}
 
-	private void initClues() {
+	private void initClues(List<String> clues) {
 		mAcrossClues = new TreeMap<Integer, String>();
 		mDownClues = new TreeMap<Integer, String>();
-		for (int clueNum : mAcrossEntries.keySet()) {
-			mAcrossClues.put(clueNum, clueNum + "a. " + "ACROSS CLUE");
-		}
-		for (int clueNum : mDownEntries.keySet()) {
-			mDownClues.put(clueNum, clueNum + "d. " + "DOWN CLUE");
+		if (clues == null) {
+			for (int clueNum : mAcrossEntries.keySet()) {
+				mAcrossClues.put(clueNum, "ACROSS CLUE");
+			}
+			for (int clueNum : mDownEntries.keySet()) {
+				mDownClues.put(clueNum, "DOWN CLUE");
+			}
+		} else {
+			int i = 0;
+			for (int clueNum : mAcrossEntries.keySet()) {
+				mAcrossClues.put(clueNum, clues.get(i++));
+			}
+			for (int clueNum : mDownEntries.keySet()) {
+				mDownClues.put(clueNum, clues.get(i++));
+			}
 		}
 	}
-	
+
 	private boolean cellNeedsNewEntry(int row, int col) {
 		return (cellNeedsNewDownEntry(row, col) || cellNeedsNewAcrossEntry(row,
 				col));
@@ -146,59 +165,45 @@ public class Grid {
 
 	private boolean cellNeedsNewDownEntry(int row, int col) {
 		return (row == 0 || !mCells[row - 1][col].isWhite())
-				&& (row + 1 < gridSize && mCells[row + 1][col].isWhite());
+				&& (row + 1 < mGridSize && mCells[row + 1][col].isWhite());
 	}
 
 	private boolean cellNeedsNewAcrossEntry(int row, int col) {
 		return (col == 0 || !mCells[row][col - 1].isWhite())
-				&& (col + 1 < gridSize && mCells[row][col + 1].isWhite());
+				&& (col + 1 < mGridSize && mCells[row][col + 1].isWhite());
 	}
 
-	/**
-	 * Creates empty crossword.
-	 * 
-	 * @return empty grid
-	 */
-	public static Grid createEmpty() {
-		Cell[][] cells = new Cell[gridSize][gridSize];
+	public int getGridSize() {
+		return mGridSize;
+	}
 
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
-				cells[row][col] = new Cell();
+	public Cell getFirstWhiteCell() {
+		if (mFirstWhiteCell != null) {
+			return mFirstWhiteCell;
+		}
+		for (int i = 0; i < mGridSize; i++) {
+			for (int j = 0; j < mGridSize; j++) {
+				if (mCells[i][j].isWhite()) {
+					return (mFirstWhiteCell = mCells[i][j]);
+				}
 			}
 		}
-
-		return new Grid(cells);
-	}
-
-	/**
-	 * Return true, if no values in any cells.
-	 * 
-	 * @return empty
-	 */
-	public boolean isEmpty() {
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
-				Cell cell = mCells[row][col];
-				if (cell.getValue() != 0)
-					return false;
-			}
-		}
-		return true;
-	}
-
-	public int getNumClues() {
-		return clueNum;
+		return null;
 	}
 
 	public Cell[][] getCells() {
 		return mCells;
 	}
 
-	public Entry getEntry(int entryNum) {
-		return mAcrossMode ? mAcrossEntries.get(entryNum) : mDownEntries.get(entryNum);
+	public int getNumClues() {
+		return clueNum;
 	}
-	
+
+	public Entry getEntry(int entryNum) {
+		return mAcrossMode ? mAcrossEntries.get(entryNum) : mDownEntries
+				.get(entryNum);
+	}
+
 	public String getClue(int clueNum, boolean acrossMode) {
 		return acrossMode ? mAcrossClues.get(clueNum) : mDownClues.get(clueNum);
 	}
@@ -241,8 +246,8 @@ public class Grid {
 			valueCount.put(value, 0);
 		}
 
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
+		for (int row = 0; row < mGridSize; row++) {
+			for (int col = 0; col < mGridSize; col++) {
 				char value = getCell(row, col).getValue();
 				if (value != 0) {
 					valueCount.put(value, valueCount.get(value) + 1);
@@ -260,6 +265,7 @@ public class Grid {
 	 * @return grid
 	 */
 	public static Grid deserialize(StringTokenizer data) {
+		int gridSize = Integer.parseInt(data.nextToken());
 		Cell[][] cells = new Cell[gridSize][gridSize];
 
 		int row = 0, col = 0;
@@ -273,7 +279,16 @@ public class Grid {
 			}
 		}
 
-		return new Grid(cells);
+		if (!data.hasMoreTokens()) {
+			return new Grid(gridSize, cells, null);
+		}
+
+		ArrayList<String> clues = new ArrayList<String>();
+		while (data.hasMoreTokens()) {
+			clues.add(data.nextToken());
+		}
+
+		return new Grid(gridSize, cells, clues);
 	}
 
 	/**
@@ -291,34 +306,32 @@ public class Grid {
 		}
 
 		if (lines[0].equals("version: 1")) {
-			StringTokenizer st = new StringTokenizer(lines[1], "|");
-			return deserialize(st);
+			return deserialize(new StringTokenizer(lines[1], "|"));
 		} else {
-			return fromString(data);
+			return fromString(new StringTokenizer(lines[0], "|"));
 		}
 	}
 
 	/**
 	 * Creates grid instance from given string. String is expected to be in
-	 * format "1A1B1C00000000...", where each number represents cell color and
-	 * each letter its entry.
+	 * format "1A|1B|1C|00|00|00|00|...|", where each number represents cell
+	 * color and each letter its entry.
 	 * 
 	 * @param data
 	 * @return grid
 	 */
-	public static Grid fromString(String data) {
+	public static Grid fromString(StringTokenizer data) {
+		int gridSize = Integer.parseInt(data.nextToken());
 		Cell[][] cells = new Cell[gridSize][gridSize];
 
-		int pos = 0;
 		for (int row = 0; row < gridSize; row++) {
 			for (int col = 0; col < gridSize; col++) {
-				char value = 0;
-				Cell cell = data.charAt(pos++) == '1' ? new Cell(true)
-						: new Cell();
-				if ((data.charAt(pos) >= 65 && data.charAt(pos) <= 90)) {
-					value = data.charAt(pos);
+				String datum = data.nextToken();
+				char color = datum.charAt(0), value = 0;
+				Cell cell = color == '1' ? new Cell(true) : new Cell();
+				if ((datum.charAt(1) >= 65 && datum.charAt(1) <= 90)) {
+					value = datum.charAt(1);
 				}
-				pos++;
 				cell.setValue(value);
 				cells[row][col] = cell;
 				System.out.print(cell);
@@ -326,7 +339,16 @@ public class Grid {
 			System.out.println();
 		}
 
-		return new Grid(cells);
+		if (!data.hasMoreTokens()) {
+			return new Grid(gridSize, cells, null);
+		}
+
+		ArrayList<String> clues = new ArrayList<String>();
+		while (data.hasMoreTokens()) {
+			clues.add(data.nextToken());
+		}
+
+		return new Grid(gridSize, cells, clues);
 	}
 
 	public String serialize() {
@@ -343,18 +365,24 @@ public class Grid {
 	 */
 	public void serialize(StringBuilder data) {
 		data.append("version: 1\n");
-
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
+		data.append(mGridSize + "|");
+		for (int row = 0; row < mGridSize; row++) {
+			for (int col = 0; col < mGridSize; col++) {
 				mCells[row][col].serialize(data);
 			}
+		}
+		for (String clue : mAcrossClues.values()) {
+			data.append(clue).append("|");
+		}
+		for (String clue : mDownClues.values()) {
+			data.append(clue).append("|");
 		}
 	}
 
 	private static Pattern DATA_PATTERN_VERSION_PLAIN = Pattern
 			.compile("^\\d*$");
 	private static Pattern DATA_PATTERN_VERSION_1 = Pattern
-			.compile("^version: 1\\n((?#white)[01]\\|(?#value)\\w\\|)*$");
+			.compile("^version: 1\\n(?#grid_size)\\d\\|((?#white)[01]\\|(?#value)\\w\\|)*$");
 
 	/**
 	 * Returns true, if given <code>data</code> conform to format of given data
@@ -412,6 +440,17 @@ public class Grid {
 				}
 			}
 		}
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (int row = 0; row < mGridSize; row++) {
+			for (int col = 0; col < mGridSize; col++) {
+				sb.append(mCells[row][col]);
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 
 	public interface OnChangeListener {

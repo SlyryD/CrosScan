@@ -122,10 +122,14 @@ public class CompletePuzzleActivity extends Activity {
 				Grid grid = mCrosswordGame.getGrid();
 				boolean acrossMode = grid.isAcrossMode();
 
-				mAcrossClue.setText(acrossEntry == null ? "" : grid.getClue(
-						acrossEntry.getClueNum(), true));
-				mDownClue.setText(downEntry == null ? "" : grid.getClue(
-						downEntry.getClueNum(), false));
+				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
+						.getClueNum()
+						+ "a. "
+						+ grid.getClue(acrossEntry.getClueNum(), true));
+				mDownClue.setText(downEntry == null ? "" : downEntry
+						.getClueNum()
+						+ "d. "
+						+ grid.getClue(downEntry.getClueNum(), false));
 
 				if (downEntry == null) {
 					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));

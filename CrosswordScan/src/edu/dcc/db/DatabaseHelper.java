@@ -34,13 +34,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ " TEXT" + ");");
 
 		insertFolder(db, 1, "crosswords");
-		insertCrossword(db, 1, 1, "My Puzzle 1", "10101010001010101010001010"
-				+ "10101010001010101010001010" + "10101010001010101010001010"
-				+ "10101010100000101010101010" + "00000010101010001010101000"
-				+ "10101010101010100010101010" + "10101000101010101000101010"
-				+ "10101010001010101010001010" + "10101010100010101010100010"
-				+ "00101010101000101010101010" + "00000010101010001010101000"
-				+ "00101010101010100000101010" + "10101010001010101010001010");
+		StringBuilder sb = new StringBuilder();
+		sb.append("15|");
+		sb.append("10|10|10|10|00|00|10|10|10|10|00|10|10|10|10|")
+				.append("10|10|10|10|10|00|10|10|10|10|00|10|10|10|10|")
+				.append("10|10|10|10|10|00|10|10|10|10|00|10|10|10|10|")
+				.append("10|10|10|00|10|10|10|10|00|10|10|10|10|10|10|")
+				.append("00|00|00|10|10|10|10|00|10|10|10|10|10|10|00|")
+				.append("10|10|10|10|10|10|10|00|10|10|10|00|00|00|00|")
+				.append("10|10|10|10|10|00|00|10|10|10|10|10|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|10|10|")
+				.append("10|10|10|10|10|10|10|10|00|00|10|10|10|10|10|")
+				.append("00|00|00|00|10|10|10|00|10|10|10|10|10|10|10|")
+				.append("00|10|10|10|10|10|10|00|10|10|10|10|00|00|00|")
+				.append("10|10|10|10|10|10|00|10|10|10|10|00|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|00|10|10|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|00|10|10|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|00|00|10|10|10|10|");
+		sb.append("Tiny stream|Building add-on|Sulk|")
+				.append("Asimov or Hayes|Popular cookie|Air France destination|")
+				.append("Lion, to Tarzan|After-bath wear|-- fixe|")
+				.append("Dangerous curve|Sketch|Mustard or mayo|")
+				.append("Freighter hazard|Basket willows|")
+				.append("Wasted time|Quick lunch|")
+				.append("Duelers'' weapons|Secure position|")
+				.append("Out on the briny|Bookcase-kit item|On vaction|")
+				.append("With ceremony|Kate''s sitcom friend|")
+				.append("Princess perturber|Waylays|")
+				.append("Blew hard|Celts, to Romans|")
+				.append("Fragrant rose|Thin fog|Sugary drink|")
+				.append("John, in Siberia|Adams or McClurg|Cove|")
+				.append("Goose-down garment|Salt, to a chemist|Kid who rode Diablo|")
+				.append("Anagram of \"\"seal\"\"|Risked a ticket|Kind of companion|");
+		sb.append("Hilltop|Osiris'' wife|Takes a powder|Frankenstein milieu|")
+				.append("Dosed the dog|Hematite yield|Corn belt st.|Is cautious (2 wds.)|")
+				.append("Watered silk|Mandate|Urgent appeals|Took a gander|")
+				.append("Port opposite Dover|\"\"Percent\"\" ending|Brad -- of \"\"Moneyball\"\"|Faint flicker|")
+				.append("\"\"Peter and the Wolf\"\" duck|Fell on --ears| Lhasa --|Lascivious look|")
+				.append("Cook bacon|Moon rings|Nocturnal birds|Milk, to Yves|")
+				.append("Batik need|Uses Brilliantine|Not nude|Living qtrs.|")
+				.append("Acid in vinegar|Off course|Variety of lettuce|Mallet|")
+				.append("Amherst sch.|End-of-year temp|Go in headfirst|Nursery rhyme trio|")
+				.append("To boot|Retro art style|007''s alma mater|Skip stones|Tip of a pen");
+		insertCrossword(db, 1, 1, "My Puzzle 1", sb.toString());
+		sb = new StringBuilder();
+		sb.append("13|");
+		sb.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
+				.append("10|10|10|10|10|00|00|10|10|10|10|10|10|")
+				.append("00|00|00|10|10|10|10|00|10|10|10|10|00|")
+				.append("10|10|10|10|10|10|10|10|00|10|10|10|10|")
+				.append("10|10|10|00|10|10|10|10|10|00|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
+				.append("10|10|10|10|10|00|10|10|10|10|10|00|10|")
+				.append("00|10|10|10|10|10|00|10|10|10|10|10|10|")
+				.append("00|00|00|10|10|10|10|00|10|10|10|10|00|")
+				.append("00|10|10|10|10|10|10|10|00|00|10|10|10|")
+				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|");
+		insertCrossword(db, 1, 2, "My Puzzle 2", sb.toString());
 
 		createIndexes(db);
 	}

@@ -20,7 +20,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColor=0x7f010009;
+        public static final int backgroundColor=0x7f010005;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -29,7 +29,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorBlackCell=0x7f01000b;
+        public static final int backgroundColorBlackCell=0x7f010007;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -38,7 +38,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorEntry=0x7f01000d;
+        public static final int backgroundColorEntry=0x7f010009;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -47,7 +47,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorSecondary=0x7f01000a;
+        public static final int backgroundColorSecondary=0x7f010006;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -56,7 +56,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int backgroundColorSelected=0x7f01000c;
+        public static final int backgroundColorSelected=0x7f010008;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -65,23 +65,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int lineColor=0x7f010004;
-        /** <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int max=0x7f010001;
-        /** <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int min=0x7f010000;
+        public static final int lineColor=0x7f010000;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -90,7 +74,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int sectorLineColor=0x7f010005;
+        public static final int sectorLineColor=0x7f010001;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -99,7 +83,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int textColor=0x7f010006;
+        public static final int textColor=0x7f010002;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -108,7 +92,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int textColorNote=0x7f010008;
+        public static final int textColorNote=0x7f010004;
         /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
 <p>This may also be a reference to a resource (in the form
@@ -117,23 +101,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int textColorReadOnly=0x7f010007;
-        /** <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int value=0x7f010002;
-        /** <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int valueFormat=0x7f010003;
+        public static final int textColorReadOnly=0x7f010003;
     }
     public static final class color {
         public static final int black=0x7f060004;
@@ -334,9 +302,9 @@ containing a value of this type.
            @see #CrosswordGridView_textColorReadOnly
          */
         public static final int[] CrosswordGridView = {
+            0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003,
             0x7f010004, 0x7f010005, 0x7f010006, 0x7f010007,
-            0x7f010008, 0x7f010009, 0x7f01000a, 0x7f01000b,
-            0x7f01000c, 0x7f01000d
+            0x7f010008, 0x7f010009
         };
         /**
           <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#backgroundColor}
@@ -488,80 +456,5 @@ containing a value of this type.
           @attr name android:textColorReadOnly
         */
         public static final int CrosswordGridView_textColorReadOnly = 3;
-        /** Attributes that can be used with a SeekBarPreference.
-           <p>Includes the following attributes:</p>
-           <table>
-           <colgroup align="left" />
-           <colgroup align="left" />
-           <tr><th>Attribute</th><th>Description</th></tr>
-           <tr><td><code>{@link #SeekBarPreference_max edu.dcc.crosswordscan:max}</code></td><td></td></tr>
-           <tr><td><code>{@link #SeekBarPreference_min edu.dcc.crosswordscan:min}</code></td><td></td></tr>
-           <tr><td><code>{@link #SeekBarPreference_value edu.dcc.crosswordscan:value}</code></td><td></td></tr>
-           <tr><td><code>{@link #SeekBarPreference_valueFormat edu.dcc.crosswordscan:valueFormat}</code></td><td></td></tr>
-           </table>
-           @see #SeekBarPreference_max
-           @see #SeekBarPreference_min
-           @see #SeekBarPreference_value
-           @see #SeekBarPreference_valueFormat
-         */
-        public static final int[] SeekBarPreference = {
-            0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003
-        };
-        /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#max}
-          attribute's value can be found in the {@link #SeekBarPreference} array.
-
-
-          <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name android:max
-        */
-        public static final int SeekBarPreference_max = 1;
-        /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#min}
-          attribute's value can be found in the {@link #SeekBarPreference} array.
-
-
-          <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name android:min
-        */
-        public static final int SeekBarPreference_min = 0;
-        /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#value}
-          attribute's value can be found in the {@link #SeekBarPreference} array.
-
-
-          <p>Must be an integer value, such as "<code>100</code>".
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name android:value
-        */
-        public static final int SeekBarPreference_value = 2;
-        /**
-          <p>This symbol is the offset where the {@link edu.dcc.crosswordscan.R.attr#valueFormat}
-          attribute's value can be found in the {@link #SeekBarPreference} array.
-
-
-          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name android:valueFormat
-        */
-        public static final int SeekBarPreference_valueFormat = 3;
     };
 }

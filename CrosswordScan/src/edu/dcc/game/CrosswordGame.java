@@ -23,14 +23,6 @@ public class CrosswordGame {
 	// Time when current activity has become active.
 	private long mActiveFromTime = -1;
 
-	public static CrosswordGame createEmptyGame() {
-		CrosswordGame game = new CrosswordGame();
-		game.setGrid(Grid.createEmpty());
-		// set creation time
-		game.setCreated(System.currentTimeMillis());
-		return game;
-	}
-
 	public CrosswordGame() {
 		mTime = 0;
 		mLastPlayed = 0;
@@ -228,8 +220,8 @@ public class CrosswordGame {
 	 * Resets game.
 	 */
 	public void reset() {
-		for (int row = 0; row < Grid.gridSize; row++) {
-			for (int col = 0; col < Grid.gridSize; col++) {
+		for (int row = 0; row < mGrid.getGridSize(); row++) {
+			for (int col = 0; col < mGrid.getGridSize(); col++) {
 				Cell cell = mGrid.getCell(row, col);
 				if (cell.isWhite()) {
 					cell.setValue((char) 0);
