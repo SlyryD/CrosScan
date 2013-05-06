@@ -135,6 +135,10 @@ public class CrosswordGame {
 	public void setTitle(String title) {
 		this.mTitle = title;
 	}
+	
+	public float getComplete() {
+		return mGrid.getComplete();
+	}
 
 	/**
 	 * Sets value for the given cell.

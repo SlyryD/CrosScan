@@ -17,7 +17,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/crosswordscan_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
@@ -51,16 +51,8 @@
             android:label="@string/title_activity_complete_puzzle" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.TestActivity"
-            android:label="@string/title_activity_test"
-            android:parentActivityName="android.app.ListActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="android.app.ListActivity" />
-        </activity>
-        <activity
             android:name="edu.dcc.crosswordscan.PuzzleInfoActivity"
-            android:label="@string/title_activity_puzzle_info" >
+            android:label="@string/puzzle_info" >
         </activity>
     </application>
 

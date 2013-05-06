@@ -1,11 +1,7 @@
 package edu.dcc.game;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -234,27 +230,41 @@ public class Grid {
 	}
 
 	/**
-	 * Returns how many times each value is used in <code>Grid</code>. Returns
-	 * map with entry for each value.
+	 * Returns number white squares with values
 	 * 
 	 * @return valueCount
 	 */
-	public Map<Character, Integer> getValueCount() {
-		Map<Character, Integer> valueCount = new HashMap<Character, Integer>();
-		for (char value = 65; value <= 90; value++) {
-			valueCount.put(value, 0);
-		}
+	public int getValueCount() {
+		int valueCount = 0;
 
 		for (int row = 0; row < mGridSize; row++) {
 			for (int col = 0; col < mGridSize; col++) {
 				char value = getCell(row, col).getValue();
 				if (value != 0) {
-					valueCount.put(value, valueCount.get(value) + 1);
+					valueCount++;
 				}
 			}
 		}
 
 		return valueCount;
+	}
+
+	public int getWhiteCount() {
+		int whiteCount = 0;
+
+		for (int row = 0; row < mGridSize; row++) {
+			for (int col = 0; col < mGridSize; col++) {
+				if (getCell(row, col).isWhite()) {
+					whiteCount++;
+				}
+			}
+		}
+
+		return whiteCount;
+	}
+
+	public float getComplete() {
+		return ((float) getValueCount()) / ((float) getWhiteCount());
 	}
 
 	/**

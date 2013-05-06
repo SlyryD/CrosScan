@@ -159,8 +159,6 @@ public class PuzzleListActivity extends ListActivity {
 			return;
 		}
 
-		menu.setHeaderTitle(CrosswordColumns.TITLE);
-
 		// Add menu items
 		menu.add(0, MENU_ITEM_PLAY, 0, R.string.play_puzzle);
 		menu.add(0, MENU_ITEM_INFO, 1, R.string.puzzle_info);
@@ -182,14 +180,10 @@ public class PuzzleListActivity extends ListActivity {
 			playTransition(info.id);
 			return true;
 		case MENU_ITEM_INFO:
-			Intent intent = new Intent(this, PuzzleInfoActivity.class);
-			intent.setAction(Intent.ACTION_EDIT);
-			// intent.putExtra(PuzzleInfoActivity.EXTRA_CROSSWORD_ID, info.id);
-			startActivity(intent);
+			infoTransition(info.id);
 			return true;
 		case MENU_ITEM_DELETE:
-			mDeletePuzzleID = info.id;
-			showDialog(DIALOG_DELETE_PUZZLE);
+			deleteTransition(mDeletePuzzleID = info.id);
 			return true;
 		}
 		return false;
@@ -220,17 +214,14 @@ public class PuzzleListActivity extends ListActivity {
 		startActivity(intent);
 	}
 
-	/** Called when the user clicks the Puzzle Info button */
-	public void infoTransition(View view) {
-		// new AlertDialog.Builder(PuzzleListActivity.this).setTitle(puzzle)
-		// .setView(startPuzzleView).setNegativeButton("Cancel", null)
-		// .show();
+	/** Called when the user clicks the Puzzle Info menu item */
+	public void infoTransition(long id) {
+		Intent intent = new Intent(this, PuzzleInfoActivity.class);
+		intent.putExtra(PuzzleInfoActivity.EXTRA_CROSSWORD_ID, id);
+		startActivity(intent);
 	}
 
-	/** Called when the user clicks the Delete Puzzle button */
-	public void deleteTransition(View view) {
-		// Intent intent = new Intent(this, DeleteActivity.class);
-		// startActivity(intent);
+	public void deleteTransition(long id) {
+		showDialog(DIALOG_DELETE_PUZZLE);
 	}
-
 }
