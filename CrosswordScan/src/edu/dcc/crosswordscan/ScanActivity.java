@@ -25,7 +25,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import edu.dcc.game.Grid;
+import edu.dcc.game.Puzzle;
 
 /**
  * Activity that allows user to scan crossword puzzles.
@@ -286,15 +286,15 @@ public class ScanActivity extends Activity {
 			Intent intent = new Intent(ScanActivity.this,
 					NamePuzzleActivity.class);
 			// TODO: Actually get from scan, instead of random
-			intent.putExtra(GRID, getRandomGrid().serialize());
+			intent.putExtra(GRID, getRandomPuzzle().serialize());
 			startActivity(intent);
 		}
 
-		private Grid getRandomGrid() {
+		private Puzzle getRandomPuzzle() {
 			int[][] cells = new int[13][13];
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
-					// 1/8 chance of black square
+					// 1/4 chance of black square
 					if (generator.nextInt(2) == 0 && generator.nextInt(2) == 0) {
 						cells[i][j] = 0;
 					} else {
@@ -302,7 +302,7 @@ public class ScanActivity extends Activity {
 					}
 				}
 			}
-			return new Grid(cells.length, cells, null);
+			return new Puzzle(cells.length, cells, null);
 		}
 	}
 

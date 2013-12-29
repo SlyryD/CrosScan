@@ -14,12 +14,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public static final int DATABASE_VERSION = 8;
 	private static int id = 1;
 
-	DatabaseHelper(Context context) {
+	public DatabaseHelper(Context context) {
 		super(context, CrosswordDatabase.DATABASE_NAME, null, DATABASE_VERSION);
 	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		// Puzzle table
 		db.execSQL("CREATE TABLE " + CrosswordDatabase.CROSSWORD_TABLE_NAME
 				+ " (" + CrosswordColumns._ID + " INTEGER PRIMARY KEY,"
 				+ CrosswordColumns.FOLDER_ID + " INTEGER,"
@@ -29,12 +30,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ CrosswordColumns.DATA + " Text," + CrosswordColumns.TITLE
 				+ " Text);");
 
+		// Folder table
 		db.execSQL("CREATE TABLE " + CrosswordDatabase.FOLDER_TABLE_NAME + " ("
 				+ FolderColumns._ID + " INTEGER PRIMARY KEY,"
 				+ CrosswordColumns.CREATED + " INTEGER," + FolderColumns.NAME
 				+ " TEXT" + ");");
 
+		// Create folder crosswords
 		insertFolder(db, 1, "crosswords");
+
+		// Construct example puzzle
 		StringBuilder sb = new StringBuilder();
 		sb.append("15|");
 		sb.append("10|10|10|10|00|00|10|10|10|10|00|10|10|10|10|")
@@ -78,6 +83,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("Amherst sch.|End-of-year temp|Go in headfirst|Nursery rhyme trio|")
 				.append("To boot|Retro art style|007''s alma mater|Skip stones|Tip of a pen");
 		insertCrossword(db, 1, getNextId(), "My Puzzle 1", sb.toString());
+
+		// Construct example puzzle
 		sb = new StringBuilder();
 		sb.append("13|");
 		sb.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
@@ -95,9 +102,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|");
 		insertCrossword(db, 1, getNextId(), "My Puzzle 2", sb.toString());
 
-		createIndexes(db);
+		// Create indices
+		createIndices(db);
+
+		System.out.println(db.toString());
 	}
-	
+
 	public static int getNextId() {
 		return id++;
 	}
@@ -114,7 +124,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			long crosswordID, String crosswordName, String data) {
 		String sql = "INSERT INTO " + CrosswordDatabase.CROSSWORD_TABLE_NAME
 				+ " VALUES (" + crosswordID + ", " + folderID + ", 0, "
-				+ CrosswordGame.GAME_STATE_NOT_STARTED + ", 0, null, '" + data
+				+ CrosswordGame.GAME_STATE_NOT_STARTED + ", 0, 0, '" + data
 				+ "', '" + crosswordName + "');";
 		db.execSQL(sql);
 	}
@@ -124,11 +134,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		Log.i("DatabaseHelper", "Upgrading database from version " + oldVersion
 				+ " to " + newVersion + ".");
 
-		createIndexes(db);
+		createIndices(db);
 	}
 
-	private void createIndexes(SQLiteDatabase db) {
-		db.execSQL("create index " + CrosswordDatabase.CROSSWORD_TABLE_NAME
+	private void createIndices(SQLiteDatabase db) {
+		db.execSQL("CREATE INDEX " + CrosswordDatabase.CROSSWORD_TABLE_NAME
 				+ "_idx1 on " + CrosswordDatabase.CROSSWORD_TABLE_NAME + " ("
 				+ CrosswordColumns.FOLDER_ID + ");");
 	}

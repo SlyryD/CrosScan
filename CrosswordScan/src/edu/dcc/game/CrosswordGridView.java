@@ -10,7 +10,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import edu.dcc.crosswordscan.R;
-import edu.dcc.game.Grid.OnChangeListener;
+import edu.dcc.game.Puzzle.OnChangeListener;
 
 /**
  * Crossword grid view
@@ -22,12 +22,11 @@ public class CrosswordGridView extends View {
 	public static final int DEFAULT_BOARD_SIZE = 240;
 
 	private float mCellWidth;
-	private float mCellHeight;
 
 	private Cell mSelectedCell;
 
 	private CrosswordGame mGame;
-	private Grid mGrid;
+	private Puzzle puzzle;
 
 	private OnCellTappedListener mOnCellTappedListener;
 	private OnCellSelectedListener mOnCellSelectedListener;
@@ -97,22 +96,22 @@ public class CrosswordGridView extends View {
 
 	public void setGame(CrosswordGame game) {
 		mGame = game;
-		setGrid(game.getGrid());
+		setPuzzle(game.getPuzzle());
 	}
 
-	public Grid getGrid() {
-		return mGrid;
+	public Puzzle getPuzzle() {
+		return puzzle;
 	}
 
-	public void setGrid(Grid grid) {
-		mGrid = grid;
+	public void setPuzzle(Puzzle puzzle) {
+		this.puzzle = puzzle;
 
-		if (mGrid != null && !mReadOnly) {
+		if (this.puzzle != null && !mReadOnly) {
 			// select first cell by default
-			mSelectedCell = mGrid.getFirstWhiteCell();
+			mSelectedCell = puzzle.getFirstWhiteCell();
 			onCellSelected(mSelectedCell);
 
-			mGrid.addOnChangeListener(new OnChangeListener() {
+			this.puzzle.addOnChangeListener(new OnChangeListener() {
 				@Override
 				public void onChange() {
 					postInvalidate();
@@ -207,28 +206,26 @@ public class CrosswordGridView extends View {
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		int width = getWidth() - getPaddingRight();
-		int height = getHeight() - getPaddingBottom();
-
-		int paddingLeft = getPaddingLeft();
-		int paddingTop = getPaddingTop();
+		int width = getWidth() - getPaddingLeft() - getPaddingRight();
+		int height = getHeight() - getPaddingTop() - getPaddingBottom();
 
 		// Draw cells
 		int cellLeft, cellTop;
-		if (mGrid != null) {
+		if (puzzle != null) {
 			float valueAscent = mCellValuePaint.ascent();
 			float clueNumAscent = mClueNumPaint.ascent();
-			for (int row = 0; row < mGrid.getGridSize(); row++) {
-				for (int col = 0; col < mGrid.getGridSize(); col++) {
-					Cell cell = mGrid.getCell(row, col);
+			for (int row = 0; row < puzzle.getSize(); row++) {
+				for (int col = 0; col < puzzle.getSize(); col++) {
+					Cell cell = puzzle.getCell(row, col);
 
-					cellLeft = Math.round((col * mCellWidth) + paddingLeft);
-					cellTop = Math.round((row * mCellHeight) + paddingTop);
+					cellLeft = Math
+							.round((col * mCellWidth) + getPaddingLeft());
+					cellTop = Math.round((row * mCellWidth) + getPaddingTop());
 
 					if (!cell.isWhite()) {
 						// Draw black cells
 						canvas.drawRect(cellLeft, cellTop, cellLeft
-								+ mCellWidth, cellTop + mCellHeight,
+								+ mCellWidth, cellTop + mCellWidth,
 								mBackgroundColorBlackCell);
 					} else {
 						// Draw clue numbers
@@ -239,7 +236,7 @@ public class CrosswordGridView extends View {
 							canvas.drawText(
 									Integer.toString(cell.getClueNum()),
 									cellLeft + 2, cellTop + mClueNumTop
-											- clueNumAscent - 1, mClueNumPaint);
+											- clueNumAscent + 2, mClueNumPaint);
 						}
 					}
 
@@ -247,8 +244,8 @@ public class CrosswordGridView extends View {
 					char value = cell.getValue();
 					if (value != 0) {
 						canvas.drawText(String.valueOf(value), cellLeft
-								+ mNumberLeft, cellTop + mNumberTop
-								- valueAscent, mCellValuePaint);
+								+ mNumberLeft + 1, cellTop + mNumberTop
+								- valueAscent + 4, mCellValuePaint);
 					}
 
 				}
@@ -256,21 +253,21 @@ public class CrosswordGridView extends View {
 
 			// Highlight selected cell and entry
 			if (mSelectedCell != null && !mReadOnly) {
-				boolean acrossMode = mGrid.isAcrossMode();
+				boolean acrossMode = mGame.isAcrossMode();
 				Entry entry = mSelectedCell.getEntry(acrossMode);
 
 				if (entry == null) {
-					mGrid.setAcrossMode(!acrossMode);
+					mGame.setAcrossMode(!acrossMode);
 					entry = mSelectedCell.getEntry(!acrossMode);
 				}
 
 				for (Cell cell : entry.getCells()) {
 					cellLeft = Math.round(cell.getColumn() * mCellWidth)
-							+ paddingLeft;
-					cellTop = Math.round(cell.getRow() * mCellHeight)
-							+ paddingTop;
+							+ getPaddingLeft();
+					cellTop = Math.round(cell.getRow() * mCellWidth)
+							+ getPaddingTop();
 					canvas.drawRect(cellLeft, cellTop, cellLeft + mCellWidth,
-							cellTop + mCellHeight,
+							cellTop + mCellWidth,
 							cell == mSelectedCell ? mBackgroundColorSelected
 									: mBackgroundColorEntry);
 				}
@@ -278,15 +275,15 @@ public class CrosswordGridView extends View {
 		}
 
 		// draw vertical lines
-		for (int col = 0; col <= mGrid.getGridSize(); col++) {
-			float x = (col * mCellWidth) + paddingLeft;
-			canvas.drawLine(x, paddingTop, x, height, mLinePaint);
+		for (int col = 0; col <= puzzle.getSize(); col++) {
+			float x = (col * mCellWidth) + getPaddingLeft();
+			canvas.drawLine(x, getPaddingTop(), x, height, mLinePaint);
 		}
 
 		// draw horizontal lines
-		for (int row = 0; row <= mGrid.getGridSize(); row++) {
-			float y = row * mCellHeight + paddingTop;
-			canvas.drawLine(paddingLeft, y, width, y, mLinePaint);
+		for (int row = 0; row <= puzzle.getSize(); row++) {
+			float y = (row * mCellWidth) + getPaddingTop();
+			canvas.drawLine(getPaddingLeft(), y, width, y, mLinePaint);
 		}
 	}
 
@@ -330,21 +327,19 @@ public class CrosswordGridView extends View {
 			height = heightSize;
 		}
 		mCellWidth = (width - getPaddingLeft() - getPaddingRight())
-				/ (float) mGrid.getGridSize();
-		mCellHeight = (height - getPaddingTop() - getPaddingBottom())
-				/ (float) mGrid.getGridSize();
+				/ (float) puzzle.getSize();
 
 		setMeasuredDimension(width, height);
 
-		float cellTextSize = mCellHeight * 0.75f;
+		float cellTextSize = mCellWidth * 0.75f;
 		mCellValuePaint.setTextSize(cellTextSize);
-		mClueNumPaint.setTextSize(mCellHeight / 3.0f);
+		mClueNumPaint.setTextSize(mCellWidth / 3.0f);
 		// Compute offsets in each cell to center the rendered number
 		mNumberLeft = (int) ((mCellWidth - mCellValuePaint.measureText("M")) / 2);
-		mNumberTop = (int) ((mCellHeight - mCellValuePaint.getTextSize()) / 2);
+		mNumberTop = (int) ((mCellWidth - mCellValuePaint.getTextSize()) / 2);
 
 		// Add offset to avoid cutting off clue numbers
-		mClueNumTop = mCellHeight / 50.0f;
+		mClueNumTop = mCellWidth / 50.0f;
 	}
 
 	protected void onCellTapped(Cell cell) {
@@ -378,7 +373,7 @@ public class CrosswordGridView extends View {
 			if (selected == null || !selected.isWhite()) {
 				return false;
 			} else if (selected == mSelectedCell) {
-				mGrid.setAcrossMode(!mGrid.isAcrossMode());
+				mGame.setAcrossMode(!mGame.isAcrossMode());
 			} else {
 				mSelectedCell = selected;
 			}
@@ -416,7 +411,7 @@ public class CrosswordGridView extends View {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
 				setCellValue(mSelectedCell, (char) 0);
-				if (mGrid.isAcrossMode() ? !moveCellSelection(-1, 0)
+				if (mGame.isAcrossMode() ? !moveCellSelection(-1, 0)
 						: !moveCellSelection(0, -1)) {
 					Entry previousEntry = getPreviousEntry();
 					Cell previousCell = previousEntry.getCell(previousEntry
@@ -435,7 +430,7 @@ public class CrosswordGridView extends View {
 	 * moves to next entry.
 	 */
 	public void moveCellSelection() {
-		boolean acrossMode = mGrid.isAcrossMode();
+		boolean acrossMode = mGame.isAcrossMode();
 		if (!moveCellSelection(acrossMode ? 1 : 0, acrossMode ? 0 : 1)) {
 			// Move to next entry
 			System.out.println("Current entry: "
@@ -488,9 +483,9 @@ public class CrosswordGridView extends View {
 	 * @return True, if cell was successfully selected.
 	 */
 	private boolean moveCellSelectionTo(int row, int col) {
-		if (col >= 0 && col < mGrid.getGridSize() && row >= 0
-				&& row < mGrid.getGridSize()) {
-			Cell newCell = mGrid.getCell(row, col);
+		if (col >= 0 && col < puzzle.getSize() && row >= 0
+				&& row < puzzle.getSize()) {
+			Cell newCell = puzzle.getCell(row, col);
 			if (!newCell.isWhite()) {
 				return false;
 			}
@@ -504,7 +499,7 @@ public class CrosswordGridView extends View {
 	}
 
 	public void switchAcrossMode() {
-		mGrid.setAcrossMode(!mGrid.isAcrossMode());
+		mGame.setAcrossMode(!mGame.isAcrossMode());
 		invalidate();
 		if (mSelectedCell != null) {
 			onCellSelected(mSelectedCell);
@@ -522,23 +517,23 @@ public class CrosswordGridView extends View {
 	}
 
 	private Entry getNextEntry() {
-		int entryNum = mSelectedCell.getEntry(mGrid.isAcrossMode()).getCell(0)
+		int entryNum = mSelectedCell.getEntry(mGame.isAcrossMode()).getCell(0)
 				.getClueNum();
 		Entry entry = null;
 		for (int num = entryNum; entry == null; num = (num + 1)
-				% (mGrid.getNumClues() + 1)) {
-			entry = mGrid.getEntry(num + 1);
+				% (puzzle.getNumEntries() + 1)) {
+			entry = puzzle.getEntry(num + 1, mGame.isAcrossMode());
 		}
 		return entry;
 	}
 
 	private Entry getPreviousEntry() {
-		int entryNum = mSelectedCell.getEntry(mGrid.isAcrossMode()).getCell(0)
+		int entryNum = mSelectedCell.getEntry(mGame.isAcrossMode()).getCell(0)
 				.getClueNum();
 		Entry entry = null;
-		for (int num = entryNum; entry == null; num = (num == 1) ? mGrid
-				.getNumClues() + 1 : (num - 1)) {
-			entry = mGrid.getEntry(num - 1);
+		for (int num = entryNum; entry == null; num = (num == 1) ? puzzle
+				.getNumEntries() + 1 : (num - 1)) {
+			entry = puzzle.getEntry(num - 1, mGame.isAcrossMode());
 		}
 		return entry;
 	}
@@ -555,12 +550,12 @@ public class CrosswordGridView extends View {
 		int lx = x - getPaddingLeft();
 		int ly = y - getPaddingTop();
 
-		int row = (int) (ly / mCellHeight);
+		int row = (int) (ly / mCellWidth);
 		int col = (int) (lx / mCellWidth);
 
-		if (col >= 0 && col < mGrid.getGridSize() && row >= 0
-				&& row < mGrid.getGridSize()) {
-			return mGrid.getCell(row, col);
+		if (col >= 0 && col < puzzle.getSize() && row >= 0
+				&& row < puzzle.getSize()) {
+			return puzzle.getCell(row, col);
 		} else {
 			return null;
 		}

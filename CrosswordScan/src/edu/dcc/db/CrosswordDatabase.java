@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import edu.dcc.game.CrosswordGame;
-import edu.dcc.game.Grid;
+import edu.dcc.game.Puzzle;
 
 /**
  * Wrapper around CrosswordScans's database.
@@ -30,7 +30,11 @@ public class CrosswordDatabase {
 	public static final String CROSSWORD_TABLE_NAME = "crossword";
 	public static final String FOLDER_TABLE_NAME = "folder";
 
+	private static final String INBOX_FOLDER_NAME = "Inbox";
+
 	private DatabaseHelper mOpenHelper;
+
+	private SQLiteStatement mInsertCrosswordStatement;
 
 	public CrosswordDatabase(Context context) {
 		mOpenHelper = new DatabaseHelper(context);
@@ -133,8 +137,6 @@ public class CrosswordDatabase {
 
 		return folder;
 	}
-
-	private static final String INBOX_FOLDER_NAME = "Inbox";
 
 	/**
 	 * Returns folder which acts as a holder for puzzles imported without
@@ -259,10 +261,8 @@ public class CrosswordDatabase {
 	 */
 	public Cursor getCrosswordList(long folderID) {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-
 		qb.setTables(CROSSWORD_TABLE_NAME);
 		qb.appendWhere(CrosswordColumns.FOLDER_ID + "=" + folderID);
-
 		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		return qb.query(db, null, null, null, null, null, "created DESC");
 	}
@@ -283,40 +283,40 @@ public class CrosswordDatabase {
 		// Get the database and run the query
 
 		SQLiteDatabase db = null;
-		Cursor c = null;
-		CrosswordGame s = null;
+		Cursor cursor = null;
+		CrosswordGame game = null;
 		try {
 			db = mOpenHelper.getReadableDatabase();
-			c = qb.query(db, null, null, null, null, null, null);
+			cursor = qb.query(db, null, null, null, null, null, null);
 
-			if (c.moveToFirst()) {
-				long id = c.getLong(c.getColumnIndex(CrosswordColumns._ID));
-				long created = c.getLong(c
+			if (cursor.moveToFirst()) {
+				long id = cursor.getLong(cursor.getColumnIndex(CrosswordColumns._ID));
+				long created = cursor.getLong(cursor
 						.getColumnIndex(CrosswordColumns.CREATED));
-				String data = c.getString(c
+				String data = cursor.getString(cursor
 						.getColumnIndex(CrosswordColumns.DATA));
-				long lastPlayed = c.getLong(c
+				long lastPlayed = cursor.getLong(cursor
 						.getColumnIndex(CrosswordColumns.LAST_PLAYED));
-				int state = c.getInt(c.getColumnIndex(CrosswordColumns.STATE));
-				long time = c.getLong(c.getColumnIndex(CrosswordColumns.TIME));
-				String title = c.getString(c
+				int state = cursor.getInt(cursor.getColumnIndex(CrosswordColumns.STATE));
+				long time = cursor.getLong(cursor.getColumnIndex(CrosswordColumns.TIME));
+				String title = cursor.getString(cursor
 						.getColumnIndex(CrosswordColumns.TITLE));
 
-				s = new CrosswordGame();
-				s.setId(id);
-				s.setTitle(title);
-				s.setCreated(created);
-				s.setGrid(Grid.deserialize(data));
-				s.setLastPlayed(lastPlayed);
-				s.setState(state);
-				s.setTime(time);
+				game = new CrosswordGame();
+				game.setId(id);
+				game.setTitle(title);
+				game.setCreated(created);
+				game.setPuzzle(Puzzle.deserialize(data));
+				game.setLastPlayed(lastPlayed);
+				game.setState(state);
+				game.setTime(time);
 			}
 		} finally {
-			if (c != null)
-				c.close();
+			if (cursor != null)
+				cursor.close();
 		}
 
-		return s;
+		return game;
 
 	}
 
@@ -331,7 +331,7 @@ public class CrosswordDatabase {
 	public long insertCrossword(long folderID, CrosswordGame crossword) {
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getGrid().serialize());
+		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
 		values.put(CrosswordColumns.CREATED, crossword.getCreated());
 		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
@@ -348,16 +348,14 @@ public class CrosswordDatabase {
 		throw new SQLException("Failed to insert crossword.");
 	}
 
-	private SQLiteStatement mInsertCrosswordStatement;
-
 	public long importCrossword(long folderID, CrosswordImportParams pars)
 			throws CrosswordInvalidFormatException {
 		if (pars.data == null) {
 			throw new CrosswordInvalidFormatException(pars.data);
 		}
 
-		if (!Grid.isValid(pars.data, Grid.DATA_VERSION_PLAIN)) {
-			if (!Grid.isValid(pars.data, Grid.DATA_VERSION_1)) {
+		if (!Puzzle.isValid(pars.data, Puzzle.DATA_VERSION_PLAIN)) {
+			if (!Puzzle.isValid(pars.data, Puzzle.DATA_VERSION_1)) {
 				throw new CrosswordInvalidFormatException(pars.data);
 			}
 		}
@@ -391,7 +389,7 @@ public class CrosswordDatabase {
 	 */
 	public void updateCrossword(CrosswordGame crossword) {
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getGrid().serialize());
+		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
 		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());

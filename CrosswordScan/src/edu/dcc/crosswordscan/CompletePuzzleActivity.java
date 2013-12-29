@@ -21,14 +21,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-import edu.dcc.db.CrosswordColumns;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.Cell;
 import edu.dcc.game.CrosswordGame;
 import edu.dcc.game.CrosswordGridView;
 import edu.dcc.game.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.game.Entry;
-import edu.dcc.game.Grid;
+import edu.dcc.game.Puzzle;
 
 public class CompletePuzzleActivity extends Activity {
 
@@ -102,6 +101,7 @@ public class CompletePuzzleActivity extends Activity {
 		if (savedInstanceState == null) {
 			// activity runs for the first time, read game from database
 			mCrosswordGameID = getIntent().getLongExtra(EXTRA_CROSSWORD_ID, 0);
+			System.out.println("GAME_ID: " + mCrosswordGameID + "!!!!");
 			mCrosswordGame = mDatabase.getCrossword(mCrosswordGameID);
 		} else {
 			// activity has been running before, restore its state
@@ -122,17 +122,17 @@ public class CompletePuzzleActivity extends Activity {
 			public void onCellSelected(Cell cell) {
 				Entry acrossEntry = cell.getEntry(true);
 				Entry downEntry = cell.getEntry(false);
-				Grid grid = mCrosswordGame.getGrid();
-				boolean acrossMode = grid.isAcrossMode();
+				Puzzle puzzle = mCrosswordGame.getPuzzle();
+				boolean acrossMode = mCrosswordGame.isAcrossMode();
 
 				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
 						.getClueNum()
 						+ "a. "
-						+ grid.getClue(acrossEntry.getClueNum(), true));
+						+ puzzle.getClue(acrossEntry.getClueNum(), true));
 				mDownClue.setText(downEntry == null ? "" : downEntry
 						.getClueNum()
 						+ "d. "
-						+ grid.getClue(downEntry.getClueNum(), false));
+						+ puzzle.getClue(downEntry.getClueNum(), false));
 
 				if (downEntry == null) {
 					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
@@ -266,14 +266,6 @@ public class CompletePuzzleActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	/**
-	 * Restarts whole activity.
-	 */
-	private void restartActivity() {
-		startActivity(getIntent());
-		finish();
 	}
 
 	@Override

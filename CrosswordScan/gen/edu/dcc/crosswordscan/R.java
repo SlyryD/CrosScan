@@ -140,7 +140,7 @@ containing a value of this type.
     }
     public static final class id {
         public static final int across_clue=0x7f0b0007;
-        public static final int action_settings=0x7f0b0018;
+        public static final int action_settings=0x7f0b0017;
         public static final int button_list=0x7f0b0013;
         public static final int camera_preview=0x7f0b0010;
         public static final int clue_bar=0x7f0b0002;
@@ -155,7 +155,7 @@ containing a value of this type.
         public static final int header=0x7f0b0014;
         public static final int keyboard_view=0x7f0b0003;
         public static final int menu_help=0x7f0b0012;
-        public static final int menu_settings=0x7f0b0017;
+        public static final int menu_settings=0x7f0b0016;
         public static final int next_clue=0x7f0b0006;
         public static final int photo_button=0x7f0b0011;
         public static final int previous_clue=0x7f0b0004;
@@ -163,7 +163,6 @@ containing a value of this type.
         public static final int relativeLayout1=0x7f0b000f;
         public static final int root_layout=0x7f0b0000;
         public static final int scan_button=0x7f0b0009;
-        public static final int title=0x7f0b0016;
     }
     public static final class layout {
         public static final int activity_complete_puzzle=0x7f030000;
@@ -175,7 +174,6 @@ containing a value of this type.
         public static final int menu=0x7f030006;
         public static final int puzzle_actions_list=0x7f030007;
         public static final int puzzle_info_item=0x7f030008;
-        public static final int puzzle_list_item=0x7f030009;
     }
     public static final class menu {
         public static final int activity_grid=0x7f0a0000;
@@ -317,7 +315,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColor
+          @attr name edu.dcc.crosswordscan:backgroundColor
         */
         public static final int CrosswordGridView_backgroundColor = 5;
         /**
@@ -332,7 +330,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColorBlackCell
+          @attr name edu.dcc.crosswordscan:backgroundColorBlackCell
         */
         public static final int CrosswordGridView_backgroundColorBlackCell = 7;
         /**
@@ -347,7 +345,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColorEntry
+          @attr name edu.dcc.crosswordscan:backgroundColorEntry
         */
         public static final int CrosswordGridView_backgroundColorEntry = 9;
         /**
@@ -362,7 +360,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColorSecondary
+          @attr name edu.dcc.crosswordscan:backgroundColorSecondary
         */
         public static final int CrosswordGridView_backgroundColorSecondary = 6;
         /**
@@ -377,7 +375,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:backgroundColorSelected
+          @attr name edu.dcc.crosswordscan:backgroundColorSelected
         */
         public static final int CrosswordGridView_backgroundColorSelected = 8;
         /**
@@ -392,7 +390,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:lineColor
+          @attr name edu.dcc.crosswordscan:lineColor
         */
         public static final int CrosswordGridView_lineColor = 0;
         /**
@@ -407,7 +405,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:sectorLineColor
+          @attr name edu.dcc.crosswordscan:sectorLineColor
         */
         public static final int CrosswordGridView_sectorLineColor = 1;
         /**
@@ -422,7 +420,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:textColor
+          @attr name edu.dcc.crosswordscan:textColor
         */
         public static final int CrosswordGridView_textColor = 2;
         /**
@@ -437,7 +435,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:textColorNote
+          @attr name edu.dcc.crosswordscan:textColorNote
         */
         public static final int CrosswordGridView_textColorNote = 4;
         /**
@@ -452,7 +450,7 @@ containing a value of this type.
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          @attr name android:textColorReadOnly
+          @attr name edu.dcc.crosswordscan:textColorReadOnly
         */
         public static final int CrosswordGridView_textColorReadOnly = 3;
     };

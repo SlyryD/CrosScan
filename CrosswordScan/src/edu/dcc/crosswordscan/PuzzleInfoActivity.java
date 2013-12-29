@@ -38,11 +38,11 @@ public class PuzzleInfoActivity extends ListActivity {
 				new InfoItem("Time Played", new GameTimeFormat().format(game
 						.getTime())),
 				new InfoItem("Complete", NumberFormat.getPercentInstance()
-						.format(game.getComplete())),
-				new InfoItem("Size", Integer.toString(game.getGrid()
-						.getGridSize())
+						.format(game.getCompletion())),
+				new InfoItem("Size", Integer.toString(game.getPuzzle()
+						.getSize())
 						+ "x"
-						+ Integer.toString(game.getGrid().getGridSize())) };
+						+ Integer.toString(game.getPuzzle().getSize())) };
 
 		InfoItemAdapter adapter = new InfoItemAdapter(this,
 				R.layout.puzzle_info_item, items);

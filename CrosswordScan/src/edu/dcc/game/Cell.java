@@ -1,85 +1,38 @@
-/* 
- * Copyright (C) 2009 Roman Masek
- * 
- * This file is part of OpenSudoku.
- * 
- * OpenSudoku is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * OpenSudoku is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with OpenSudoku.  If not, see <http://www.gnu.org/licenses/>.
- * 
- */
-
 package edu.dcc.game;
 
 import java.util.StringTokenizer;
 
 /**
- * Crossword cell. Every cell has value, some clueNums attached to it and some
- * basic state (whether it is white and valid).
+ * A Crossword cell. Every cell is black or white, can contain a value, and can
+ * contain a clue number. Cells belong to a Grid and have (row, col) indices and
+ * entries associated with them.
  * 
  * @author Ryan
  */
 public class Cell {
 	// Information about grid and cell's position
-	private Grid mGrid;
+	private Puzzle puzzle; // Final: grid
 	private final Object mGridLock = new Object();
-	private int mRow = -1;
-	private int mColumn = -1;
-	private Entry mAcross; // row containing this cell
-	private Entry mDown; // column containing this cell
-	// Information about cell
-	private char mValue;
-	private int mClueNum = -1; // TODO: Implement clue num
-	private boolean mWhite;
+	private int mRow = -1; // Final: Row column
+	private int mColumn = -1; // Final: Cell column
+	private Entry mAcross; // Final: Row containing this cell
+	private Entry mDown; // Final: Column containing this cell
 
-	/**
-	 * Creates black cell.
-	 */
-	public Cell() {
-		this((char) 0, 0, false);
-	}
+	// Information about cell
+	private int mClueNum = -1; // Final: number in cell
+	private final boolean mWhite; // Final: color of cell
+	private char mValue;
 
 	/**
 	 * Creates black or white cell.
 	 */
 	public Cell(boolean white) {
-		this((char) 0, 0, white);
+		this(white, (char) 0, 0);
 	}
 
-	/**
-	 * Creates white cell containing given value.
-	 * 
-	 * @param value
-	 *            Value of the cell.
-	 */
-	public Cell(char value) {
-		this(value, 0, true);
-	}
-
-	/**
-	 * Creates white cell containing given value and clue number.
-	 * 
-	 * @param value
-	 *            Value of the cell.
-	 * @param clueNum
-	 *            Clue number of cell.
-	 */
-	public Cell(char value, int clueNum) {
-		this(value, clueNum, true);
-	}
-
-	private Cell(char value, int clueNum, boolean white) {
+	private Cell(boolean white, char value, int clueNum) {
 		if ((value != 0 && value < 65) || value > 90) {
-			throw new IllegalArgumentException("Value must be a character.");
+			throw new IllegalArgumentException("Value must be a capital letter");
 		}
 
 		mValue = value;
@@ -119,10 +72,10 @@ public class Cell {
 	 * @param down
 	 *            Reference to column group in which cell is included.
 	 */
-	protected void initGrid(Grid grid, int row, int col, int clueNum,
+	public void initGrid(Puzzle puzzle, int row, int col, int clueNum,
 			Entry across, Entry down) {
 		synchronized (mGridLock) {
-			mGrid = grid;
+			this.puzzle = puzzle;
 		}
 
 		mRow = row;
@@ -195,28 +148,14 @@ public class Cell {
 	}
 
 	/**
-	 * Sets whether cell is white.
-	 * 
-	 * @param white
-	 *            True, if cell is white.
-	 */
-	public void setWhite(boolean white) {
-		mWhite = white;
-		onChange();
-	}
-
-	/**
 	 * Creates instance from given <code>StringTokenizer</code>.
 	 * 
 	 * @param data
 	 * @return
 	 */
 	public static Cell deserialize(StringTokenizer data) {
-		Cell cell = new Cell();
-		cell.setWhite(data.nextToken().equals("1"));
-		cell.setValue(data.nextToken().charAt(0));
-
-		return cell;
+		return new Cell(data.nextToken().equals("1"), data.nextToken()
+				.charAt(0), 0);
 	}
 
 	/**
@@ -254,8 +193,8 @@ public class Cell {
 	 */
 	private void onChange() {
 		synchronized (mGridLock) {
-			if (mGrid != null) {
-				mGrid.onChange();
+			if (puzzle != null) {
+				puzzle.onChange();
 			}
 
 		}

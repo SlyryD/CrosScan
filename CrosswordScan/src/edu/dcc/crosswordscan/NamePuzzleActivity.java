@@ -1,31 +1,28 @@
 package edu.dcc.crosswordscan;
 
-import java.util.Random;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import edu.dcc.game.CrosswordGridView;
-import edu.dcc.game.Grid;
+import edu.dcc.game.Puzzle;
 
 public class NamePuzzleActivity extends Activity {
 	public final static String TITLE = "title";
-	public static Random generator = new Random(17263849);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_name_puzzle);
 		CrosswordGridView gridView = (CrosswordGridView) findViewById(R.id.crossword_grid);
-		gridView.setGrid(getGridFromScan());
+		gridView.setPuzzle(getGridFromScan());
 		gridView.setReadOnly();
 	}
 
-	private Grid getGridFromScan() {
+	private Puzzle getGridFromScan() {
 		Intent intent = getIntent();
-		return Grid.deserialize(intent.getStringExtra(ScanActivity.GRID));
+		return Puzzle.deserialize(intent.getStringExtra(ScanActivity.GRID));
 	}
 
 	public void puzzleListTransition(View view) {

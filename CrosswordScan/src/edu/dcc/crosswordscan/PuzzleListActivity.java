@@ -1,5 +1,7 @@
 package edu.dcc.crosswordscan;
 
+import java.util.ArrayList;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -13,14 +15,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import edu.dcc.db.CrosswordColumns;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.db.DatabaseHelper;
 import edu.dcc.db.FolderDetailLoader;
 import edu.dcc.game.CrosswordGame;
-import edu.dcc.game.Grid;
+import edu.dcc.game.Puzzle;
 
 public class PuzzleListActivity extends ListActivity {
 
@@ -37,10 +39,17 @@ public class PuzzleListActivity extends ListActivity {
 	private long mDeletePuzzleID;
 	private long mResetPuzzleID;
 
-	private SimpleCursorAdapter mAdapter;
+	private ArrayAdapter<String> mAdapter;
 	private Cursor mCursor;
 	private CrosswordDatabase mDatabase;
 	private FolderDetailLoader mFolderDetailLoader;
+
+	/**
+	 * Updates whole list.
+	 */
+	private void updateList() {
+		mCursor = mDatabase.getCrosswordList(mFolderID);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +64,12 @@ public class PuzzleListActivity extends ListActivity {
 
 		Intent intent = getIntent();
 		String title = intent.getStringExtra(NamePuzzleActivity.TITLE);
-		String grid = intent.getStringExtra(ScanActivity.GRID);
-		if (title != null && grid != null) {
+		String puzzle = intent.getStringExtra(ScanActivity.GRID);
+		if (title != null && puzzle != null) {
 			CrosswordGame crossword = new CrosswordGame();
 			crossword.setId(DatabaseHelper.getNextId());
 			crossword.setTitle(title);
-			crossword.setGrid(Grid.deserialize(grid));
+			crossword.setPuzzle(Puzzle.deserialize(puzzle));
 			mDatabase.insertCrossword(1, crossword);
 		}
 
@@ -68,13 +77,20 @@ public class PuzzleListActivity extends ListActivity {
 
 		mFolderID = 1;
 
-		mAdapter = new SimpleCursorAdapter(this, R.layout.puzzle_list_item,
-				null, new String[] { CrosswordColumns.TITLE },
-				new int[] { R.id.title });
-
-		// mAdapter.setViewText((TextView) findViewById(R.id.title),
-		// CrosswordColumns.TITLE);
+		// Update list
 		updateList();
+
+		int titleCol = mCursor.getColumnIndex(CrosswordColumns.TITLE);
+		// Check if our result was valid.
+		mCursor.moveToFirst();
+		// cursor left as it came from the database because it starts at the
+		// row before the first row
+		ArrayList<String> sData = new ArrayList<String>();
+		do {
+			sData.add(mCursor.getString(titleCol));
+		} while (mCursor.moveToNext());
+		mAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, sData);
 		setListAdapter(mAdapter);
 	}
 
@@ -153,8 +169,7 @@ public class PuzzleListActivity extends ListActivity {
 			return;
 		}
 
-		Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
-		if (cursor == null) {
+		if (getListAdapter().getItem(info.position) == null) {
 			// For some reason the requested item isn't available, do nothing
 			return;
 		}
@@ -192,19 +207,9 @@ public class PuzzleListActivity extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		playTransition(id);
-	}
-
-	/**
-	 * Updates whole list.
-	 */
-	private void updateList() {
-		if (mCursor != null) {
-			stopManagingCursor(mCursor);
-		}
-		mCursor = mDatabase.getCrosswordList(mFolderID);
-		startManagingCursor(mCursor);
-		mAdapter.changeCursor(mCursor);
+		mCursor.moveToPosition((int) id);
+		playTransition(mCursor.getLong(mCursor
+				.getColumnIndex(CrosswordColumns._ID)));
 	}
 
 	/** Called when the user clicks the Play Puzzle button */
