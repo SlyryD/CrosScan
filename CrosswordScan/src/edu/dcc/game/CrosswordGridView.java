@@ -415,7 +415,7 @@ public class CrosswordGridView extends View {
 						: !moveCellSelection(0, -1)) {
 					Entry previousEntry = getPreviousEntry();
 					Cell previousCell = previousEntry.getCell(previousEntry
-							.getSize() - 1);
+							.getLength() - 1);
 					moveCellSelectionTo(previousCell.getRow(),
 							previousCell.getColumn());
 				}
@@ -423,23 +423,6 @@ public class CrosswordGridView extends View {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Moves selected cell by one. If edge or black cell is reached, selection
-	 * moves to next entry.
-	 */
-	public void moveCellSelection() {
-		boolean acrossMode = mGame.isAcrossMode();
-		if (!moveCellSelection(acrossMode ? 1 : 0, acrossMode ? 0 : 1)) {
-			// Move to next entry
-			System.out.println("Current entry: "
-					+ mSelectedCell.getEntry(acrossMode));
-			System.out.println("Next entry: " + getNextEntry());
-			Cell nextCell = getNextEntry().getCell(0);
-			moveCellSelectionTo(nextCell.getRow(), nextCell.getColumn());
-		}
-		postInvalidate();
 	}
 
 	private void setCellValue(Cell cell, char value) {
@@ -450,6 +433,26 @@ public class CrosswordGridView extends View {
 				cell.setValue(value);
 			}
 		}
+	}
+
+	/**
+	 * Moves selected cell by one. If cell is full, move to next empty white
+	 * cell. If edge or black cell is reached, selection moves to next entry.
+	 */
+	public void moveCellSelection() {
+		boolean acrossMode = mGame.isAcrossMode();
+		Cell original = mSelectedCell;
+		do {
+			if (!moveCellSelection(acrossMode ? 1 : 0, acrossMode ? 0 : 1)) {
+				// Move to next entry
+				System.out.println("Current entry: "
+						+ mSelectedCell.getEntry(acrossMode));
+				System.out.println("Next entry: " + getNextEntry());
+				Cell nextCell = getNextEntry().getCell(0);
+				moveCellSelectionTo(nextCell.getRow(), nextCell.getColumn());
+			}
+		} while (mSelectedCell.getValue() != 0 && mSelectedCell != original);
+		postInvalidate();
 	}
 
 	/**
@@ -506,14 +509,25 @@ public class CrosswordGridView extends View {
 		}
 	}
 
-	public void previousClue() {
-		Cell cell = getPreviousEntry().getCell(0);
+	public void nextClue(boolean next) {
+		// Get next or previous entry
+		Entry entry = next ? getNextEntry() : getPreviousEntry();
+		
+		// Find first empty cell of entry
+		boolean found = false;
+		int index = 0;
+		while (index < entry.getLength() && !found) {
+			found = entry.getCell(index).getValue() == 0;
+			index++;
+		}
+		
+		// Get cell of entry
+		Cell cell = entry.getCell(found ? index - 1 : 0);
 		moveCellSelectionTo(cell.getRow(), cell.getColumn());
 	}
 
-	public void nextClue() {
-		Cell cell = getNextEntry().getCell(0);
-		moveCellSelectionTo(cell.getRow(), cell.getColumn());
+	public void resetView() {
+		mSelectedCell = puzzle.getFirstWhiteCell();
 	}
 
 	private Entry getNextEntry() {

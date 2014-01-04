@@ -8,16 +8,18 @@
     <FrameLayout
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/photo_button"
+        android:layout_height="match_parent"
         android:layout_alignParentTop="true" >
     </FrameLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/photo_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="@string/photo" />
+        android:layout_centerHorizontal="true"
+        android:contentDescription="@string/photo"
+        android:onClick="takePhoto"
+        android:src="@drawable/ic_action_camera" />
 
 </RelativeLayout>

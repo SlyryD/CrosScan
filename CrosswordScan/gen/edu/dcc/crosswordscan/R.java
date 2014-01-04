@@ -133,10 +133,11 @@ containing a value of this type.
         public static final int crosswordscan_icon=0x7f020004;
         public static final int gradient=0x7f020005;
         public static final int help=0x7f020006;
-        public static final int ic_launcher=0x7f020007;
-        public static final int scanner_icon=0x7f020008;
-        public static final int sym_keyboard_delete=0x7f020009;
-        public static final int x_icon=0x7f02000a;
+        public static final int ic_action_camera=0x7f020007;
+        public static final int ic_launcher=0x7f020008;
+        public static final int scanner_icon=0x7f020009;
+        public static final int sym_keyboard_delete=0x7f02000a;
+        public static final int x_icon=0x7f02000b;
     }
     public static final class id {
         public static final int across_clue=0x7f0b0007;

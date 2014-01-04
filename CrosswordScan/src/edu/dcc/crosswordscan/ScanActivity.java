@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -23,7 +24,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import edu.dcc.game.Puzzle;
 
@@ -49,53 +49,53 @@ public class ScanActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_scan);
 
-		// Retrieve photo button
-		Button photoButton = (Button) this.findViewById(R.id.photo_button);
 		// Retrieve instance of Camera
 		camera = getCameraInstance();
+
 		// Create camera preview and set it as the content of activity
 		cameraPreview = new CameraPreview(this);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		preview.addView(cameraPreview);
+	}
 
+	/**
+	 * Respond to button press by taking photo
+	 * 
+	 * @param view
+	 */
+	public void takePhoto(View view) {
 		// Collect information from picture that user takes
 		final PictureCallback picture = new PictureCallback() {
 
 			@Override
 			public void onPictureTaken(byte[] data, Camera camera) {
-				new SavePhotoTask().execute(data);
-
+				SavePhotoTask task = new SavePhotoTask();
+				task.execute(data);
+				try {
+					Intent intent = new Intent(ScanActivity.this,
+							NamePuzzleActivity.class);
+					// TODO: Actually get from scan, instead of random
+					intent.putExtra(GRID, task.get());
+					startActivity(intent);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
 			}
 		};
 
-		// Add a listener to the Capture button
-		photoButton.setOnClickListener(
-
-		new View.OnClickListener() {
-
-			public void onClick(View v) {
-				// get an image from the camera
-				camera.takePicture(null, null, picture);
-				System.out.println("Photo Taken!");
-			}
-		});
-
-		// photoButton.setOnClickListener(new View.OnClickListener() {
-		//
-		// @Override
-		// public void onClick(View v) {
-		// Intent cameraIntent = new Intent(
-		// android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-		// startActivityForResult(cameraIntent, CAMERA_REQUEST);
-		// }
-		// });
+		// Get an image from the camera
+		camera.takePicture(null, null, picture);
+		System.out.println("Photo Taken!");
 	}
 
 	/** A safe way to get an instance of the Camera object. */
 	public static Camera getCameraInstance() {
 		Camera c = null;
 		try {
-			c = Camera.open(); // Attempt to get a Camera instance
+			// Attempt to get a Camera instance
+			c = Camera.open();
 		} catch (Exception e) {
 			// Camera is not available (in use or does not exist)
 			e.printStackTrace();
@@ -212,19 +212,15 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected String doInBackground(byte[]... jpeg) {
-
-			System.out.println("Reached1");
-
 			// Retrieve picture file
 			File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-
-			System.out.println("Reached2");
 
 			// Abort if picture file not found
 			if (pictureFile == null) {
 				return null;
 			}
 
+			// Print path of photo
 			System.out.println(pictureFile.getAbsolutePath());
 
 			try {
@@ -240,7 +236,7 @@ public class ScanActivity extends Activity {
 				e.printStackTrace();
 			}
 
-			return null;
+			return pictureFile.getAbsolutePath();
 		}
 
 		/**
@@ -280,17 +276,7 @@ public class ScanActivity extends Activity {
 			return mediaFile;
 		}
 
-		@Override
-		protected void onPostExecute(String result) {
-			dialog.dismiss();
-			Intent intent = new Intent(ScanActivity.this,
-					NamePuzzleActivity.class);
-			// TODO: Actually get from scan, instead of random
-			intent.putExtra(GRID, getRandomPuzzle().serialize());
-			startActivity(intent);
-		}
-
-		private Puzzle getRandomPuzzle() {
+		private String getRandomPuzzle() {
 			int[][] cells = new int[13][13];
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
@@ -302,7 +288,12 @@ public class ScanActivity extends Activity {
 					}
 				}
 			}
-			return new Puzzle(cells.length, cells, null);
+			return new Puzzle(cells.length, cells, null).serialize();
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			dialog.dismiss();
 		}
 	}
 

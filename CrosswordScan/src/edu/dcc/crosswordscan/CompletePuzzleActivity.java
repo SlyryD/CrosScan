@@ -11,15 +11,10 @@ import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.Cell;
@@ -28,6 +23,8 @@ import edu.dcc.game.CrosswordGridView;
 import edu.dcc.game.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.game.Entry;
 import edu.dcc.game.Puzzle;
+
+// TODO: Design landscape view
 
 public class CompletePuzzleActivity extends Activity {
 
@@ -44,11 +41,7 @@ public class CompletePuzzleActivity extends Activity {
 
 	private CrosswordDatabase mDatabase;
 
-	private Handler mGuiHandler;
-	private ViewGroup mRootLayout;
-
 	private CrosswordGridView mCrosswordGrid;
-	// private TextView mTimeLabel;
 
 	private TextView mAcrossClue;
 	private TextView mDownClue;
@@ -59,7 +52,6 @@ public class CompletePuzzleActivity extends Activity {
 	private boolean mShowTime = true;
 	private GameTimer mGameTimer;
 	private GameTimeFormat mGameTimeFormatter = new GameTimeFormat();
-	private boolean mFullScreen;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,20 +59,7 @@ public class CompletePuzzleActivity extends Activity {
 
 		setContentView(R.layout.activity_complete_puzzle);
 
-		// go fullscreen for devices with QVGA screen (only way I found
-		// how to fit UI on the screen)
-		Display display = getWindowManager().getDefaultDisplay();
-		if ((display.getWidth() == 240 || display.getWidth() == 320)
-				&& (display.getHeight() == 240 || display.getHeight() == 320)) {
-			requestWindowFeature(Window.FEATURE_NO_TITLE);
-			getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-					WindowManager.LayoutParams.FLAG_FULLSCREEN);
-			mFullScreen = true;
-		}
-
-		mRootLayout = (ViewGroup) findViewById(R.id.root_layout);
 		mCrosswordGrid = (CrosswordGridView) findViewById(R.id.crossword_grid);
-		// mTimeLabel = (TextView) findViewById(R.id.time_label);
 
 		mAcrossClue = (TextView) findViewById(R.id.across_clue);
 		mDownClue = (TextView) findViewById(R.id.down_clue);
@@ -93,9 +72,7 @@ public class CompletePuzzleActivity extends Activity {
 						this));
 
 		mDatabase = new CrosswordDatabase(getApplicationContext());
-		mGameTimer = new GameTimer();
-
-		mGuiHandler = new Handler();
+		mGameTimer = new GameTimer(this);
 
 		// create crossword game instance
 		if (savedInstanceState == null) {
@@ -158,11 +135,11 @@ public class CompletePuzzleActivity extends Activity {
 	}
 
 	public void previousClue(View view) {
-		mCrosswordGrid.previousClue();
+		mCrosswordGrid.nextClue(false);
 	}
 
 	public void nextClue(View view) {
-		mCrosswordGrid.nextClue();
+		mCrosswordGrid.nextClue(true);
 	}
 
 	@Override
@@ -176,30 +153,8 @@ public class CompletePuzzleActivity extends Activity {
 				mGameTimer.start();
 			}
 		}
-		// mTimeLabel.setVisibility(mFullScreen && mShowTime ? View.VISIBLE
-		// : View.GONE);
 
 		updateTime();
-	}
-
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus) {
-		super.onWindowFocusChanged(hasFocus);
-
-		if (hasFocus) {
-			if (mFullScreen) {
-				mGuiHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						getWindow()
-								.clearFlags(
-										WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-						mRootLayout.requestLayout();
-					}
-				}, 1000);
-			}
-
-		}
 	}
 
 	@Override
@@ -282,6 +237,7 @@ public class CompletePuzzleActivity extends Activity {
 										int whichButton) {
 									// Restart game
 									mCrosswordGame.reset();
+									mCrosswordGrid.resetView();
 									mCrosswordGame.start();
 									if (mShowTime) {
 										mGameTimer.start();
@@ -311,7 +267,7 @@ public class CompletePuzzleActivity extends Activity {
 	/**
 	 * Update the time of game-play.
 	 */
-	void updateTime() {
+	private void updateTime() {
 		if (mShowTime) {
 			setTitle(mGameTimeFormatter.format(mCrosswordGame.getTime()));
 			// mTimeLabel.setText(mGameTimeFormatter.format(mCrosswordGame
@@ -384,15 +340,18 @@ public class CompletePuzzleActivity extends Activity {
 
 	// This class implements the game clock. All it does is update the
 	// status each tick.
-	private final class GameTimer extends Timer {
+	private static final class GameTimer extends Timer {
 
-		public GameTimer() {
+		private final CompletePuzzleActivity activity;
+
+		public GameTimer(CompletePuzzleActivity activity) {
 			super(1000);
+			this.activity = activity;
 		}
 
 		@Override
 		protected boolean step(int count, long time) {
-			updateTime();
+			activity.updateTime();
 
 			// Run until explicitly stopped.
 			return false;

@@ -12,16 +12,16 @@ import java.util.List;
  */
 public class Entry {
 	private ArrayList<Cell> mCells = new ArrayList<Cell>();
-	private int clueNum, size;
+	private int clueNum, length;
 
 	public Entry(int clueNum) {
 		this.clueNum = clueNum;
-		this.size = 0;
+		this.length = 0;
 	}
 
 	public void addCell(Cell cell) {
 		mCells.add(cell);
-		size++;
+		length++;
 	}
 
 	public List<Cell> getCells() {
@@ -37,10 +37,12 @@ public class Entry {
 	}
 
 	/**
-	 * @return size
+	 * Returns length of entry
+	 * 
+	 * @return length
 	 */
-	public int getSize() {
-		return size;
+	public int getLength() {
+		return length;
 	}
 
 	public String toString() {

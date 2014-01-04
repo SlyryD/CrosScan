@@ -17,7 +17,7 @@ public class CrosswordGame {
 	private Puzzle puzzle;
 
 	// Keep track of across mode
-	private boolean acrossMode = true;
+	private boolean acrossMode;
 
 	// Time when current activity has become active.
 	private long mActiveFromTime = -1;
@@ -26,8 +26,9 @@ public class CrosswordGame {
 		time = 0;
 		lastPlayed = 0;
 		created = 0;
-
 		state = GAME_STATE_NOT_STARTED;
+		
+		acrossMode = true;
 	}
 
 	public void saveState(Bundle outState) {
@@ -36,10 +37,8 @@ public class CrosswordGame {
 		outState.putInt("state", state);
 		outState.putLong("time", time);
 		outState.putLong("lastPlayed", lastPlayed);
-		outState.putString("cells", puzzle.serialize());
+		outState.putString("puzzle", puzzle.serialize());
 		outState.putString("title", title);
-		// TODO: Add clues
-
 	}
 
 	public void restoreState(Bundle inState) {
@@ -48,10 +47,8 @@ public class CrosswordGame {
 		state = inState.getInt("state");
 		time = inState.getLong("time");
 		lastPlayed = inState.getLong("lastPlayed");
-		puzzle = Puzzle.deserialize(inState.getString("cells"));
+		puzzle = Puzzle.deserialize(inState.getString("puzzle"));
 		title = inState.getString("title");
-		// TODO: Add clues
-
 	}
 
 	public void setCreated(long created) {
@@ -204,6 +201,7 @@ public class CrosswordGame {
 	 */
 	public void reset() {
 		puzzle.reset();
+		acrossMode = true;
 		setTime(0);
 		setLastPlayed(0);
 		state = GAME_STATE_NOT_STARTED;
