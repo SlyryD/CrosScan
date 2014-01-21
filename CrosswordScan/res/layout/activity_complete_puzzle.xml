@@ -6,7 +6,7 @@
     android:gravity="center"
     tools:context=".CompletePuzzleActivity" >
 
-    <edu.dcc.game.CrosswordGridView
+    <edu.dcc.crosswordscan.CrosswordGridView
         android:id="@+id/crossword_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

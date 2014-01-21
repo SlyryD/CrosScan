@@ -16,11 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.Cell;
 import edu.dcc.game.CrosswordGame;
-import edu.dcc.game.CrosswordGridView;
-import edu.dcc.game.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.game.Entry;
 import edu.dcc.game.Puzzle;
 

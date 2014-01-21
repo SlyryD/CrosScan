@@ -1,4 +1,4 @@
-package edu.dcc.game;
+package edu.dcc.crosswordscan;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,7 +9,10 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import edu.dcc.crosswordscan.R;
+import edu.dcc.game.Cell;
+import edu.dcc.game.CrosswordGame;
+import edu.dcc.game.Entry;
+import edu.dcc.game.Puzzle;
 import edu.dcc.game.Puzzle.OnChangeListener;
 
 /**
@@ -410,15 +413,17 @@ public class CrosswordGridView extends View {
 		} else if (keyCode == KeyEvent.KEYCODE_DEL) {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
-				setCellValue(mSelectedCell, (char) 0);
-				if (mGame.isAcrossMode() ? !moveCellSelection(-1, 0)
-						: !moveCellSelection(0, -1)) {
-					Entry previousEntry = getPreviousEntry();
-					Cell previousCell = previousEntry.getCell(previousEntry
-							.getLength() - 1);
-					moveCellSelectionTo(previousCell.getRow(),
-							previousCell.getColumn());
+				if (mSelectedCell.getValue() == 0) {
+					if (mGame.isAcrossMode() ? !moveCellSelection(-1, 0)
+							: !moveCellSelection(0, -1)) {
+						Entry previousEntry = getPreviousEntry();
+						Cell previousCell = previousEntry.getCell(previousEntry
+								.getLength() - 1);
+						moveCellSelectionTo(previousCell.getRow(),
+								previousCell.getColumn());
+					}
 				}
+				setCellValue(mSelectedCell, (char) 0);
 			}
 		}
 
@@ -512,7 +517,7 @@ public class CrosswordGridView extends View {
 	public void nextClue(boolean next) {
 		// Get next or previous entry
 		Entry entry = next ? getNextEntry() : getPreviousEntry();
-		
+
 		// Find first empty cell of entry
 		boolean found = false;
 		int index = 0;
@@ -520,7 +525,7 @@ public class CrosswordGridView extends View {
 			found = entry.getCell(index).getValue() == 0;
 			index++;
 		}
-		
+
 		// Get cell of entry
 		Cell cell = entry.getCell(found ? index - 1 : 0);
 		moveCellSelectionTo(cell.getRow(), cell.getColumn());
