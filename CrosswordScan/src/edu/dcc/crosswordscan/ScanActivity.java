@@ -1,6 +1,5 @@
 package edu.dcc.crosswordscan;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,7 +10,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
@@ -19,6 +17,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
@@ -50,7 +49,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	public static final Random generator = new Random(18293734);
 
 	// OpenCV fields
-	private static final String TAG = "CrosswordScan::Scan::Activity";
+	private static final String TAG = "CrosswordScan/ScanActivity";
 	public static double horizontal = 0, vertical = Math.PI / 2;
 	public static final double DEGREE = Math.PI / 180;
 	public static final double DEGREE90 = Math.PI / 2;
@@ -58,17 +57,16 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	public static final double DEGREE360 = 2 * Math.PI;
 	public static final double THRESHOLD = 4 * DEGREE;
 
+	// Camera view
 	private ScanView scanView;
 
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-
 		@Override
 		public void onManagerConnected(int status) {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
+				/* Enable camera view to start receiving frames */
 				Log.i(TAG, "OpenCV loaded successfully");
-
-				/* Now enable camera view to start receiving frames */
 				scanView.enableView();
 				scanView.setOnTouchListener(ScanActivity.this);
 			}
@@ -85,9 +83,11 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		Log.i(TAG, "Instantiated new " + this.getClass());
 	}
 
+	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// Initialize activity layout
+		Log.i(TAG, "called onCreate");
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -110,7 +110,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_4, this,
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_8, this,
 				mLoaderCallback);
 	}
 
@@ -127,18 +127,16 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	public void onCameraViewStopped() {
 	}
 
-	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		return inputFrame.rgba();
-	}
-
 	public Mat onCameraFrame(Mat inputFrame) {
-		return inputFrame;
+		Mat ift = inputFrame.t();
+		Core.flip(inputFrame.t(), ift, 1);
+		Imgproc.resize(ift, ift, new Size(scanView.getWidth(), scanView.getHeight()));
+		return ift;
 	}
 
 	public boolean onTouch(View view, MotionEvent event) {
-		boolean result = super.onTouchEvent(event);
 		scanView.focus();
-		return result;
+		return false;
 	}
 
 	/**
@@ -150,13 +148,13 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		// Save photo
 		SavePhotoTask spTask = new SavePhotoTask();
 		spTask.execute();
-		File result = null;
+		String result = null;
 		try {
 			result = spTask.get();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Log.e(TAG, "Take photo interrupted");
 		} catch (ExecutionException e) {
-			e.printStackTrace();
+			Log.e(TAG, "Take photo execution failed");
 		}
 
 		// Process photo
@@ -168,13 +166,13 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			intent.putExtra(GRID, grid);
 			startActivity(intent);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Log.e(TAG, "Process image interrupted");
 		} catch (ExecutionException e) {
-			e.printStackTrace();
+			Log.e(TAG, "Process image execution failed");
 		}
 	}
 
-	private class SavePhotoTask extends AsyncTask<Void, Void, File> {
+	private class SavePhotoTask extends AsyncTask<Void, Void, String> {
 
 		final private ProgressDialog dialog = new ProgressDialog(
 				ScanActivity.this);
@@ -185,18 +183,18 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		}
 
 		@Override
-		protected File doInBackground(Void... params) {
-			// Take photo and return saved file
-			return scanView.takePicture(getContentResolver());
+		protected String doInBackground(Void... params) {
+			// Take photo and return file path
+			return scanView.takePicture();
 		}
 
 		@Override
-		protected void onPostExecute(File result) {
+		protected void onPostExecute(String result) {
 			dialog.dismiss();
 		}
 	}
 
-	private class ProcessTask extends AsyncTask<File, Void, String> {
+	private class ProcessTask extends AsyncTask<String, Void, String> {
 
 		final private ProgressDialog dialog = new ProgressDialog(
 				ScanActivity.this);
@@ -207,9 +205,9 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		}
 
 		@Override
-		protected String doInBackground(File... file) {
+		protected String doInBackground(String... filePaths) {
 			// Use OpenCV to recognize and construct grid
-			String result = recognizeGrid(file[0]);
+			String result = recognizeGrid(filePaths[0]);
 			getRandomPuzzle();
 
 			// TODO: Use OCR to recognize clues
@@ -459,12 +457,12 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			return (min + max) / 2;
 		}
 
-		private String recognizeGrid(File file) {
+		private String recognizeGrid(String filePath) {
 			// Read image
-			Mat img = Highgui.imread(file.getAbsolutePath());
-			System.out.println("Read " + file.getAbsolutePath());
+			Mat img = Highgui.imread(filePath);
+			System.out.println("Read " + filePath);
 			if (img.empty()) {
-				System.err.println("Cannot open " + file.getName());
+				Log.e(TAG, "Cannot open " + filePath);
 				System.exit(1);
 			}
 
@@ -612,7 +610,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 							try {
 								cells[row][col] += gray.get(x, y)[0];
 							} catch (Exception e) {
-								e.printStackTrace();
+								Log.e(TAG, "Unable to get pixel data");
 								break;
 							}
 						}
