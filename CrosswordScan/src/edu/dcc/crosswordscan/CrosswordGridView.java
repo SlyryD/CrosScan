@@ -45,6 +45,9 @@ public class CrosswordGridView extends View {
 	private int mNumberTop;
 	private float mClueNumTop;
 
+	// PointF downPt = new PointF(); // Record position on down
+	// PointF startPt = new PointF(); // Record start position of view
+
 	private boolean mReadOnly = false;
 
 	public CrosswordGridView(Context context) {
@@ -217,8 +220,8 @@ public class CrosswordGridView extends View {
 		if (puzzle != null) {
 			float valueAscent = mCellValuePaint.ascent();
 			float clueNumAscent = mClueNumPaint.ascent();
-			for (int row = 0; row < puzzle.getSize(); row++) {
-				for (int col = 0; col < puzzle.getSize(); col++) {
+			for (int row = 0; row < puzzle.getHeight(); row++) {
+				for (int col = 0; col < puzzle.getWidth(); col++) {
 					Cell cell = puzzle.getCell(row, col);
 
 					cellLeft = Math
@@ -278,13 +281,13 @@ public class CrosswordGridView extends View {
 		}
 
 		// draw vertical lines
-		for (int col = 0; col <= puzzle.getSize(); col++) {
+		for (int col = 0; col <= puzzle.getWidth(); col++) {
 			float x = (col * mCellWidth) + getPaddingLeft();
 			canvas.drawLine(x, getPaddingTop(), x, height, mLinePaint);
 		}
 
 		// draw horizontal lines
-		for (int row = 0; row <= puzzle.getSize(); row++) {
+		for (int row = 0; row <= puzzle.getHeight(); row++) {
 			float y = (row * mCellWidth) + getPaddingTop();
 			canvas.drawLine(getPaddingLeft(), y, width, y, mLinePaint);
 		}
@@ -329,8 +332,9 @@ public class CrosswordGridView extends View {
 		if (heightMode == MeasureSpec.AT_MOST && height > heightSize) {
 			height = heightSize;
 		}
+
 		mCellWidth = (width - getPaddingLeft() - getPaddingRight())
-				/ (float) puzzle.getSize();
+				/ ((float) puzzle.getWidth());
 
 		setMeasuredDimension(width, height);
 
@@ -368,8 +372,17 @@ public class CrosswordGridView extends View {
 
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_DOWN:
+			// downPt.x = event.getX();
+			// downPt.y = event.getY();
+			// startPt = new PointF(getX(), getY());
+			break;
 		case MotionEvent.ACTION_MOVE:
 			// TODO: Move view?
+			// PointF mv = new PointF(event.getX() - downPt.x, event.getY()
+			// - downPt.y);
+			// setX((int) (startPt.x + mv.x));
+			// setY((int) (startPt.y + mv.y));
+			// startPt = new PointF(getX(), getY());
 			break;
 		case MotionEvent.ACTION_UP:
 			Cell selected = getCellAtPoint(x, y);
@@ -385,7 +398,6 @@ public class CrosswordGridView extends View {
 				onCellTapped(mSelectedCell);
 				onCellSelected(mSelectedCell);
 			}
-
 			break;
 		case MotionEvent.ACTION_CANCEL:
 			// TODO: Do nothing?
@@ -491,8 +503,8 @@ public class CrosswordGridView extends View {
 	 * @return True, if cell was successfully selected.
 	 */
 	private boolean moveCellSelectionTo(int row, int col) {
-		if (col >= 0 && col < puzzle.getSize() && row >= 0
-				&& row < puzzle.getSize()) {
+		if (col >= 0 && col < puzzle.getWidth() && row >= 0
+				&& row < puzzle.getHeight()) {
 			Cell newCell = puzzle.getCell(row, col);
 			if (!newCell.isWhite()) {
 				return false;
@@ -572,8 +584,8 @@ public class CrosswordGridView extends View {
 		int row = (int) (ly / mCellWidth);
 		int col = (int) (lx / mCellWidth);
 
-		if (col >= 0 && col < puzzle.getSize() && row >= 0
-				&& row < puzzle.getSize()) {
+		if (col >= 0 && col < puzzle.getWidth() && row >= 0
+				&& row < puzzle.getHeight()) {
 			return puzzle.getCell(row, col);
 		} else {
 			return null;

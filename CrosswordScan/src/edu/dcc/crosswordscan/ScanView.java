@@ -1,29 +1,24 @@
 package edu.dcc.crosswordscan;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Camera;
-import android.hardware.Camera.PictureCallback;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class ScanView extends SurfaceView implements SurfaceHolder.Callback,
-		PictureCallback {
+public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 
-	private static final String TAG = "Sample/ScanView";
-	private String filePath;
+	private static final String TAG = "CrosswordScan/ScanView";
 
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
+	
+	private int degrees = 90;
 
 	@SuppressWarnings("deprecation")
 	public ScanView(Context context, Camera camera) {
@@ -39,21 +34,52 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback,
 		Log.i(TAG, "ScanView instantiated");
 	}
 
-	public ScanView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		Log.i(TAG, "ScanView instantiated");
+	public ScanView(Context context, AttributeSet attr) {
+		super(context, attr);
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		// The Surface has been created, now tell the camera where to draw the
-		// preview.
+		// Set parameters
+		// get Camera parameters
+		Camera.Parameters params = mCamera.getParameters();
+
+		// set the focus mode
+		params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
+		// set Camera parameters
+		mCamera.setParameters(params);
+
+		int degrees = 0;
+		switch (getDisplay().getRotation()) {
+		case Surface.ROTATION_0:
+			degrees = 90;
+			break;
+		case Surface.ROTATION_90:
+			degrees = 0;
+			break;
+		case Surface.ROTATION_180:
+			degrees = 270;
+			break;
+		case Surface.ROTATION_270:
+			degrees = 180;
+			break;
+		}
+		this.degrees = degrees;
+		mCamera.setDisplayOrientation(degrees);
+
+		// Start preview
 		try {
 			mCamera.setPreviewDisplay(holder);
 			mCamera.startPreview();
 		} catch (IOException e) {
 			Log.d(TAG, "Error setting camera preview: " + e.getMessage());
 		}
+	}
+	
+	public int getDegrees() {
+		return degrees;
 	}
 
 	@Override
@@ -77,10 +103,20 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback,
 			mCamera.stopPreview();
 		} catch (Exception e) {
 			// ignore: tried to stop a non-existent preview
+			Log.e(TAG, "Tried to stop non-existent preview");
 		}
 
 		// set preview size and make any resize, rotate or
 		// reformatting changes here
+
+		// get Camera parameters
+		Camera.Parameters params = mCamera.getParameters();
+
+		// set the focus mode
+		params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
+		// set Camera parameters
+		mCamera.setParameters(params);
 
 		// start preview with new settings
 		try {
@@ -90,76 +126,5 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback,
 		} catch (Exception e) {
 			Log.d(TAG, "Error starting camera preview: " + e.getMessage());
 		}
-	}
-
-	public void focus() {
-		mCamera.autoFocus(null);
-	}
-
-	public String takePicture() {
-		Log.i(TAG, "Taking picture");
-		// Retrieve picture filename
-		getOutputMediaFile();
-
-		// Postview and jpeg are sent in the same buffers if the queue is not
-		// empty when performing a capture.
-		// Clear up buffers to avoid mCamera.takePicture to be stuck because of
-		// a memory issue
-		mCamera.setPreviewCallback(null);
-
-		// PictureCallback is implemented by the current class
-		mCamera.takePicture(null, null, this);
-
-		return filePath;
-	}
-
-	@Override
-	public void onPictureTaken(byte[] data, Camera camera) {
-		Log.i(TAG, "Saving a bitmap to file");
-
-		// Write image to file (in jpeg format)
-		try {
-			FileOutputStream fos = new FileOutputStream(filePath);
-			fos.write(data);
-			fos.close();
-			// MediaStore.Images.Media.insertImage(getContentResolver(),
-			// pictureFile.getAbsolutePath(), pictureFile.getName(),
-			// pictureFile.getName());
-		} catch (IOException e) {
-			Log.e(TAG, "Could not write image to file");
-		}
-	}
-
-	/**
-	 * Create a File for saving the image
-	 * 
-	 * @param type
-	 * @return
-	 */
-	private void getOutputMediaFile() {
-		// Find directory for photo storage
-		File mediaStorageDir = new File(
-				Environment
-						.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-				"edu.dcc.crosswordscan");
-
-		System.out.println("Media storage directory: "
-				+ mediaStorageDir.getName());
-		System.out.println("Media storage directory: "
-				+ mediaStorageDir.getAbsolutePath());
-
-		// Create the storage directory if it does not exist
-		if (!mediaStorageDir.exists()) {
-			if (!mediaStorageDir.mkdirs()) {
-				filePath = null;
-				return;
-			}
-		}
-
-		// Use unique identifier for file
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-		String currentDateandTime = sdf.format(new Date());
-		filePath = mediaStorageDir.getPath() + File.separator
-				+ "IMG_CrosswordScan_" + currentDateandTime + ".jpg";
 	}
 }

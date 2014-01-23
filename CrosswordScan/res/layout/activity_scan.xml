@@ -3,11 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <edu.dcc.crosswordscan.ScanView
-        android:id="@+id/scan_activity_surface_view"
+    <FrameLayout
+        android:id="@+id/preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:onClick="focus" >
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/photo_button"
@@ -17,6 +18,6 @@
         android:layout_centerHorizontal="true"
         android:contentDescription="@string/photo"
         android:onClick="takePhoto"
-        android:src="@drawable/ic_action_camera" />
+        android:src="@drawable/sym_keyboard_camera" />
 
 </RelativeLayout>

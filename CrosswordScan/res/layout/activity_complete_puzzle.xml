@@ -30,7 +30,7 @@
             android:layout_gravity="left"
             android:contentDescription="@string/previous_clue"
             android:onClick="previousClue"
-            android:src="@android:drawable/arrow_up_float" />
+            android:src="@drawable/left" />
 
         <LinearLayout
             android:id="@+id/clue_texts"
@@ -65,7 +65,7 @@
             android:layout_alignParentRight="true"
             android:contentDescription="@string/next_clue"
             android:onClick="nextClue"
-            android:src="@android:drawable/arrow_down_float" />
+            android:src="@drawable/right" />
     </RelativeLayout>
 
     <android.inputmethodservice.KeyboardView

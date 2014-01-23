@@ -6,6 +6,8 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import android.util.Log;
+
 /**
  * Consists of grid and clues
  * 
@@ -15,7 +17,7 @@ public class Puzzle {
 
 	// Puzzle grid
 	private final Cell[][] grid; // Cells in grid
-	private final int size; // Grid size
+	private final int height, width; // Grid size
 	private final Cell firstWhiteCell; // First white cell
 
 	// Puzzle clues
@@ -55,9 +57,10 @@ public class Puzzle {
 	 * @param grid
 	 * @param clues
 	 */
-	public Puzzle(int size, Cell[][] grid, List<String> clues) {
+	public Puzzle(int height, int width, Cell[][] grid, List<String> clues) {
 		// Initialize grid and entries
-		this.size = size;
+		this.height = height;
+		this.width = width;
 		this.grid = grid;
 		acrossEntries = new TreeMap<Integer, Entry>();
 		downEntries = new TreeMap<Integer, Entry>();
@@ -68,6 +71,8 @@ public class Puzzle {
 		acrossClues = new TreeMap<Integer, String>();
 		downClues = new TreeMap<Integer, String>();
 		initClues(clues);
+
+		Log.i("CrosswordScan/Puzzle", "Puzzle instantiated");
 	}
 
 	/**
@@ -77,8 +82,8 @@ public class Puzzle {
 	 * @param cells
 	 * @param clues
 	 */
-	public Puzzle(int gridSize, int[][] cells, List<String> clues) {
-		this(gridSize, convertIntsToCells(gridSize, cells), clues);
+	public Puzzle(int height, int width, int[][] cells, List<String> clues) {
+		this(height, width, convertIntsToCells(height, width, cells), clues);
 	}
 
 	/**
@@ -88,11 +93,12 @@ public class Puzzle {
 	 * @param ints
 	 * @return cells
 	 */
-	private static Cell[][] convertIntsToCells(int gridSize, int[][] ints) {
+	private static Cell[][] convertIntsToCells(int height, int width,
+			int[][] ints) {
 		// Initialize cell array
-		Cell[][] cells = new Cell[gridSize][gridSize];
-		for (int row = 0; row < gridSize; row++) {
-			for (int col = 0; col < gridSize; col++) {
+		Cell[][] cells = new Cell[height][width];
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				cells[row][col] = new Cell(ints[row][col] == 1);
 			}
 		}
@@ -109,8 +115,8 @@ public class Puzzle {
 		// Track entry number
 		int entryNum = 0;
 		// Traverse grid
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				if (grid[row][col].isWhite()) {
 					// Entries to add white cell to
 					Entry acrossEntry = null, downEntry = null;
@@ -134,10 +140,10 @@ public class Puzzle {
 						acrossEntry = grid[row][col - 1].getEntry(true);
 					}
 					// Initialize cell index and add to entry
-					grid[row][col].initGrid(this, row, col,
+					grid[row][col].initCell(this, row, col,
 							firstCell ? entryNum : 0, acrossEntry, downEntry);
 				} else {
-					grid[row][col].initGrid(this, row, col, 0, null, null);
+					grid[row][col].initCell(this, row, col, 0, null, null);
 				}
 			}
 		}
@@ -189,7 +195,7 @@ public class Puzzle {
 	 */
 	private boolean cellNeedsNewDownEntry(int row, int col) {
 		return (row == 0 || !grid[row - 1][col].isWhite())
-				&& (row + 1 < size && grid[row + 1][col].isWhite());
+				&& (row + 1 < height && grid[row + 1][col].isWhite());
 	}
 
 	/**
@@ -201,16 +207,25 @@ public class Puzzle {
 	 */
 	private boolean cellNeedsNewAcrossEntry(int row, int col) {
 		return (col == 0 || !grid[row][col - 1].isWhite())
-				&& (col + 1 < size && grid[row][col + 1].isWhite());
+				&& (col + 1 < width && grid[row][col + 1].isWhite());
 	}
 
 	/**
-	 * Returns grid size
+	 * Returns grid height
 	 * 
-	 * @return size
+	 * @return height
 	 */
-	public int getSize() {
-		return size;
+	public int getHeight() {
+		return height;
+	}
+
+	/**
+	 * Returns grid width
+	 * 
+	 * @return width
+	 */
+	public int getWidth() {
+		return width;
 	}
 
 	/**
@@ -248,10 +263,10 @@ public class Puzzle {
 	 * @return firstWhiteCell
 	 */
 	private Cell findFirstWhiteCell() {
-		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size; j++) {
-				if (grid[i][j].isWhite()) {
-					return grid[i][j];
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
+				if (grid[row][col].isWhite()) {
+					return grid[row][col];
 				}
 			}
 		}
@@ -317,8 +332,8 @@ public class Puzzle {
 	private int getValueCount() {
 		int valueCount = 0;
 
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				char value = grid[row][col].getValue();
 				if (value != 0) {
 					valueCount++;
@@ -338,8 +353,8 @@ public class Puzzle {
 	private int getWhiteCount() {
 		int whiteCount = 0;
 
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				if (grid[row][col].isWhite()) {
 					whiteCount++;
 				}
@@ -353,12 +368,12 @@ public class Puzzle {
 	 * Resets puzzle grid
 	 */
 	public void reset() {
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				grid[row][col].setValue((char) 0);
 			}
 		}
-		
+
 	}
 
 	/*
@@ -394,30 +409,33 @@ public class Puzzle {
 	 * @return puzzle
 	 */
 	public static Puzzle deserialize(StringTokenizer data) {
-		int size = Integer.parseInt(data.nextToken());
-		Cell[][] grid = new Cell[size][size];
+		// Get grid size
+		int height = Integer.parseInt(data.nextToken());
+		int width = Integer.parseInt(data.nextToken());
 
+		// Get grid
+		Cell[][] grid = new Cell[height][width];
 		int row = 0, col = 0;
-		while (data.hasMoreTokens() && row < size) {
-			grid[row][col] = Cell.deserialize(data);
-			col++;
+		while (data.hasMoreTokens() && row < height) {
+			Log.i("CrosswordScan/Puzzle", "(" + row + "," + col + ")");
+			grid[row][col++] = Cell.deserialize(data);
 
-			if (col == size) {
+			if (col == width) {
 				row++;
 				col = 0;
 			}
 		}
 
+		// Get clues
 		if (!data.hasMoreTokens()) {
-			return new Puzzle(size, grid, null);
+			return new Puzzle(height, width, grid, null);
 		}
-
 		ArrayList<String> clues = new ArrayList<String>();
 		while (data.hasMoreTokens()) {
 			clues.add(data.nextToken());
 		}
 
-		return new Puzzle(size, grid, clues);
+		return new Puzzle(height, width, grid, clues);
 	}
 
 	/**
@@ -429,11 +447,14 @@ public class Puzzle {
 	 * @return grid
 	 */
 	public static Puzzle fromString(StringTokenizer data) {
-		int size = Integer.parseInt(data.nextToken());
-		Cell[][] grid = new Cell[size][size];
+		// Get grid size
+		int height = Integer.parseInt(data.nextToken());
+		int width = Integer.parseInt(data.nextToken());
 
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		// Get grid
+		Cell[][] grid = new Cell[height][width];
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				String token = data.nextToken();
 				char color = token.charAt(0), value = 0;
 				Cell cell = new Cell(color == '1');
@@ -445,16 +466,16 @@ public class Puzzle {
 			}
 		}
 
+		// Get clues
 		if (!data.hasMoreTokens()) {
-			return new Puzzle(size, grid, null);
+			return new Puzzle(height, width, grid, null);
 		}
-
 		ArrayList<String> clues = new ArrayList<String>();
 		while (data.hasMoreTokens()) {
 			clues.add(data.nextToken());
 		}
 
-		return new Puzzle(size, grid, clues);
+		return new Puzzle(height, width, grid, clues);
 	}
 
 	/**
@@ -476,9 +497,10 @@ public class Puzzle {
 	 */
 	public void serialize(StringBuilder data) {
 		data.append("version: 1\n");
-		data.append(size + "|");
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		data.append(height + "|");
+		data.append(width + "|");
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				grid[row][col].serialize(data);
 			}
 		}
@@ -546,8 +568,8 @@ public class Puzzle {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
 				sb.append(grid[row][col]);
 			}
 			sb.append("\n");

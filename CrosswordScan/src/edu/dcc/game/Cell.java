@@ -72,7 +72,7 @@ public class Cell {
 	 * @param down
 	 *            Reference to column group in which cell is included.
 	 */
-	public void initGrid(Puzzle puzzle, int row, int col, int clueNum,
+	public void initCell(Puzzle puzzle, int row, int col, int clueNum,
 			Entry across, Entry down) {
 		synchronized (mGridLock) {
 			this.puzzle = puzzle;

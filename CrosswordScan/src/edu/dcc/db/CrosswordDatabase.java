@@ -290,26 +290,32 @@ public class CrosswordDatabase {
 			cursor = qb.query(db, null, null, null, null, null, null);
 
 			if (cursor.moveToFirst()) {
-				long id = cursor.getLong(cursor.getColumnIndex(CrosswordColumns._ID));
+				long id = cursor.getLong(cursor
+						.getColumnIndex(CrosswordColumns._ID));
 				long created = cursor.getLong(cursor
 						.getColumnIndex(CrosswordColumns.CREATED));
-				String data = cursor.getString(cursor
-						.getColumnIndex(CrosswordColumns.DATA));
+				int state = cursor.getInt(cursor
+						.getColumnIndex(CrosswordColumns.STATE));
+				long time = cursor.getLong(cursor
+						.getColumnIndex(CrosswordColumns.TIME));
 				long lastPlayed = cursor.getLong(cursor
 						.getColumnIndex(CrosswordColumns.LAST_PLAYED));
-				int state = cursor.getInt(cursor.getColumnIndex(CrosswordColumns.STATE));
-				long time = cursor.getLong(cursor.getColumnIndex(CrosswordColumns.TIME));
+				String data = cursor.getString(cursor
+						.getColumnIndex(CrosswordColumns.DATA));
 				String title = cursor.getString(cursor
 						.getColumnIndex(CrosswordColumns.TITLE));
+				String photo = cursor.getString(cursor
+						.getColumnIndex(CrosswordColumns.PHOTO));
 
 				game = new CrosswordGame();
 				game.setId(id);
-				game.setTitle(title);
 				game.setCreated(created);
-				game.setPuzzle(Puzzle.deserialize(data));
-				game.setLastPlayed(lastPlayed);
 				game.setState(state);
 				game.setTime(time);
+				game.setLastPlayed(lastPlayed);
+				game.setPuzzle(Puzzle.deserialize(data));
+				game.setTitle(title);
+				game.setPhoto(photo);
 			}
 		} finally {
 			if (cursor != null)
@@ -331,13 +337,14 @@ public class CrosswordDatabase {
 	public long insertCrossword(long folderID, CrosswordGame crossword) {
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
+		values.put(CrosswordColumns.FOLDER_ID, folderID);
 		values.put(CrosswordColumns.CREATED, crossword.getCreated());
-		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());
-		values.put(CrosswordColumns.FOLDER_ID, folderID);
+		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
+		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
 		values.put(CrosswordColumns.TITLE, crossword.getTitle());
+		values.put(CrosswordColumns.PHOTO, crossword.getPhoto());
 
 		long rowId = db
 				.insert(CROSSWORD_TABLE_NAME, FolderColumns.NAME, values);
@@ -363,7 +370,7 @@ public class CrosswordDatabase {
 		if (mInsertCrosswordStatement == null) {
 			SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 			mInsertCrosswordStatement = db
-					.compileStatement("insert into crossword (folder_id, created, state, time, last_played, data, title) values (?, ?, ?, ?, ?, ?, ?)");
+					.compileStatement("insert into crossword (folder_id, created, state, time, last_played, data, title, photo) values (?, ?, ?, ?, ?, ?, ?, ?)");
 		}
 
 		mInsertCrosswordStatement.bindLong(1, folderID);
@@ -373,6 +380,7 @@ public class CrosswordDatabase {
 		mInsertCrosswordStatement.bindLong(5, pars.lastPlayed);
 		mInsertCrosswordStatement.bindString(6, pars.data);
 		mInsertCrosswordStatement.bindString(7, pars.title);
+		mInsertCrosswordStatement.bindString(8, pars.photo);
 
 		long rowId = mInsertCrosswordStatement.executeInsert();
 		if (rowId > 0) {
@@ -389,10 +397,10 @@ public class CrosswordDatabase {
 	 */
 	public void updateCrossword(CrosswordGame crossword) {
 		ContentValues values = new ContentValues();
-		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
-		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
 		values.put(CrosswordColumns.STATE, crossword.getState());
 		values.put(CrosswordColumns.TIME, crossword.getTime());
+		values.put(CrosswordColumns.LAST_PLAYED, crossword.getLastPlayed());
+		values.put(CrosswordColumns.DATA, crossword.getPuzzle().serialize());
 
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		db.update(CROSSWORD_TABLE_NAME, values, CrosswordColumns._ID + "="

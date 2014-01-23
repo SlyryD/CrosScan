@@ -36,7 +36,8 @@
             android:name="edu.dcc.crosswordscan.ScanActivity"
             android:configChanges="orientation"
             android:label="@string/title_activity_scan"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar" >
         </activity>
         <activity
             android:name="edu.dcc.crosswordscan.NamePuzzleActivity"

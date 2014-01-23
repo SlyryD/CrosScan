@@ -1,16 +1,21 @@
 package edu.dcc.crosswordscan;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Random;
+import java.util.Locale;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
@@ -25,38 +30,41 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceView;
 import android.view.View;
-import android.view.WindowManager;
-import edu.dcc.game.Puzzle;
+import android.widget.FrameLayout;
 
 /**
  * Activity that allows user to scan crossword puzzles.
  * 
  * @author Ryan D.
  */
-public class ScanActivity extends Activity implements CvCameraViewListener,
-		View.OnTouchListener {
+public class ScanActivity extends Activity implements View.OnTouchListener {
 
 	// Request codes
 	public static final int CAMERA_REQUEST = 11, CONFIRM_GRID = 22,
 			REJECT_GRID = 33;
 	public static final String GRID = "grid";
-	public static final Random generator = new Random(18293734);
 
 	// OpenCV fields
 	private static final String TAG = "CrosswordScan/ScanActivity";
 	public static double horizontal = 0, vertical = Math.PI / 2;
 	public static final double DEGREE = Math.PI / 180;
-	public static final double DEGREE90 = Math.PI / 2;
-	public static final double DEGREE180 = Math.PI;
-	public static final double DEGREE360 = 2 * Math.PI;
+	public static final double DEGREE_90 = Math.PI / 2;
+	public static final double DEGREE_180 = Math.PI;
+	public static final double DEGREE_360 = 2 * Math.PI;
 	public static final double THRESHOLD = 4 * DEGREE;
+	public static final double MIN_CELL_SIZE = 50;
+	public static final double LINE_ERROR = 5;
 
+	// Camera
+	private Camera mCamera;
 	// Camera view
 	private ScanView scanView;
 
@@ -67,8 +75,6 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			case LoaderCallbackInterface.SUCCESS: {
 				/* Enable camera view to start receiving frames */
 				Log.i(TAG, "OpenCV loaded successfully");
-				scanView.enableView();
-				scanView.setOnTouchListener(ScanActivity.this);
 			}
 				break;
 			default: {
@@ -89,22 +95,24 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		// Initialize activity layout
 		Log.i(TAG, "called onCreate");
 		super.onCreate(savedInstanceState);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+		// Create an instance of Camera
+		mCamera = getCameraInstance();
+
+		// Create our Preview view and set it as the content of our activity.
+		scanView = new ScanView(this, mCamera);
+
+		// Set content view
 		setContentView(R.layout.activity_scan);
 
-		scanView = (ScanView) findViewById(R.id.scan_activity_surface_view);
-
-		scanView.setVisibility(SurfaceView.VISIBLE);
-
-		scanView.setCvCameraViewListener(this);
+		FrameLayout preview = (FrameLayout) findViewById(R.id.preview);
+		preview.addView(scanView);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (scanView != null)
-			scanView.disableView();
+		releaseCamera();
 	}
 
 	@Override
@@ -117,26 +125,32 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (scanView != null)
-			scanView.disableView();
+		releaseCamera();
 	}
 
-	public void onCameraViewStarted(int width, int height) {
+	private void releaseCamera() {
+		if (mCamera != null) {
+			mCamera.release(); // release the camera for other applications
+			mCamera = null;
+		}
 	}
 
-	public void onCameraViewStopped() {
+	/** A safe way to get an instance of the Camera object. */
+	public static Camera getCameraInstance() {
+		Camera c = null;
+		try {
+			c = Camera.open(); // attempt to get a Camera instance
+			Log.i(TAG, "Camera available");
+		} catch (Exception e) {
+			// Camera is not available (in use or does not exist)
+			Log.e(TAG, "Camera unavailable");
+		}
+		return c; // returns null if camera is unavailable
 	}
 
-	public Mat onCameraFrame(Mat inputFrame) {
-		Mat ift = inputFrame.t();
-		Core.flip(inputFrame.t(), ift, 1);
-		Imgproc.resize(ift, ift, new Size(scanView.getWidth(), scanView.getHeight()));
-		return ift;
-	}
-
-	public boolean onTouch(View view, MotionEvent event) {
-		scanView.focus();
-		return false;
+	public void focus(View view) {
+		Log.i(TAG, "onTouch logged");
+		mCamera.autoFocus(null);
 	}
 
 	/**
@@ -145,34 +159,51 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 	 * @param view
 	 */
 	public void takePhoto(View view) {
-		// Save photo
-		SavePhotoTask spTask = new SavePhotoTask();
-		spTask.execute();
-		String result = null;
-		try {
-			result = spTask.get();
-		} catch (InterruptedException e) {
-			Log.e(TAG, "Take photo interrupted");
-		} catch (ExecutionException e) {
-			Log.e(TAG, "Take photo execution failed");
-		}
+		// Auto focus before photo
+		mCamera.autoFocus(null);
+		
+		// Clear up buffers to avoid mCamera.takePicture to be stuck because
+		// of a memory issue
+		mCamera.setPreviewCallback(null);
 
-		// Process photo
-		ProcessTask pTask = new ProcessTask();
-		pTask.execute(result);
-		try {
-			String grid = pTask.get();
-			Intent intent = new Intent(this, NamePuzzleActivity.class);
-			intent.putExtra(GRID, grid);
-			startActivity(intent);
-		} catch (InterruptedException e) {
-			Log.e(TAG, "Process image interrupted");
-		} catch (ExecutionException e) {
-			Log.e(TAG, "Process image execution failed");
-		}
+		PictureCallback mPicture = new PictureCallback() {
+			@Override
+			public void onPictureTaken(byte[] data, Camera camera) {
+				// Release camera
+				releaseCamera();
+
+				// Save photo
+				SavePhotoTask spTask = new SavePhotoTask();
+				spTask.execute(data);
+				String result = null;
+				try {
+					result = spTask.get();
+				} catch (InterruptedException e) {
+					Log.e(TAG, "Take photo interrupted");
+				} catch (ExecutionException e) {
+					Log.e(TAG, "Take photo execution failed");
+				}
+
+				// Process photo
+				ProcessTask pTask = new ProcessTask();
+				pTask.execute(result);
+				try {
+					String grid = pTask.get();
+					Intent intent = new Intent(ScanActivity.this,
+							NamePuzzleActivity.class);
+					intent.putExtra(GRID, grid);
+					startActivity(intent);
+				} catch (InterruptedException e) {
+					Log.e(TAG, "Process image interrupted");
+				} catch (ExecutionException e) {
+					Log.e(TAG, "Process image execution failed");
+				}
+			}
+		};
+		mCamera.takePicture(null, null, mPicture);
 	}
 
-	private class SavePhotoTask extends AsyncTask<Void, Void, String> {
+	private class SavePhotoTask extends AsyncTask<byte[], Void, String> {
 
 		final private ProgressDialog dialog = new ProgressDialog(
 				ScanActivity.this);
@@ -183,9 +214,55 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		}
 
 		@Override
-		protected String doInBackground(Void... params) {
+		protected String doInBackground(byte[]... data) {
+			// Get path of file directory
+			String filePath = getFilePath();
+
+			// Write file
+			writeFile(filePath, data[0]);
+
 			// Take photo and return file path
-			return scanView.takePicture();
+			return filePath;
+		}
+
+		/**
+		 * Create a File for saving the image
+		 * 
+		 * @param type
+		 * @return
+		 */
+		private String getFilePath() {
+			// Find directory for photo storage
+			File mediaStorageDir = new File(
+					Environment
+							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+					"edu.dcc.crosswordscan");
+
+			// Create the storage directory if it does not exist
+			if (!mediaStorageDir.exists()) {
+				if (!mediaStorageDir.mkdirs()) {
+					Log.d(TAG, "failed to create directory");
+					return null;
+				}
+			}
+
+			// Create a media file name
+			String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
+					.format(new Date());
+			return mediaStorageDir.getPath() + File.separator
+					+ "IMG_CrosswordScan_" + timeStamp + ".jpg";
+		}
+
+		private void writeFile(String filePath, byte[] data) {
+			try {
+				FileOutputStream fos = new FileOutputStream(filePath);
+				fos.write(data);
+				fos.close();
+			} catch (FileNotFoundException e) {
+				Log.d(TAG, "File not found: " + e.getMessage());
+			} catch (IOException e) {
+				Log.d(TAG, "Error accessing file: " + e.getMessage());
+			}
 		}
 
 		@Override
@@ -208,7 +285,6 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		protected String doInBackground(String... filePaths) {
 			// Use OpenCV to recognize and construct grid
 			String result = recognizeGrid(filePaths[0]);
-			getRandomPuzzle();
 
 			// TODO: Use OCR to recognize clues
 
@@ -237,7 +313,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		 * @return normalized angle
 		 */
 		private double normalize(double theta) {
-			return (theta + DEGREE360) % DEGREE180;
+			return (theta + DEGREE_360) % DEGREE_180;
 		}
 
 		/**
@@ -249,7 +325,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		private double findAngle(Line line) {
 			double x = line.x1 - line.x2, y = line.y1 - line.y2;
 			if (x == 0) {
-				return DEGREE90;
+				return DEGREE_90;
 			}
 			return normalize(Math.atan(y / x));
 		}
@@ -262,8 +338,8 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		 */
 		private boolean isVertical(Line line) {
 			double theta = findAngle(line);
-			return Math.abs(theta - vertical) <= THRESHOLD
-					|| Math.abs(theta - vertical - DEGREE180) <= THRESHOLD;
+			return Math.abs(theta - vertical) < THRESHOLD
+					|| Math.abs(theta - vertical - DEGREE_180) < THRESHOLD;
 			// theta == vertical;
 		}
 
@@ -275,8 +351,8 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		 */
 		private boolean isHorizontal(Line line) {
 			double theta = findAngle(line);
-			return Math.abs(theta - horizontal) <= THRESHOLD
-					|| Math.abs(theta - horizontal - DEGREE180) <= THRESHOLD;
+			return Math.abs(theta - horizontal) < THRESHOLD
+					|| Math.abs(theta - horizontal - DEGREE_180) < THRESHOLD;
 			// theta == horizontal;
 		}
 
@@ -328,11 +404,6 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			}
 		}
 
-		private double findLength(Line line) {
-			return Math.sqrt(Math.pow(line.x1 - line.x2, 2)
-					+ Math.pow(line.y1 - line.y2, 2));
-		}
-
 		/**
 		 * Finds largest list of consecutive equally spaced lines
 		 * 
@@ -346,11 +417,13 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 				boolean horizontal) {
 			// Create map of positions of each line
 			TreeMap<Double, Line> positions = new TreeMap<Double, Line>();
+			double target = horizontal ? ScanActivity.horizontal : vertical;
 			for (Line line : lines) {
 				double position = getPosition(line, horizontal);
 				if (!positions.containsKey(position)
-						|| findLength(line) > findLength(positions
-								.get(position))) {
+						|| Math.abs(findAngle(line) - target) < Math
+								.abs(findAngle(positions.get(position))
+										- target)) {
 					positions.put(position, line);
 				}
 			}
@@ -363,53 +436,60 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 					ArrayList<Line> tempList = new ArrayList<Line>();
 					double distance = j - i;
 					// Rule out small distances between lines
-					if (distance < 15) {
+					if (distance < MIN_CELL_SIZE) {
 						continue;
 					}
 					// Add first couple of lines to set
 					tempList.add(positions.get(i));
 					tempList.add(positions.get(j));
+					// Rule out lines with different angles
+					if (Math.abs(findAngle(tempList.get(0))
+							- findAngle(tempList.get(1))) > DEGREE) {
+						continue;
+					}
 					// Keep track of position of last line
 					double currentPos = j;
 					// Loop until last key
 					while (currentPos < positions.lastKey()) {
 						double nextPos = currentPos + distance;
-						if (positions.containsKey(nextPos)) {
-							tempList.add(positions.get(nextPos));
-							currentPos = nextPos;
-						} else {
+						double candidate = nextPos;
+						if (!positions.containsKey(nextPos)) {
 							Double floor = positions.lowerKey(nextPos), ceil = positions
 									.higherKey(nextPos);
 							if (ceil == null) {
 								// Accept floor if in range
 								if (floor == null || floor == currentPos) {
 									break;
-								} else if (nextPos - floor <= 10) {
-									tempList.add(positions.get(floor));
-									currentPos = floor;
+								} else if (nextPos - floor < LINE_ERROR) {
+									candidate = floor;
 								} else {
 									break;
 								}
 							} else if (floor == null || floor == currentPos) {
 								// Accept ceiling if in range
-								if (ceil - nextPos <= 10) {
-									tempList.add(positions.get(ceil));
-									currentPos = ceil;
+								if (ceil - nextPos < LINE_ERROR) {
+									candidate = ceil;
 								} else {
 									break;
 								}
 							} else {
 								// Accept floor then ceiling if in range
-								if (nextPos - floor <= 10) {
-									tempList.add(positions.get(floor));
-									currentPos = floor;
-								} else if (ceil - nextPos <= 10) {
-									tempList.add(positions.get(ceil));
-									currentPos = ceil;
+								if (nextPos - floor < LINE_ERROR) {
+									candidate = floor;
+								} else if (ceil - nextPos < LINE_ERROR) {
+									candidate = ceil;
 								} else {
 									break;
 								}
 							}
+						}
+						// Rule out lines with different angles
+						if (Math.abs(findAngle(positions.get(currentPos))
+								- findAngle(positions.get(candidate))) > DEGREE) {
+							break;
+						} else {
+							tempList.add(positions.get(candidate));
+							currentPos = candidate;
 						}
 					}
 					// Update result list if temporary list is longer
@@ -460,31 +540,38 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 		private String recognizeGrid(String filePath) {
 			// Read image
 			Mat img = Highgui.imread(filePath);
-			System.out.println("Read " + filePath);
+			Log.i(TAG, "Read " + filePath);
 			if (img.empty()) {
 				Log.e(TAG, "Cannot open " + filePath);
 				System.exit(1);
 			}
 
+			// Rotate image
+			Mat imgT = img.t();
+			int amount = scanView.getDegrees() / 90;
+			Core.flip(img.t(), imgT, amount);
+			Imgproc.resize(imgT, img, amount % 2 == 0 ? img.size() : new Size(
+					img.rows(), img.cols()));
+
 			// Convert image to grayscale
 			Mat gray = new Mat();
 			Imgproc.cvtColor(img, gray, Imgproc.COLOR_RGB2GRAY);
-			System.out.println("Converted to grayscale");
+			Log.i(TAG, "Converted to grayscale");
 
 			// Find edges using Canny detector
 			Mat edges = new Mat();
 			Imgproc.Canny(img, edges, 50, 200, 3, false);
-			System.out.println("Computed edges");
+			Log.i(TAG, "Computed edges");
 
 			// Convert edge image to color for drawing lines in red
 			Mat cedges = new Mat();
 			Imgproc.cvtColor(gray, cedges, Imgproc.COLOR_GRAY2BGR);
-			System.out.println("Converted edges to color");
+			Log.i(TAG, "Converted edges to color");
 
 			// Find lines using Hough transform
 			Mat lines = new Mat();
-			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, 0, img.cols());
-			System.out.println("Computed lines");
+			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, 0, MIN_CELL_SIZE);
+			Log.i(TAG, "Computed lines");
 
 			// Detect lines
 			HashSet<Line> lineSet = new HashSet<Line>();
@@ -492,7 +579,7 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 				Line line = new Line(lines.get(0, index));
 				lineSet.add(line);
 			}
-			System.out.println("Detected lines");
+			Log.i(TAG, "Detected lines");
 
 			// Find most frequent line angle
 			double angle = 0;
@@ -509,19 +596,20 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 					angle = theta;
 				}
 			}
-			System.out.println("Found most frequent angle");
+			Log.i(TAG, "Found most frequent angle");
 
 			// Base orientation on most frequent angle
 			horizontal = angle;
-			vertical = normalize(horizontal + DEGREE90);
+			vertical = normalize(horizontal + DEGREE_90);
 
 			// Switch horizontal and vertical if necessary
-			if (Math.abs(horizontal - DEGREE90) < Math.abs(vertical - DEGREE90)) {
+			if (Math.abs(horizontal - DEGREE_90) < Math.abs(vertical
+					- DEGREE_90)) {
 				double temp = vertical;
 				vertical = horizontal;
 				horizontal = temp;
 			}
-			System.out.println(horizontal + " " + vertical);
+			Log.i(TAG, horizontal + " " + vertical);
 
 			// Keep horizontal and vertical lines
 			ArrayList<Line> hLines = new ArrayList<Line>();
@@ -535,28 +623,10 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			}
 			Collections.sort(hLines, new LineComparator(true));
 			Collections.sort(vLines, new LineComparator(false));
-			System.out.print("[");
-			for (Line line : vLines) {
-				System.out.print("(" + line.x1 + "," + line.y1 + ")->("
-						+ line.x2 + "," + line.y2 + "), ");
-			}
-			System.out.println("]");
 
 			// Compute largest set of equally spaced horizontal lines
 			ArrayList<Line> hList = findEquallySpacedLines(hLines, true);
 			ArrayList<Line> vList = findEquallySpacedLines(vLines, false);
-
-			// Print lists
-			System.out.print("[");
-			for (Line line : hList) {
-				System.out.print(getPosition(line, true) + ", ");
-			}
-			System.out.println("]");
-			System.out.print("[");
-			for (Line line : vList) {
-				System.out.print(getPosition(line, false) + ", ");
-			}
-			System.out.println("]");
 
 			// Draw relevant lines
 			for (Line line : hList) {
@@ -571,21 +641,21 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 			}
 
 			// Print puzzle size
-			System.out.println(hList.size() + "x" + vList.size());
+			Log.i(TAG, hList.size() + "x" + vList.size());
 
 			// Print differences
-			System.out.print("[");
+			double diff = 0;
 			for (int i = 1; i < hList.size(); i++) {
-				System.out.print(getPosition(hList.get(i), true)
-						- getPosition(hList.get(i - 1), true) + ", ");
+				diff += (getPosition(hList.get(i), true) - getPosition(
+						hList.get(i - 1), true));
 			}
-			System.out.println("]");
-			System.out.print("[");
+			Log.i(TAG, "Avg hDistance: " + (diff / hList.size()));
+			diff = 0;
 			for (int i = 1; i < vList.size(); i++) {
-				System.out.print(getPosition(vList.get(i), false)
-						- getPosition(vList.get(i - 1), false) + ", ");
+				diff += (getPosition(vList.get(i), false) - getPosition(
+						vList.get(i - 1), false));
 			}
-			System.out.println("]");
+			Log.i(TAG, "Avg hDistance: " + (diff / vList.size()));
 
 			// Construct grid representation
 			StringBuilder data = new StringBuilder();
@@ -637,27 +707,19 @@ public class ScanActivity extends Activity implements CvCameraViewListener,
 				}
 				System.out.println();
 			}
+			Log.i(TAG, data.toString());
 			return data.toString();
-		}
-
-		private String getRandomPuzzle() {
-			int[][] cells = new int[13][13];
-			for (int i = 0; i < cells.length; i++) {
-				for (int j = 0; j < cells[i].length; j++) {
-					// 1/4 chance of black square
-					if (generator.nextInt(2) == 0 && generator.nextInt(2) == 0) {
-						cells[i][j] = 0;
-					} else {
-						cells[i][j] = 1;
-					}
-				}
-			}
-			return new Puzzle(cells.length, cells, null).serialize();
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			dialog.dismiss();
 		}
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

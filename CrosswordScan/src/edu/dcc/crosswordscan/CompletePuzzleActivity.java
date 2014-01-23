@@ -124,7 +124,6 @@ public class CompletePuzzleActivity extends Activity {
 					mAcrossClue.setTextColor(Color.BLACK);
 				}
 			}
-
 		});
 		mCrosswordGrid.setGame(mCrosswordGame);
 	}

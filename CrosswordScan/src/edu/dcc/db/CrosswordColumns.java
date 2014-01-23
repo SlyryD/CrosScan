@@ -10,4 +10,5 @@ public abstract class CrosswordColumns implements BaseColumns {
 	public static final String LAST_PLAYED = "last_played";
 	public static final String DATA = "data";
 	public static final String TITLE = "title";
+	public static final String PHOTO = "photo";
 }

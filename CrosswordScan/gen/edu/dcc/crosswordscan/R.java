@@ -137,6 +137,7 @@ containing a value of this type.
         public static final int candidate_other=0x7f070002;
         public static final int candidate_recommended=0x7f070001;
         public static final int gray=0x7f070005;
+        public static final int orange=0x7f070009;
         public static final int white=0x7f070006;
         public static final int yellow=0x7f070007;
     }
@@ -159,11 +160,13 @@ containing a value of this type.
         public static final int crosswordscan_icon=0x7f020004;
         public static final int gradient=0x7f020005;
         public static final int help=0x7f020006;
-        public static final int ic_action_camera=0x7f020007;
-        public static final int ic_launcher=0x7f020008;
-        public static final int scanner_icon=0x7f020009;
-        public static final int sym_keyboard_delete=0x7f02000a;
-        public static final int x_icon=0x7f02000b;
+        public static final int ic_launcher=0x7f020007;
+        public static final int left=0x7f020008;
+        public static final int right=0x7f020009;
+        public static final int scanner_icon=0x7f02000a;
+        public static final int sym_keyboard_camera=0x7f02000b;
+        public static final int sym_keyboard_delete=0x7f02000c;
+        public static final int x_icon=0x7f02000d;
     }
     public static final class id {
         public static final int across_clue=0x7f05000a;
@@ -175,22 +178,22 @@ containing a value of this type.
         public static final int clue_texts=0x7f050008;
         public static final int complete_button=0x7f05000d;
         public static final int crossword_grid=0x7f050004;
-        public static final int crossword_name=0x7f050010;
+        public static final int crossword_name=0x7f05000f;
         public static final int down_clue=0x7f05000b;
-        public static final int enter_button=0x7f050011;
+        public static final int enter_button=0x7f050010;
         public static final int footer=0x7f050017;
         public static final int front=0x7f050002;
-        public static final int grid_correct=0x7f05000f;
+        public static final int grid_correct=0x7f050011;
         public static final int header=0x7f050016;
         public static final int keyboard_view=0x7f050006;
         public static final int menu_help=0x7f050014;
         public static final int menu_settings=0x7f050018;
         public static final int next_clue=0x7f050009;
         public static final int photo_button=0x7f050013;
+        public static final int preview=0x7f050012;
         public static final int previous_clue=0x7f050007;
         public static final int puzzle_scanned=0x7f05000e;
         public static final int root_layout=0x7f050003;
-        public static final int scan_activity_surface_view=0x7f050012;
         public static final int scan_button=0x7f05000c;
     }
     public static final class layout {

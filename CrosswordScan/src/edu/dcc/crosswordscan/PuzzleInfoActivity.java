@@ -40,9 +40,9 @@ public class PuzzleInfoActivity extends ListActivity {
 				new InfoItem("Complete", NumberFormat.getPercentInstance()
 						.format(game.getCompletion())),
 				new InfoItem("Size", Integer.toString(game.getPuzzle()
-						.getSize())
+						.getHeight())
 						+ "x"
-						+ Integer.toString(game.getPuzzle().getSize())) };
+						+ Integer.toString(game.getPuzzle().getWidth())) };
 
 		InfoItemAdapter adapter = new InfoItemAdapter(this,
 				R.layout.puzzle_info_item, items);
