@@ -2,6 +2,8 @@ package edu.dcc.game;
 
 import java.util.StringTokenizer;
 
+import android.util.Log;
+
 /**
  * A Crossword cell. Every cell is black or white, can contain a value, and can
  * contain a clue number. Cells belong to a Grid and have (row, col) indices and
@@ -31,7 +33,9 @@ public class Cell {
 	}
 
 	private Cell(boolean white, char value, int clueNum) {
-		if ((value != 0 && value < 65) || value > 90) {
+		if (value != 0 && (value < 65 || value > 90)) {
+			Log.e("Cell", "Value " + value + " (" + Integer.toString(value)
+					+ ") not accepted");
 			throw new IllegalArgumentException("Value must be a capital letter");
 		}
 

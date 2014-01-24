@@ -65,11 +65,13 @@ public class PuzzleListActivity extends ListActivity {
 		Intent intent = getIntent();
 		String title = intent.getStringExtra(NamePuzzleActivity.TITLE);
 		String puzzle = intent.getStringExtra(ScanActivity.GRID);
+		String photo = intent.getStringExtra(ScanActivity.PHOTO);
 		if (title != null && puzzle != null) {
 			CrosswordGame crossword = new CrosswordGame();
 			crossword.setId(DatabaseHelper.getNextId());
 			crossword.setTitle(title);
 			crossword.setPuzzle(Puzzle.deserialize(puzzle));
+			crossword.setPhoto(photo);
 			mDatabase.insertCrossword(1, crossword);
 		}
 

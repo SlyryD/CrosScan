@@ -10,18 +10,22 @@ import edu.dcc.game.Puzzle;
 public class NamePuzzleActivity extends Activity {
 	public final static String TITLE = "title";
 
+	private String grid, photo;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_name_puzzle);
+		getDataFromScan();
 		CrosswordGridView gridView = (CrosswordGridView) findViewById(R.id.crossword_grid);
-		gridView.setPuzzle(getGridFromScan());
+		gridView.setPuzzle(Puzzle.deserialize(grid));
 		gridView.setReadOnly();
 	}
 
-	private Puzzle getGridFromScan() {
+	private void getDataFromScan() {
 		Intent intent = getIntent();
-		return Puzzle.deserialize(intent.getStringExtra(ScanActivity.GRID));
+		grid = intent.getStringExtra(ScanActivity.GRID);
+		photo = intent.getStringExtra(ScanActivity.PHOTO);
 	}
 
 	public void puzzleListTransition(View view) {
@@ -29,8 +33,8 @@ public class NamePuzzleActivity extends Activity {
 		EditText editText = (EditText) findViewById(R.id.crossword_name);
 		String title = editText.getText().toString();
 		intent.putExtra(TITLE, title);
-		intent.putExtra(ScanActivity.GRID,
-				getIntent().getStringExtra(ScanActivity.GRID));
+		intent.putExtra(ScanActivity.GRID, grid);
+		intent.putExtra(ScanActivity.PHOTO, photo);
 		startActivity(intent);
 		finish();
 	}

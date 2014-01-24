@@ -389,6 +389,7 @@ public class Puzzle {
 	 * @return puzzle
 	 */
 	public static Puzzle deserialize(String data) {
+		Log.i("Puzzle", data.toString());
 		String[] lines = data.split("\n");
 		if (lines.length == 0) {
 			throw new IllegalArgumentException(
@@ -417,7 +418,6 @@ public class Puzzle {
 		Cell[][] grid = new Cell[height][width];
 		int row = 0, col = 0;
 		while (data.hasMoreTokens() && row < height) {
-			Log.i("CrosswordScan/Puzzle", "(" + row + "," + col + ")");
 			grid[row][col++] = Cell.deserialize(data);
 
 			if (col == width) {

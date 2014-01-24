@@ -20,8 +20,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
@@ -31,12 +29,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -45,12 +43,13 @@ import android.widget.FrameLayout;
  * 
  * @author Ryan D.
  */
-public class ScanActivity extends Activity implements View.OnTouchListener {
+public class ScanActivity extends Activity {
 
 	// Request codes
 	public static final int CAMERA_REQUEST = 11, CONFIRM_GRID = 22,
 			REJECT_GRID = 33;
 	public static final String GRID = "grid";
+	public static final String PHOTO = "photo";
 
 	// OpenCV fields
 	private static final String TAG = "CrosswordScan/ScanActivity";
@@ -158,49 +157,56 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 	 * 
 	 * @param view
 	 */
+	// TODO: Cancel tasks with back button
 	public void takePhoto(View view) {
 		// Auto focus before photo
-		mCamera.autoFocus(null);
-		
-		// Clear up buffers to avoid mCamera.takePicture to be stuck because
-		// of a memory issue
-		mCamera.setPreviewCallback(null);
+		mCamera.autoFocus(new AutoFocusCallback() {
 
-		PictureCallback mPicture = new PictureCallback() {
+			PictureCallback mPicture = new PictureCallback() {
+				@Override
+				public void onPictureTaken(byte[] data, Camera camera) {
+					// Release camera
+					releaseCamera();
+
+					// Save photo
+					SavePhotoTask spTask = new SavePhotoTask();
+					spTask.execute(data);
+					String result = null;
+					try {
+						result = spTask.get();
+					} catch (InterruptedException e) {
+						Log.e(TAG, "Take photo interrupted");
+						return;
+					} catch (ExecutionException e) {
+						Log.e(TAG, "Take photo execution failed");
+						return;
+					}
+
+					// Process photo
+					ProcessTask pTask = new ProcessTask();
+					pTask.execute(result);
+					try {
+						String grid = pTask.get();
+						Intent intent = new Intent(ScanActivity.this,
+								NamePuzzleActivity.class);
+						intent.putExtra(GRID, grid);
+						intent.putExtra(PHOTO, result);
+						startActivity(intent);
+					} catch (InterruptedException e) {
+						Log.e(TAG, "Process image interrupted");
+						return;
+					} catch (ExecutionException e) {
+						Log.e(TAG, "Process image execution failed");
+						return;
+					}
+				}
+			};
+
 			@Override
-			public void onPictureTaken(byte[] data, Camera camera) {
-				// Release camera
-				releaseCamera();
-
-				// Save photo
-				SavePhotoTask spTask = new SavePhotoTask();
-				spTask.execute(data);
-				String result = null;
-				try {
-					result = spTask.get();
-				} catch (InterruptedException e) {
-					Log.e(TAG, "Take photo interrupted");
-				} catch (ExecutionException e) {
-					Log.e(TAG, "Take photo execution failed");
-				}
-
-				// Process photo
-				ProcessTask pTask = new ProcessTask();
-				pTask.execute(result);
-				try {
-					String grid = pTask.get();
-					Intent intent = new Intent(ScanActivity.this,
-							NamePuzzleActivity.class);
-					intent.putExtra(GRID, grid);
-					startActivity(intent);
-				} catch (InterruptedException e) {
-					Log.e(TAG, "Process image interrupted");
-				} catch (ExecutionException e) {
-					Log.e(TAG, "Process image execution failed");
-				}
+			public void onAutoFocus(boolean success, Camera camera) {
+				mCamera.takePicture(null, null, mPicture);
 			}
-		};
-		mCamera.takePicture(null, null, mPicture);
+		});
 	}
 
 	private class SavePhotoTask extends AsyncTask<byte[], Void, String> {
@@ -218,8 +224,18 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 			// Get path of file directory
 			String filePath = getFilePath();
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// Write file
 			writeFile(filePath, data[0]);
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Take photo and return file path
 			return filePath;
@@ -238,12 +254,22 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
 					"edu.dcc.crosswordscan");
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// Create the storage directory if it does not exist
 			if (!mediaStorageDir.exists()) {
 				if (!mediaStorageDir.mkdirs()) {
 					Log.d(TAG, "failed to create directory");
 					return null;
 				}
+			}
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
 			}
 
 			// Create a media file name
@@ -255,6 +281,7 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 
 		private void writeFile(String filePath, byte[] data) {
 			try {
+				// Create stream
 				FileOutputStream fos = new FileOutputStream(filePath);
 				fos.write(data);
 				fos.close();
@@ -268,6 +295,12 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 		@Override
 		protected void onPostExecute(String result) {
 			dialog.dismiss();
+		}
+
+		@Override
+		protected void onCancelled() {
+			dialog.dismiss();
+			super.onCancelled();
 		}
 	}
 
@@ -286,6 +319,11 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 			// Use OpenCV to recognize and construct grid
 			String result = recognizeGrid(filePaths[0]);
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// TODO: Use OCR to recognize clues
 
 			// TODO: Add image URL to string representation
@@ -296,13 +334,18 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 
 		private class Line {
 
-			public double x1, x2, y1, y2;
+			public double x1, y1, x2, y2;
 
 			public Line(double[] line) {
 				this.x1 = line[0];
-				this.x2 = line[1];
-				this.y1 = line[2];
+				this.y1 = line[1];
+				this.x2 = line[2];
 				this.y2 = line[3];
+			}
+
+			@Override
+			public String toString() {
+				return "[" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + "]";
 			}
 		}
 
@@ -393,13 +436,9 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 		private double getPosition(Line line, boolean horizontal) {
 			if (horizontal) {
 				// Return vertical position
-				// return line.y1; // First endpoint
-				// return line.y2; // Second endpoint
 				return (line.y1 + line.y2) / 2; // Midpoint
 			} else {
 				// Return horizontal position
-				// return line.x1; // First endpoint
-				// return line.x2; // Second endpoint
 				return (line.x1 + line.x2) / 2; // Midpoint
 			}
 		}
@@ -425,6 +464,9 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 								.abs(findAngle(positions.get(position))
 										- target)) {
 					positions.put(position, line);
+				}
+				if (isCancelled()) {
+					return null;
 				}
 			}
 
@@ -491,10 +533,16 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 							tempList.add(positions.get(candidate));
 							currentPos = candidate;
 						}
+						if (isCancelled()) {
+							return null;
+						}
 					}
 					// Update result list if temporary list is longer
 					if (tempList.size() > resultList.size()) {
 						resultList = tempList;
+					}
+					if (isCancelled()) {
+						return null;
 					}
 				}
 			}
@@ -546,6 +594,11 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 				System.exit(1);
 			}
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// Rotate image
 			Mat imgT = img.t();
 			int amount = scanView.getDegrees() / 90;
@@ -553,25 +606,40 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 			Imgproc.resize(imgT, img, amount % 2 == 0 ? img.size() : new Size(
 					img.rows(), img.cols()));
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// Convert image to grayscale
 			Mat gray = new Mat();
 			Imgproc.cvtColor(img, gray, Imgproc.COLOR_RGB2GRAY);
 			Log.i(TAG, "Converted to grayscale");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Find edges using Canny detector
 			Mat edges = new Mat();
 			Imgproc.Canny(img, edges, 50, 200, 3, false);
 			Log.i(TAG, "Computed edges");
 
-			// Convert edge image to color for drawing lines in red
-			Mat cedges = new Mat();
-			Imgproc.cvtColor(gray, cedges, Imgproc.COLOR_GRAY2BGR);
-			Log.i(TAG, "Converted edges to color");
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Find lines using Hough transform
 			Mat lines = new Mat();
 			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, 0, MIN_CELL_SIZE);
 			Log.i(TAG, "Computed lines");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Detect lines
 			HashSet<Line> lineSet = new HashSet<Line>();
@@ -580,6 +648,11 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 				lineSet.add(line);
 			}
 			Log.i(TAG, "Detected lines");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Find most frequent line angle
 			double angle = 0;
@@ -594,6 +667,10 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 				if (!angleCount.containsKey(angle)
 						|| angleCount.get(theta) > angleCount.get(angle)) {
 					angle = theta;
+				}
+				// Check if cancelled
+				if (isCancelled()) {
+					return null;
 				}
 			}
 			Log.i(TAG, "Found most frequent angle");
@@ -611,6 +688,11 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 			}
 			Log.i(TAG, horizontal + " " + vertical);
 
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
 			// Keep horizontal and vertical lines
 			ArrayList<Line> hLines = new ArrayList<Line>();
 			ArrayList<Line> vLines = new ArrayList<Line>();
@@ -620,50 +702,77 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 				} else if (isVertical(line)) {
 					vLines.add(line);
 				}
+				// Check if cancelled
+				if (isCancelled()) {
+					return null;
+				}
 			}
+
+			// Sort horizontal lines
 			Collections.sort(hLines, new LineComparator(true));
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Sort vertical lines
 			Collections.sort(vLines, new LineComparator(false));
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
 
 			// Compute largest set of equally spaced horizontal lines
 			ArrayList<Line> hList = findEquallySpacedLines(hLines, true);
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Compute largest set of equally spaced vertical lines
 			ArrayList<Line> vList = findEquallySpacedLines(vLines, false);
 
-			// Draw relevant lines
-			for (Line line : hList) {
-				Core.line(cedges, new Point(line.x1, line.y1), new Point(
-						line.x2, line.y2), new Scalar(0, 0, 255), 2,
-						Core.LINE_AA, 0);
-			}
-			for (Line line : vList) {
-				Core.line(cedges, new Point(line.x1, line.y1), new Point(
-						line.x2, line.y2), new Scalar(0, 0, 255), 2,
-						Core.LINE_AA, 0);
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
 			}
 
-			// Print puzzle size
-			Log.i(TAG, hList.size() + "x" + vList.size());
+			// Get puzzle size
+			int height = hList.size() - 1, width = vList.size() - 1;
+			Log.i(TAG, height + "x" + width);
 
 			// Print differences
 			double diff = 0;
 			for (int i = 1; i < hList.size(); i++) {
 				diff += (getPosition(hList.get(i), true) - getPosition(
 						hList.get(i - 1), true));
+				// Check if cancelled
+				if (isCancelled()) {
+					return null;
+				}
 			}
 			Log.i(TAG, "Avg hDistance: " + (diff / hList.size()));
 			diff = 0;
 			for (int i = 1; i < vList.size(); i++) {
 				diff += (getPosition(vList.get(i), false) - getPosition(
 						vList.get(i - 1), false));
+				// Check if cancelled
+				if (isCancelled()) {
+					return null;
+				}
 			}
 			Log.i(TAG, "Avg hDistance: " + (diff / vList.size()));
 
 			// Construct grid representation
 			StringBuilder data = new StringBuilder();
 			data.append("version: 1\n");
-			data.append(hList.size() + "|");
-			double[][] cells = new double[hList.size() - 1][vList.size() - 1];
-			for (int row = 0; row < hList.size() - 1; row++) {
-				for (int col = 0; col < vList.size() - 1; col++) {
+			data.append(height + "|").append(width + "|");
+			double[][] cells = new double[height][width];
+			for (int row = 0; row < height; row++) {
+				for (int col = 0; col < width; col++) {
 					// Find bounds of cell
 					double[] point1 = findIntersection(vList.get(col),
 							hList.get(row));
@@ -683,16 +792,21 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 								Log.e(TAG, "Unable to get pixel data");
 								break;
 							}
+							// Check if cancelled
+							if (isCancelled()) {
+								return null;
+							}
 						}
 					}
 					cells[row][col] /= ((coords[1] - coords[0]) * (coords[3] - coords[2]));
-					if ((row + col) % 2 == 0) {
-						Core.rectangle(cedges, new Point(coords[0], coords[2]),
-								new Point(coords[1], coords[3]), new Scalar(
-										255, 0, 0), Core.FILLED);
+					// Check if cancelled
+					if (isCancelled()) {
+						return null;
 					}
 				}
 			}
+
+			// Decide whether cells are black or white
 			double cutoff = findCutoff(cells);
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
@@ -703,10 +817,16 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 						data.append("0").append("|");
 						System.out.print("X ");
 					}
-					data.append("0").append("|");
+					data.append((char) 0).append("|");
+					// Check if cancelled
+					if (isCancelled()) {
+						return null;
+					}
 				}
 				System.out.println();
 			}
+
+			// Grid representation
 			Log.i(TAG, data.toString());
 			return data.toString();
 		}
@@ -715,11 +835,12 @@ public class ScanActivity extends Activity implements View.OnTouchListener {
 		protected void onPostExecute(String result) {
 			dialog.dismiss();
 		}
+
+		@Override
+		protected void onCancelled() {
+			dialog.dismiss();
+			super.onCancelled();
+		}
 	}
 
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 }

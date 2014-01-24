@@ -71,7 +71,7 @@
     </Row>
     <Row>
         <Key
-            android:codes="111"
+            android:codes="273"
             android:iconPreview="@drawable/sym_keyboard_camera"
             android:keyEdgeFlags="left"
             android:keyIcon="@drawable/sym_keyboard_camera" />

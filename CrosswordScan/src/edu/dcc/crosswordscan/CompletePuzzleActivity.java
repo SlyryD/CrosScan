@@ -4,17 +4,25 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.db.CrosswordDatabase;
@@ -35,6 +43,8 @@ public class CompletePuzzleActivity extends Activity {
 	private static final int DIALOG_RESTART = 0;
 	private static final int DIALOG_DELETE_PUZZLE = 1;
 
+	private static final int KEYCODE_PHOTO = 273;
+
 	private long mCrosswordGameID;
 	private CrosswordGame mCrosswordGame;
 
@@ -47,6 +57,11 @@ public class CompletePuzzleActivity extends Activity {
 
 	private Keyboard mKeyboard;
 	private KeyboardView mKeyboardView;
+
+	private View popUpView;
+	private PopupWindow popUp;
+	private View rootLayout;
+	private ImageView photoView;
 
 	private boolean mShowTime = true;
 	private GameTimer mGameTimer;
@@ -65,6 +80,7 @@ public class CompletePuzzleActivity extends Activity {
 
 		mKeyboard = new Keyboard(this, R.xml.keyboard);
 		mKeyboardView = (KeyboardView) findViewById(R.id.keyboard_view);
+		mKeyboardView.setPreviewEnabled(false);
 		mKeyboardView.setKeyboard(mKeyboard);
 		mKeyboardView
 				.setOnKeyboardActionListener(new BasicOnKeyboardActionListener(
@@ -92,39 +108,8 @@ public class CompletePuzzleActivity extends Activity {
 			mCrosswordGame.resume();
 		}
 
-		mCrosswordGrid.setOnCellSelectedListener(new OnCellSelectedListener() {
-
-			@Override
-			public void onCellSelected(Cell cell) {
-				Entry acrossEntry = cell.getEntry(true);
-				Entry downEntry = cell.getEntry(false);
-				Puzzle puzzle = mCrosswordGame.getPuzzle();
-				boolean acrossMode = mCrosswordGame.isAcrossMode();
-
-				mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
-						.getClueNum()
-						+ "a. "
-						+ puzzle.getClue(acrossEntry.getClueNum(), true));
-				mDownClue.setText(downEntry == null ? "" : downEntry
-						.getClueNum()
-						+ "d. "
-						+ puzzle.getClue(downEntry.getClueNum(), false));
-
-				if (downEntry == null) {
-					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
-					mDownClue.setTextColor(Color.BLACK);
-				} else if (acrossEntry == null) {
-					mDownClue.setTextColor(Color.rgb(50, 50, 255));
-					mAcrossClue.setTextColor(Color.BLACK);
-				} else if (acrossMode) {
-					mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
-					mDownClue.setTextColor(Color.BLACK);
-				} else if (!acrossMode) {
-					mDownClue.setTextColor(Color.rgb(50, 50, 255));
-					mAcrossClue.setTextColor(Color.BLACK);
-				}
-			}
-		});
+		mCrosswordGrid
+				.setOnCellSelectedListener(new BasicOnCellSelectedListener());
 		mCrosswordGrid.setGame(mCrosswordGame);
 	}
 
@@ -262,6 +247,50 @@ public class CompletePuzzleActivity extends Activity {
 		return null;
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KEYCODE_PHOTO) {
+			// Add popup photo
+			Bitmap photo = BitmapFactory.decodeResource(getResources(),
+					R.drawable.no_photo);
+			photo = BitmapFactory.decodeFile(mCrosswordGame.getPhoto());
+			if (popUpView == null) {
+				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				popUpView = inflater.inflate(R.layout.popup_photo, null, false);
+				popUp = new PopupWindow(popUpView, photo.getHeight(),
+						photo.getWidth(), false);
+				rootLayout = findViewById(R.id.root_layout);
+				photoView = (ImageView) popUpView.findViewById(R.id.imageView);
+				Bitmap rot = Bitmap.createBitmap(photo.getWidth(),
+						photo.getHeight(), Bitmap.Config.ARGB_8888);
+				Canvas tempCanvas = new Canvas(rot);
+				tempCanvas.rotate(90, photo.getWidth() / 2,
+						photo.getHeight() / 2);
+				tempCanvas.drawBitmap(photo, 0, 0, null);
+				photoView.setImageBitmap(rot);
+				popUp.showAtLocation(popUpView, Gravity.CENTER, 0, 0);
+				// popUpView.setOnKeyListener(new View.OnKeyListener() {
+				//
+				// @Override
+				// public boolean onKey(View v, int keyCode, KeyEvent event) {
+				// if (keyCode == KeyEvent.KEYCODE_BACK) {
+				// popUp.dismiss();
+				// }
+				// return false;
+				// }
+				// });
+			} else {
+				popUp.showAtLocation(rootLayout, Gravity.CENTER, 0, 0);
+			}
+		} else if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (popUp != null && popUp.isShowing()) {
+				popUp.dismiss();
+				return false;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
 	/**
 	 * Update the time of game-play.
 	 */
@@ -327,12 +356,48 @@ public class CompletePuzzleActivity extends Activity {
 		@Override
 		public void onKey(int primaryCode, int[] keyCodes) {
 			long eventTime = System.currentTimeMillis();
+			int metaState = 193;
+			if (primaryCode == KeyEvent.KEYCODE_DEL
+					|| primaryCode == KEYCODE_PHOTO) {
+				metaState = 0;
+			}
 			KeyEvent event = new KeyEvent(eventTime, eventTime,
-					KeyEvent.ACTION_DOWN, primaryCode, 0,
-					primaryCode == KeyEvent.KEYCODE_DEL ? 0 : 193, 0, 0,
+					KeyEvent.ACTION_DOWN, primaryCode, 0, metaState, 0, 0,
 					KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE);
 
 			mTargetActivity.dispatchKeyEvent(event);
+		}
+	}
+
+	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
+
+		@Override
+		public void onCellSelected(Cell cell) {
+			Entry acrossEntry = cell.getEntry(true);
+			Entry downEntry = cell.getEntry(false);
+			Puzzle puzzle = mCrosswordGame.getPuzzle();
+			boolean acrossMode = mCrosswordGame.isAcrossMode();
+
+			mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
+					.getClueNum()
+					+ "a. "
+					+ puzzle.getClue(acrossEntry.getClueNum(), true));
+			mDownClue.setText(downEntry == null ? "" : downEntry.getClueNum()
+					+ "d. " + puzzle.getClue(downEntry.getClueNum(), false));
+
+			if (downEntry == null) {
+				mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+				mDownClue.setTextColor(Color.BLACK);
+			} else if (acrossEntry == null) {
+				mDownClue.setTextColor(Color.rgb(50, 50, 255));
+				mAcrossClue.setTextColor(Color.BLACK);
+			} else if (acrossMode) {
+				mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+				mDownClue.setTextColor(Color.BLACK);
+			} else if (!acrossMode) {
+				mDownClue.setTextColor(Color.rgb(50, 50, 255));
+				mAcrossClue.setTextColor(Color.BLACK);
+			}
 		}
 	}
 
