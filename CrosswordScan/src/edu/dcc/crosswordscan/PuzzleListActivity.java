@@ -216,8 +216,8 @@ public class PuzzleListActivity extends ListActivity {
 
 	/** Called when the user clicks the Play Puzzle button */
 	public void playTransition(long id) {
-		Intent intent = new Intent(this, CompletePuzzleActivity.class);
-		intent.putExtra(CompletePuzzleActivity.EXTRA_CROSSWORD_ID, id);
+		Intent intent = new Intent(this, SolvePuzzleActivity.class);
+		intent.putExtra(SolvePuzzleActivity.EXTRA_CROSSWORD_ID, id);
 		startActivity(intent);
 	}
 

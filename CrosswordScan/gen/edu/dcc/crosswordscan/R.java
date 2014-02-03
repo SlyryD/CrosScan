@@ -170,43 +170,43 @@ containing a value of this type.
         public static final int x_icon=0x7f02000e;
     }
     public static final class id {
-        public static final int across_clue=0x7f05000a;
+        public static final int across_clue=0x7f050013;
         public static final int action_settings=0x7f05001a;
         public static final int any=0x7f050000;
         public static final int back=0x7f050001;
         public static final int button_list=0x7f050016;
-        public static final int clue_bar=0x7f050005;
-        public static final int clue_texts=0x7f050008;
-        public static final int complete_button=0x7f05000d;
-        public static final int crossword_grid=0x7f050004;
-        public static final int crossword_name=0x7f05000f;
-        public static final int down_clue=0x7f05000b;
-        public static final int enter_button=0x7f050010;
+        public static final int clue_bar=0x7f05000e;
+        public static final int clue_texts=0x7f050011;
+        public static final int complete_button=0x7f050005;
+        public static final int crossword_grid=0x7f050009;
+        public static final int crossword_name=0x7f050007;
+        public static final int down_clue=0x7f050014;
+        public static final int enter_button=0x7f050008;
         public static final int footer=0x7f050018;
         public static final int front=0x7f050002;
-        public static final int grid_correct=0x7f050011;
+        public static final int grid_correct=0x7f05000a;
         public static final int header=0x7f050017;
-        public static final int imageView=0x7f050015;
-        public static final int keyboard_view=0x7f050006;
-        public static final int menu_help=0x7f050014;
+        public static final int imageView=0x7f050003;
+        public static final int keyboard_view=0x7f05000f;
+        public static final int menu_help=0x7f050015;
         public static final int menu_settings=0x7f050019;
-        public static final int next_clue=0x7f050009;
-        public static final int photo_button=0x7f050013;
-        public static final int preview=0x7f050012;
-        public static final int previous_clue=0x7f050007;
-        public static final int puzzle_scanned=0x7f05000e;
-        public static final int root_layout=0x7f050003;
-        public static final int scan_button=0x7f05000c;
+        public static final int next_clue=0x7f050012;
+        public static final int photo_button=0x7f05000c;
+        public static final int preview=0x7f05000b;
+        public static final int previous_clue=0x7f050010;
+        public static final int puzzle_scanned=0x7f050006;
+        public static final int root_layout=0x7f05000d;
+        public static final int scan_button=0x7f050004;
     }
     public static final class layout {
-        public static final int activity_complete_puzzle=0x7f030000;
+        public static final int activity_image=0x7f030000;
         public static final int activity_main=0x7f030001;
         public static final int activity_name_puzzle=0x7f030002;
         public static final int activity_puzzle_info=0x7f030003;
         public static final int activity_puzzle_list=0x7f030004;
         public static final int activity_scan=0x7f030005;
-        public static final int menu=0x7f030006;
-        public static final int popup_photo=0x7f030007;
+        public static final int activity_solve_puzzle=0x7f030006;
+        public static final int menu=0x7f030007;
         public static final int puzzle_actions_list=0x7f030008;
         public static final int puzzle_info_item=0x7f030009;
     }
@@ -214,31 +214,35 @@ containing a value of this type.
         public static final int activity_grid=0x7f0b0000;
         public static final int activity_main=0x7f0b0001;
         public static final int activity_scan=0x7f0b0002;
-        public static final int complete_puzzle=0x7f0b0003;
-        public static final int confirm_grid=0x7f0b0004;
+        public static final int confirm_grid=0x7f0b0003;
+        public static final int image=0x7f0b0004;
         public static final int name_puzzle=0x7f0b0005;
         public static final int puzzle_info=0x7f0b0006;
         public static final int puzzle_list=0x7f0b0007;
-        public static final int test=0x7f0b0008;
+        public static final int solve_puzzle=0x7f0b0008;
+        public static final int test=0x7f0b0009;
     }
     public static final class string {
         /**  Menu 
          */
-        public static final int action_settings=0x7f090021;
+        public static final int action_settings=0x7f090020;
         /**  Main Activity 
          */
         public static final int app_name=0x7f090000;
-        public static final int complete_puzzle=0x7f090003;
         public static final int crossword_grid=0x7f09000d;
         public static final int delete_puzzle=0x7f090012;
         public static final int delete_puzzle_confirm=0x7f090013;
         public static final int enter=0x7f09000b;
         public static final int grid_correct=0x7f09000e;
-        public static final int help=0x7f090022;
+        public static final int hello_world=0x7f090023;
+        public static final int help=0x7f090021;
+        /**  Image Activity 
+         */
+        public static final int image=0x7f09001f;
         public static final int menu_settings=0x7f090001;
         public static final int n_playing=0x7f090018;
         public static final int n_puzzles=0x7f090017;
-        public static final int next_clue=0x7f09001f;
+        public static final int next_clue=0x7f09001e;
         public static final int no=0x7f090009;
         public static final int no_puzzles=0x7f090015;
         public static final int one_puzzle=0x7f090016;
@@ -247,23 +251,19 @@ containing a value of this type.
         /**  Puzzle List Activity 
          */
         public static final int play_puzzle=0x7f090010;
-        /**  Popup photo 
-         */
-        public static final int popup_photo=0x7f090020;
-        public static final int previous_clue=0x7f09001e;
+        public static final int previous_clue=0x7f09001d;
         public static final int puzzle_info=0x7f090011;
         public static final int puzzle_scanned=0x7f09000c;
         public static final int reset_puzzle_confirm=0x7f090014;
-        public static final int restart=0x7f09001b;
-        public static final int restart_confirm=0x7f09001c;
+        public static final int restart=0x7f09001a;
+        public static final int restart_confirm=0x7f09001b;
         public static final int scan_puzzle=0x7f090002;
-        public static final int settings=0x7f09001d;
-        /**  Complete Puzzle Activity 
-         */
-        public static final int title_activity_complete_puzzle=0x7f090019;
+        public static final int settings=0x7f09001c;
+        public static final int solve_puzzle=0x7f090003;
         /**  Confirm Grid Activity 
          */
         public static final int title_activity_confirm_grid=0x7f090007;
+        public static final int title_activity_image=0x7f090022;
         /**  Name Puzzle Activity 
          */
         public static final int title_activity_name_puzzle=0x7f09000a;
@@ -273,7 +273,9 @@ containing a value of this type.
         /**  Scan Activity 
          */
         public static final int title_activity_scan=0x7f090004;
-        public static final int undo=0x7f09001a;
+        /**  Solve Puzzle Activity 
+         */
+        public static final int undo=0x7f090019;
         public static final int yes=0x7f090008;
     }
     public static final class style {

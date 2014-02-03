@@ -32,9 +32,9 @@
         android:layout_marginTop="5dp"
         android:layout_weight="1"
         android:background="@color/orange"
-        android:contentDescription="@string/complete_puzzle"
+        android:contentDescription="@string/solve_puzzle"
         android:onClick="gridTransition"
-        android:text="@string/complete_puzzle"
+        android:text="@string/solve_puzzle"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="#FFFFFF" />
 

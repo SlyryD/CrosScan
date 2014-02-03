@@ -4,25 +4,17 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.db.CrosswordDatabase;
@@ -33,7 +25,7 @@ import edu.dcc.game.Puzzle;
 
 // TODO: Design landscape view
 
-public class CompletePuzzleActivity extends Activity {
+public class SolvePuzzleActivity extends Activity {
 
 	public static final String EXTRA_CROSSWORD_ID = "crossword_id";
 
@@ -58,11 +50,6 @@ public class CompletePuzzleActivity extends Activity {
 	private Keyboard mKeyboard;
 	private KeyboardView mKeyboardView;
 
-	private View popUpView;
-	private PopupWindow popUp;
-	private View rootLayout;
-	private ImageView photoView;
-
 	private boolean mShowTime = true;
 	private GameTimer mGameTimer;
 	private GameTimeFormat mGameTimeFormatter = new GameTimeFormat();
@@ -71,7 +58,7 @@ public class CompletePuzzleActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.activity_complete_puzzle);
+		setContentView(R.layout.activity_solve_puzzle);
 
 		mCrosswordGrid = (CrosswordGridView) findViewById(R.id.crossword_grid);
 
@@ -187,7 +174,7 @@ public class CompletePuzzleActivity extends Activity {
 		Intent intent = new Intent(null, getIntent().getData());
 		intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
 		menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0,
-				new ComponentName(this, CompletePuzzleActivity.class), null,
+				new ComponentName(this, SolvePuzzleActivity.class), null,
 				intent, 0, null);
 
 		return true;
@@ -239,7 +226,7 @@ public class CompletePuzzleActivity extends Activity {
 										int whichButton) {
 									mDatabase.deleteCrossword(mCrosswordGame
 											.getId());
-									CompletePuzzleActivity.this.finish();
+									SolvePuzzleActivity.this.finish();
 								}
 							}).setNegativeButton(android.R.string.no, null)
 					.create();
@@ -250,43 +237,9 @@ public class CompletePuzzleActivity extends Activity {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KEYCODE_PHOTO) {
-			// Add popup photo
-			Bitmap photo = BitmapFactory.decodeResource(getResources(),
-					R.drawable.no_photo);
-			photo = BitmapFactory.decodeFile(mCrosswordGame.getPhoto());
-			if (popUpView == null) {
-				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				popUpView = inflater.inflate(R.layout.popup_photo, null, false);
-				popUp = new PopupWindow(popUpView, photo.getHeight(),
-						photo.getWidth(), false);
-				rootLayout = findViewById(R.id.root_layout);
-				photoView = (ImageView) popUpView.findViewById(R.id.imageView);
-				Bitmap rot = Bitmap.createBitmap(photo.getWidth(),
-						photo.getHeight(), Bitmap.Config.ARGB_8888);
-				Canvas tempCanvas = new Canvas(rot);
-				tempCanvas.rotate(90, photo.getWidth() / 2,
-						photo.getHeight() / 2);
-				tempCanvas.drawBitmap(photo, 0, 0, null);
-				photoView.setImageBitmap(rot);
-				popUp.showAtLocation(popUpView, Gravity.CENTER, 0, 0);
-				// popUpView.setOnKeyListener(new View.OnKeyListener() {
-				//
-				// @Override
-				// public boolean onKey(View v, int keyCode, KeyEvent event) {
-				// if (keyCode == KeyEvent.KEYCODE_BACK) {
-				// popUp.dismiss();
-				// }
-				// return false;
-				// }
-				// });
-			} else {
-				popUp.showAtLocation(rootLayout, Gravity.CENTER, 0, 0);
-			}
-		} else if (keyCode == KeyEvent.KEYCODE_BACK) {
-			if (popUp != null && popUp.isShowing()) {
-				popUp.dismiss();
-				return false;
-			}
+			Intent intent = new Intent(this, ImageActivity.class);
+			intent.putExtra(ScanActivity.PHOTO, mCrosswordGame.getPhoto());
+			startActivity(intent);
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -296,11 +249,10 @@ public class CompletePuzzleActivity extends Activity {
 	 */
 	private void updateTime() {
 		if (mShowTime) {
-			setTitle(mGameTimeFormatter.format(mCrosswordGame.getTime()));
-			// mTimeLabel.setText(mGameTimeFormatter.format(mCrosswordGame
-			// .getTime()));
+			setTitle(mGameTimeFormatter.format(mCrosswordGame.getTime()) + "\t"
+					+ mCrosswordGame.getTitle());
 		} else {
-			setTitle(R.string.app_name);
+			setTitle(mCrosswordGame.getTitle());
 		}
 
 	}
@@ -405,9 +357,9 @@ public class CompletePuzzleActivity extends Activity {
 	// status each tick.
 	private static final class GameTimer extends Timer {
 
-		private final CompletePuzzleActivity activity;
+		private final SolvePuzzleActivity activity;
 
-		public GameTimer(CompletePuzzleActivity activity) {
+		public GameTimer(SolvePuzzleActivity activity) {
 			super(1000);
 			this.activity = activity;
 		}

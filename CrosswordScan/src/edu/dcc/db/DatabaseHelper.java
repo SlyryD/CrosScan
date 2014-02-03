@@ -82,8 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("Acid in vinegar|Off course|Variety of lettuce|Mallet|")
 				.append("Amherst sch.|End-of-year temp|Go in headfirst|Nursery rhyme trio|")
 				.append("To boot|Retro art style|007''s alma mater|Skip stones|Tip of a pen");
-		insertCrossword(db, 1, getNextId(), sb.toString(), "My Puzzle 1",
-				"fake.jpg");
+		insertCrossword(db, 1, getNextId(), sb.toString(), "My Puzzle 1", null);
 
 		// Construct example puzzle
 		sb = new StringBuilder();
@@ -102,8 +101,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				.append("00|10|10|10|10|10|10|10|00|00|10|10|10|")
 				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|")
 				.append("10|10|10|10|00|10|10|10|10|10|00|10|10|");
-		insertCrossword(db, 1, getNextId(), sb.toString(), "My Puzzle 2",
-				"fake.jpg");
+		insertCrossword(db, 1, getNextId(), sb.toString(), "My Puzzle 2", null);
 
 		// Create indices
 		createIndices(db);
