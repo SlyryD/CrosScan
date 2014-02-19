@@ -17,23 +17,22 @@ public class Puzzle {
 
 	// Default values
 	public static final int DEFAULT_SIZE = 13;
-	
+
 	// Puzzle grid
 	private final Cell[][] grid; // Cells in grid
 	private final int height, width; // Grid size
-	private final Cell firstWhiteCell; // First white cell
+	private Cell firstWhiteCell; // First white cell
 
 	// Puzzle clues
-	private final TreeMap<Integer, String> acrossClues;
-	private final TreeMap<Integer, String> downClues;
+	private TreeMap<Integer, String> acrossClues;
+	private TreeMap<Integer, String> downClues;
 
 	// Puzzle entries (groups of cells)
-	private final TreeMap<Integer, Entry> acrossEntries;
-	private final TreeMap<Integer, Entry> downEntries;
-	private final int numEntries; // Number of entries
+	private TreeMap<Integer, Entry> acrossEntries;
+	private TreeMap<Integer, Entry> downEntries;
+	private int numEntries; // Number of entries
 
 	// Puzzle change listeners
-	private final boolean onChangeEnabled = true;
 	private final List<OnChangeListener> changeListeners = new ArrayList<OnChangeListener>();
 
 	// Data validation fields
@@ -65,14 +64,9 @@ public class Puzzle {
 		this.height = height;
 		this.width = width;
 		this.grid = grid;
-		acrossEntries = new TreeMap<Integer, Entry>();
-		downEntries = new TreeMap<Integer, Entry>();
-		numEntries = initGrid();
-		firstWhiteCell = findFirstWhiteCell();
+		initGrid();
 
 		// Initialize clues
-		acrossClues = new TreeMap<Integer, String>();
-		downClues = new TreeMap<Integer, String>();
 		initClues(clues);
 
 		Log.i("CrosswordScan/Puzzle", "Puzzle instantiated");
@@ -114,7 +108,10 @@ public class Puzzle {
 	 * 
 	 * @return number of entries
 	 */
-	private int initGrid() {
+	private void initGrid() {
+		acrossEntries = new TreeMap<Integer, Entry>();
+		downEntries = new TreeMap<Integer, Entry>();
+
 		// Track entry number
 		int entryNum = 0;
 		// Traverse grid
@@ -150,7 +147,8 @@ public class Puzzle {
 				}
 			}
 		}
-		return entryNum;
+		numEntries = entryNum;
+		firstWhiteCell = findFirstWhiteCell();
 	}
 
 	/**
@@ -159,6 +157,9 @@ public class Puzzle {
 	 * @param clues
 	 */
 	private void initClues(List<String> clues) {
+		acrossClues = new TreeMap<Integer, String>();
+		downClues = new TreeMap<Integer, String>();
+
 		if (clues == null) {
 			for (int clueNum : acrossEntries.keySet()) {
 				acrossClues.put(clueNum, "ACROSS CLUE");
@@ -559,12 +560,20 @@ public class Puzzle {
 	 * Notify all registered listeners that something has changed.
 	 */
 	protected void onChange() {
-		if (onChangeEnabled) {
-			synchronized (changeListeners) {
-				for (OnChangeListener l : changeListeners) {
-					l.onChange();
-				}
+		synchronized (changeListeners) {
+			for (OnChangeListener l : changeListeners) {
+				l.onChange();
 			}
+		}
+	}
+
+	/**
+	 * Notify all registered listeners that something has changed.
+	 */
+	protected void onColorChange() {
+		synchronized (changeListeners) {
+			initGrid();
+			onChange();
 		}
 	}
 

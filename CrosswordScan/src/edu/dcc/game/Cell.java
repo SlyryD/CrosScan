@@ -107,7 +107,7 @@ public class Cell {
 			throw new IllegalArgumentException("Value must be a character.");
 		}
 		mValue = value;
-		onChange();
+		onValueChange();
 	}
 
 	/**
@@ -150,10 +150,10 @@ public class Cell {
 	public boolean isWhite() {
 		return mWhite;
 	}
-	
+
 	public void toggleColor() {
 		mWhite = !mWhite;
-		onChange();
+		onColorChange();
 	}
 
 	/**
@@ -200,10 +200,19 @@ public class Cell {
 	/**
 	 * Notify Grid that something has changed.
 	 */
-	private void onChange() {
+	private void onValueChange() {
 		synchronized (mGridLock) {
 			if (puzzle != null) {
 				puzzle.onChange();
+			}
+
+		}
+	}
+
+	private void onColorChange() {
+		synchronized (mGridLock) {
+			if (puzzle != null) {
+				puzzle.onColorChange();
 			}
 
 		}

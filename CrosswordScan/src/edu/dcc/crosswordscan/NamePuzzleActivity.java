@@ -3,6 +3,7 @@ package edu.dcc.crosswordscan;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
@@ -26,7 +27,6 @@ public class NamePuzzleActivity extends Activity {
 		gridView = (CrosswordGridView) findViewById(R.id.crossword_grid);
 		gridView.setPuzzle(puzzle);
 		gridView.setOnCellSelectedListener(new BasicOnCellSelectedListener());
-		gridView.setReadOnly();
 	}
 
 	private void getDataFromScan() {
@@ -51,6 +51,7 @@ public class NamePuzzleActivity extends Activity {
 
 		@Override
 		public void onCellSelected(Cell cell) {
+			Log.i(TITLE, "Reached on cell selected");
 			cell.toggleColor();
 			puzzleStr = puzzle.serialize();
 		}

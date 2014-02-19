@@ -48,8 +48,6 @@ public class CrosswordGridView extends View {
 	// PointF downPt = new PointF(); // Record position on down
 	// PointF startPt = new PointF(); // Record start position of view
 
-	private boolean mReadOnly = false;
-
 	public CrosswordGridView(Context context) {
 		this(context, null);
 	}
@@ -112,8 +110,8 @@ public class CrosswordGridView extends View {
 	public void setPuzzle(Puzzle puzzle) {
 		this.puzzle = puzzle;
 
-		if (this.puzzle != null && !mReadOnly) {
-			if (!mReadOnly) {
+		if (this.puzzle != null) {
+			if (mGame != null) {
 				// select first cell by default
 				mSelectedCell = puzzle.getFirstWhiteCell();
 				onCellSelected(mSelectedCell);
@@ -202,13 +200,6 @@ public class CrosswordGridView extends View {
 		mBackgroundColorSelected.setAlpha(100);
 	}
 
-	/**
-	 * Make view read only
-	 */
-	public void setReadOnly() {
-		mReadOnly = true;
-	}
-
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
@@ -259,7 +250,7 @@ public class CrosswordGridView extends View {
 			}
 
 			// Highlight selected cell and entry
-			if (mSelectedCell != null && !mReadOnly) {
+			if (mSelectedCell != null && mGame != null) {
 				boolean acrossMode = mGame.isAcrossMode();
 				Entry entry = mSelectedCell.getEntry(acrossMode);
 
@@ -369,9 +360,6 @@ public class CrosswordGridView extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (mReadOnly) {
-			return false;
-		}
 
 		int x = (int) event.getX();
 		int y = (int) event.getY();
@@ -392,13 +380,15 @@ public class CrosswordGridView extends View {
 			break;
 		case MotionEvent.ACTION_UP:
 			Cell selected = getCellAtPoint(x, y);
-			if (selected == null || !selected.isWhite()) {
+			if (selected == null) {
 				return false;
-			} else if (selected == mSelectedCell) {
-				mGame.setAcrossMode(!mGame.isAcrossMode());
-			} else {
-				mSelectedCell = selected;
 			}
+
+			if (mGame != null && selected == mSelectedCell) {
+				mGame.setAcrossMode(!mGame.isAcrossMode());
+			}
+
+			mSelectedCell = selected;
 			invalidate(); // Update board when selected cell changes
 			if (mSelectedCell != null) {
 				onCellTapped(mSelectedCell);
@@ -419,7 +409,7 @@ public class CrosswordGridView extends View {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (mReadOnly) {
+		if (mGame == null) {
 			return false;
 		}
 

@@ -325,6 +325,10 @@ public class SolvePuzzleActivity extends Activity {
 
 		@Override
 		public void onCellSelected(Cell cell) {
+			if (!cell.isWhite()) {
+				return;
+			}
+			
 			Entry acrossEntry = cell.getEntry(true);
 			Entry downEntry = cell.getEntry(false);
 			Puzzle puzzle = mCrosswordGame.getPuzzle();

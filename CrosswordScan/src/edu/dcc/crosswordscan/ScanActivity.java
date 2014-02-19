@@ -116,6 +116,7 @@ public class ScanActivity extends Activity {
 
 	@Override
 	protected void onPause() {
+		Log.i(TAG, "called onPause");
 		super.onPause();
 		releaseCamera();
 		scanView.releaseCamera();
@@ -123,6 +124,7 @@ public class ScanActivity extends Activity {
 
 	@Override
 	protected void onResume() {
+		Log.i(TAG, "called onResume");
 		super.onResume();
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_8, this,
 				mLoaderCallback);
@@ -134,8 +136,21 @@ public class ScanActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
+		Log.i(TAG, "called onDestroy");
 		super.onDestroy();
 		releaseCamera();
+	}
+
+	@Override
+	protected void onStop() {
+		Log.i(TAG, "called onStop");
+		super.onStop();
+	}
+
+	@Override
+	protected void onStart() {
+		Log.i(TAG, "called onStart");
+		super.onStart();
 	}
 
 	@Override
@@ -253,6 +268,12 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected String doInBackground(byte[]... data) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			// Get path of file directory
 			String filePath = getFilePath();
 
