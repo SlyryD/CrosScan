@@ -11,7 +11,7 @@
         android:gravity="center"
         android:text="@string/title_activity_name_puzzle"
         android:textAppearance="?android:attr/textAppearanceLarge" />
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,10 +19,9 @@
 
         <EditText
             android:id="@+id/crossword_name"
-            android:layout_width="0dp"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ems="10"
             android:inputType="text" >
 
             <requestFocus />
@@ -40,9 +39,10 @@
         android:id="@+id/crossword_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
+        android:layout_marginTop="12dp"
         android:adjustViewBounds="true"
         android:contentDescription="@string/crossword_grid"
         android:src="@drawable/crossword_grid" />
@@ -51,7 +51,6 @@
         android:id="@+id/grid_correct"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:gravity="center"
         android:text="@string/grid_correct"
         android:textAppearance="?android:attr/textAppearanceMedium" />

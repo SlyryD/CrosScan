@@ -15,6 +15,9 @@ import android.util.Log;
  */
 public class Puzzle {
 
+	// Default values
+	public static final int DEFAULT_SIZE = 13;
+	
 	// Puzzle grid
 	private final Cell[][] grid; // Cells in grid
 	private final int height, width; // Grid size

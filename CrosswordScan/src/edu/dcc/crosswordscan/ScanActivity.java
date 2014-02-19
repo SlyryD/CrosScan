@@ -12,7 +12,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -35,6 +37,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -66,6 +69,10 @@ public class ScanActivity extends Activity {
 	private Camera mCamera;
 	// Camera view
 	private ScanView scanView;
+	private FrameLayout preview;
+
+	// Task cancel variable
+	private AsyncTask<?, ?, ?> cancelTask;
 
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
@@ -95,16 +102,15 @@ public class ScanActivity extends Activity {
 		Log.i(TAG, "called onCreate");
 		super.onCreate(savedInstanceState);
 
-		// Create an instance of Camera
-		mCamera = getCameraInstance();
-
-		// Create our Preview view and set it as the content of our activity.
-		scanView = new ScanView(this, mCamera);
-
 		// Set content view
 		setContentView(R.layout.activity_scan);
 
-		FrameLayout preview = (FrameLayout) findViewById(R.id.preview);
+		preview = (FrameLayout) findViewById(R.id.preview);
+
+		mCamera = getCameraInstance();
+
+		scanView = new ScanView(this, mCamera);
+
 		preview.addView(scanView);
 	}
 
@@ -112,6 +118,7 @@ public class ScanActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		releaseCamera();
+		scanView.releaseCamera();
 	}
 
 	@Override
@@ -119,12 +126,26 @@ public class ScanActivity extends Activity {
 		super.onResume();
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_8, this,
 				mLoaderCallback);
+		if (mCamera == null) {
+			mCamera = getCameraInstance();
+			scanView.initCamera(mCamera);
+		}
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		releaseCamera();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK && cancelTask != null) {
+			cancelTask.cancel(true);
+			return true;
+		}
+
+		return super.onKeyDown(keyCode, event);
 	}
 
 	private void releaseCamera() {
@@ -157,7 +178,6 @@ public class ScanActivity extends Activity {
 	 * 
 	 * @param view
 	 */
-	// TODO: Cancel tasks with back button
 	public void takePhoto(View view) {
 		// Auto focus before photo
 		mCamera.autoFocus(new AutoFocusCallback() {
@@ -170,20 +190,27 @@ public class ScanActivity extends Activity {
 
 					// Save photo
 					SavePhotoTask spTask = new SavePhotoTask();
+					cancelTask = spTask;
 					spTask.execute(data);
 					String result = null;
 					try {
 						result = spTask.get();
+					} catch (CancellationException e) {
+						Log.e(TAG, "Take photo cancelled");
+						return;
 					} catch (InterruptedException e) {
 						Log.e(TAG, "Take photo interrupted");
 						return;
 					} catch (ExecutionException e) {
 						Log.e(TAG, "Take photo execution failed");
 						return;
+					} finally {
+						cancelTask = null;
 					}
 
 					// Process photo
 					ProcessTask pTask = new ProcessTask();
+					cancelTask = pTask;
 					pTask.execute(result);
 					try {
 						String grid = pTask.get();
@@ -192,12 +219,17 @@ public class ScanActivity extends Activity {
 						intent.putExtra(GRID, grid);
 						intent.putExtra(PHOTO, result);
 						startActivity(intent);
+					} catch (CancellationException e) {
+						Log.e(TAG, "Process image cancelled");
+						return;
 					} catch (InterruptedException e) {
 						Log.e(TAG, "Process image interrupted");
 						return;
 					} catch (ExecutionException e) {
 						Log.e(TAG, "Process image execution failed");
 						return;
+					} finally {
+						cancelTask = null;
 					}
 				}
 			};
@@ -317,7 +349,8 @@ public class ScanActivity extends Activity {
 		@Override
 		protected String doInBackground(String... filePaths) {
 			// Use OpenCV to recognize and construct grid
-			String result = recognizeGrid(filePaths[0]);
+			String result = // recognizeGrid(filePaths[0]);
+			generateRandomGrid();
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -326,10 +359,21 @@ public class ScanActivity extends Activity {
 
 			// TODO: Use OCR to recognize clues
 
-			// TODO: Add image URL to string representation
-
 			// Return string representation of puzzle
 			return result;
+		}
+
+		private String generateRandomGrid() {
+			Random r = new Random(13254);
+			StringBuilder sb = new StringBuilder();
+			sb.append("13|13|");
+			for (int i = 0; i < 13; i++) {
+				for (int j = 0; j < 13; j++) {
+					sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
+					sb.append("0|");
+				}
+			}
+			return sb.toString();
 		}
 
 		private class Line {

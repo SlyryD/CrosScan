@@ -37,12 +37,23 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 	public ScanView(Context context, AttributeSet attr) {
 		super(context, attr);
 	}
+	
+	public void releaseCamera() {
+		mCamera = null;
+	}
+	
+	public void initCamera(Camera camera) {
+		mCamera = camera;
+	}
 
 	@SuppressLint("NewApi")
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
+		if (mCamera == null) {
+			return;
+		}
+		
 		// Set parameters
-		// get Camera parameters
 		Camera.Parameters params = mCamera.getParameters();
 
 		// set the focus mode
@@ -95,6 +106,10 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 
 		if (mHolder.getSurface() == null) {
 			// preview surface does not exist
+			return;
+		}
+		
+		if (mCamera == null) {
 			return;
 		}
 

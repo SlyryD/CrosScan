@@ -113,10 +113,11 @@ public class CrosswordGridView extends View {
 		this.puzzle = puzzle;
 
 		if (this.puzzle != null && !mReadOnly) {
-			// select first cell by default
-			mSelectedCell = puzzle.getFirstWhiteCell();
-			onCellSelected(mSelectedCell);
-
+			if (!mReadOnly) {
+				// select first cell by default
+				mSelectedCell = puzzle.getFirstWhiteCell();
+				onCellSelected(mSelectedCell);
+			}
 			this.puzzle.addOnChangeListener(new OnChangeListener() {
 				@Override
 				public void onChange() {
@@ -278,18 +279,18 @@ public class CrosswordGridView extends View {
 									: mBackgroundColorEntry);
 				}
 			}
-		}
 
-		// draw vertical lines
-		for (int col = 0; col <= puzzle.getWidth(); col++) {
-			float x = (col * mCellWidth) + getPaddingLeft();
-			canvas.drawLine(x, getPaddingTop(), x, height, mLinePaint);
-		}
+			// draw vertical lines
+			for (int col = 0; col <= puzzle.getWidth(); col++) {
+				float x = (col * mCellWidth) + getPaddingLeft();
+				canvas.drawLine(x, getPaddingTop(), x, height, mLinePaint);
+			}
 
-		// draw horizontal lines
-		for (int row = 0; row <= puzzle.getHeight(); row++) {
-			float y = (row * mCellWidth) + getPaddingTop();
-			canvas.drawLine(getPaddingLeft(), y, width, y, mLinePaint);
+			// draw horizontal lines
+			for (int row = 0; row <= puzzle.getHeight(); row++) {
+				float y = (row * mCellWidth) + getPaddingTop();
+				canvas.drawLine(getPaddingLeft(), y, width, y, mLinePaint);
+			}
 		}
 	}
 
@@ -333,8 +334,13 @@ public class CrosswordGridView extends View {
 			height = heightSize;
 		}
 
-		mCellWidth = (width - getPaddingLeft() - getPaddingRight())
-				/ ((float) puzzle.getWidth());
+		if (puzzle == null) {
+			mCellWidth = (width - getPaddingLeft() - getPaddingRight())
+					/ ((float) Puzzle.DEFAULT_SIZE);
+		} else {
+			mCellWidth = (width - getPaddingLeft() - getPaddingRight())
+					/ ((float) puzzle.getWidth());
+		}
 
 		setMeasuredDimension(width, height);
 

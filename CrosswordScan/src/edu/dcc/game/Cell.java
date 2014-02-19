@@ -13,7 +13,7 @@ import android.util.Log;
  */
 public class Cell {
 	// Information about grid and cell's position
-	private Puzzle puzzle; // Final: grid
+	private Puzzle puzzle; // Final: puzzle
 	private final Object mGridLock = new Object();
 	private int mRow = -1; // Final: Row column
 	private int mColumn = -1; // Final: Cell column
@@ -22,7 +22,7 @@ public class Cell {
 
 	// Information about cell
 	private int mClueNum = -1; // Final: number in cell
-	private final boolean mWhite; // Final: color of cell
+	private boolean mWhite; // Color of cell
 	private char mValue;
 
 	/**
@@ -149,6 +149,11 @@ public class Cell {
 	 */
 	public boolean isWhite() {
 		return mWhite;
+	}
+	
+	public void toggleColor() {
+		mWhite = !mWhite;
+		onChange();
 	}
 
 	/**
