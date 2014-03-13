@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<declare-styleable name="CrosswordGridView">
+		<attr name="lineColor" format="color"/>
+		<attr name="sectorLineColor" format="color"/>
+		<attr name="textColor" format="color"/>
+		<attr name="textColorReadOnly" format="color"/>
+		<attr name="textColorNote" format="color"/>
+		<attr name="backgroundColor" format="color"/>
+		<attr name="backgroundColorSecondary" format="color"/>
+		<attr name="backgroundColorBlackCell" format="color"/>
+		<attr name="backgroundColorSelected" format="color"/>
+		<attr name="backgroundColorEntry" format="color"/>
+	</declare-styleable>
+</resources>
