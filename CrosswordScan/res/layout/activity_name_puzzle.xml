@@ -4,14 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/puzzle_scanned"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/title_activity_name_puzzle"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,7 +27,7 @@
             android:text="@string/enter" />
     </LinearLayout>
 
-    <edu.dcc.crosswordscan.CrosswordGridView
+    <edu.dcc.crosscan.CrosswordGridView
         android:id="@+id/crossword_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,6 +45,14 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/grid_correct"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/toggle"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </LinearLayout>

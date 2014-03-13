@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -305,7 +305,7 @@ public class ScanActivity extends Activity {
 			File mediaStorageDir = new File(
 					Environment
 							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-					"edu.dcc.crosswordscan");
+					"edu.dcc.crosscan");
 
 			// Check if cancelled
 			if (isCancelled()) {

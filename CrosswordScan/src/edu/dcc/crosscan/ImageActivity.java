@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import android.app.Activity;
 import android.content.Intent;

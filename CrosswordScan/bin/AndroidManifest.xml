@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.dcc.crosswordscan"
+    package="edu.dcc.crosscan"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -18,11 +18,11 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/crosswordscan_icon"
+        android:icon="@drawable/crosscan_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="edu.dcc.crosswordscan.MainActivity"
+            android:name="edu.dcc.crosscan.MainActivity"
             android:configChanges="orientation"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
@@ -33,38 +33,37 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.ScanActivity"
+            android:name="edu.dcc.crosscan.ScanActivity"
             android:configChanges="orientation"
             android:label="@string/title_activity_scan"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Black.NoTitleBar" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.NamePuzzleActivity"
+            android:name="edu.dcc.crosscan.NamePuzzleActivity"
             android:configChanges="orientation"
             android:label="@string/title_activity_name_puzzle"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan" >
+            android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.PuzzleListActivity"
+            android:name="edu.dcc.crosscan.PuzzleListActivity"
             android:configChanges="orientation"
             android:label="@string/title_activity_puzzle_list"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.SolvePuzzleActivity"
+            android:name="edu.dcc.crosscan.SolvePuzzleActivity"
             android:configChanges="orientation"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.PuzzleInfoActivity"
+            android:name="edu.dcc.crosscan.PuzzleInfoActivity"
             android:configChanges="orientation"
             android:label="@string/puzzle_info"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="edu.dcc.crosswordscan.ImageActivity"
+            android:name="edu.dcc.crosscan.ImageActivity"
             android:label="@string/title_activity_image" >
         </activity>
     </application>

@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
-	
+
 	private int degrees = 90;
 
 	@SuppressWarnings("deprecation")
@@ -37,11 +37,11 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 	public ScanView(Context context, AttributeSet attr) {
 		super(context, attr);
 	}
-	
+
 	public void releaseCamera() {
 		mCamera = null;
 	}
-	
+
 	public void initCamera(Camera camera) {
 		mCamera = camera;
 	}
@@ -52,7 +52,7 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 		if (mCamera == null) {
 			return;
 		}
-		
+
 		// Set parameters
 		Camera.Parameters params = mCamera.getParameters();
 
@@ -88,7 +88,7 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 			Log.d(TAG, "Error setting camera preview: " + e.getMessage());
 		}
 	}
-	
+
 	public int getDegrees() {
 		return degrees;
 	}
@@ -108,7 +108,7 @@ public class ScanView extends SurfaceView implements SurfaceHolder.Callback {
 			// preview surface does not exist
 			return;
 		}
-		
+
 		if (mCamera == null) {
 			return;
 		}

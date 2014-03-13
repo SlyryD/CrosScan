@@ -1,4 +1,7 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,24 +9,30 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
+import edu.dcc.crosscan.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.game.Cell;
 import edu.dcc.game.Puzzle;
 
 public class NamePuzzleActivity extends Activity {
 
-	public final static String TITLE = "title";
+	public static final String TITLE = "title";
+
+	public static final SimpleDateFormat sdf = new SimpleDateFormat(
+			"yyyyMMdd_HHmmss", Locale.US);
 
 	private String puzzleStr, photo;
 	private Puzzle puzzle;
 
 	private CrosswordGridView gridView;
+	private EditText editText;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_name_puzzle);
 		getDataFromScan();
+		editText = (EditText) findViewById(R.id.crossword_name);
+		editText.setText("Crossword_" + sdf.format(System.currentTimeMillis()));
 		gridView = (CrosswordGridView) findViewById(R.id.crossword_grid);
 		gridView.setPuzzle(puzzle);
 		gridView.setOnCellSelectedListener(new BasicOnCellSelectedListener());

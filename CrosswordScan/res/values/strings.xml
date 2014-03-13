@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Main Activity -->
-    <string name="app_name">CrosswordScan</string>
+    <string name="app_name">CrosScan</string>
     <string name="menu_settings">Settings</string>
     <string name="scan_puzzle">Scan Puzzles</string>
     <string name="solve_puzzle">Solve Puzzles</string>
@@ -22,7 +22,8 @@
     <string name="enter">Enter</string>
     <string name="puzzle_scanned">Puzzle Scanned!</string>
     <string name="crossword_grid">Crossword Grid</string>
-    <string name="grid_correct">Press back if this grid is incorrect</string>
+    <string name="grid_correct">Press back grid size is incorrect</string>
+    <string name="toggle">Tap cell of crossword grid to toggle color</string>
 
     <!-- Scanned Puzzles Activity -->
     <string name="title_activity_puzzle_list">Puzzle List</string>

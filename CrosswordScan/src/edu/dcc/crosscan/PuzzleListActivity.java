@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import java.util.ArrayList;
 

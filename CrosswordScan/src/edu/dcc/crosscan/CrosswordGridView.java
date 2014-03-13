@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import android.content.Context;
 import android.content.res.TypedArray;

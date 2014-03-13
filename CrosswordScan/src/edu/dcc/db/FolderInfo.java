@@ -1,7 +1,7 @@
 package edu.dcc.db;
 
 import android.content.Context;
-import edu.dcc.crosswordscan.R;
+import edu.dcc.crosscan.R;
 
 /**
  * Some information about folder, used in FolderListActivity.

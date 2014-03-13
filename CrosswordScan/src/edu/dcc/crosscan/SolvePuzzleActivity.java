@@ -1,4 +1,4 @@
-package edu.dcc.crosswordscan;
+package edu.dcc.crosscan;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,7 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import edu.dcc.crosswordscan.CrosswordGridView.OnCellSelectedListener;
+import edu.dcc.crosscan.CrosswordGridView.OnCellSelectedListener;
 import edu.dcc.db.CrosswordDatabase;
 import edu.dcc.game.Cell;
 import edu.dcc.game.CrosswordGame;
@@ -328,7 +328,7 @@ public class SolvePuzzleActivity extends Activity {
 			if (!cell.isWhite()) {
 				return;
 			}
-			
+
 			Entry acrossEntry = cell.getEntry(true);
 			Entry downEntry = cell.getEntry(false);
 			Puzzle puzzle = mCrosswordGame.getPuzzle();
