@@ -188,6 +188,58 @@ public class ScanActivity extends Activity {
 		mCamera.autoFocus(null);
 	}
 
+	private class SaveAndProcessCallback implements PictureCallback {
+		@Override
+		public void onPictureTaken(byte[] data, Camera camera) {
+			// Release camera
+			releaseCamera();
+
+			// Save photo
+			SavePhotoTask spTask = new SavePhotoTask();
+			cancelTask = spTask;
+			spTask.execute(data);
+			String result = null;
+			try {
+				result = spTask.get();
+			} catch (CancellationException e) {
+				Log.e(TAG, "Take photo cancelled");
+				return;
+			} catch (InterruptedException e) {
+				Log.e(TAG, "Take photo interrupted");
+				return;
+			} catch (ExecutionException e) {
+				Log.e(TAG, "Take photo execution failed");
+				return;
+			} finally {
+				cancelTask = null;
+			}
+
+			// Process photo
+			ProcessTask pTask = new ProcessTask();
+			cancelTask = pTask;
+			pTask.execute(result);
+			try {
+				String grid = pTask.get();
+				Intent intent = new Intent(ScanActivity.this,
+						NamePuzzleActivity.class);
+				intent.putExtra(GRID, grid);
+				intent.putExtra(PHOTO, result);
+				startActivity(intent);
+			} catch (CancellationException e) {
+				Log.e(TAG, "Process image cancelled");
+				return;
+			} catch (InterruptedException e) {
+				Log.e(TAG, "Process image interrupted");
+				return;
+			} catch (ExecutionException e) {
+				Log.e(TAG, "Process image execution failed");
+				return;
+			} finally {
+				cancelTask = null;
+			}
+		}
+	}
+
 	/**
 	 * Respond to button press by taking photo
 	 * 
@@ -196,62 +248,9 @@ public class ScanActivity extends Activity {
 	public void takePhoto(View view) {
 		// Auto focus before photo
 		mCamera.autoFocus(new AutoFocusCallback() {
-
-			PictureCallback mPicture = new PictureCallback() {
-				@Override
-				public void onPictureTaken(byte[] data, Camera camera) {
-					// Release camera
-					releaseCamera();
-
-					// Save photo
-					SavePhotoTask spTask = new SavePhotoTask();
-					cancelTask = spTask;
-					spTask.execute(data);
-					String result = null;
-					try {
-						result = spTask.get();
-					} catch (CancellationException e) {
-						Log.e(TAG, "Take photo cancelled");
-						return;
-					} catch (InterruptedException e) {
-						Log.e(TAG, "Take photo interrupted");
-						return;
-					} catch (ExecutionException e) {
-						Log.e(TAG, "Take photo execution failed");
-						return;
-					} finally {
-						cancelTask = null;
-					}
-
-					// Process photo
-					ProcessTask pTask = new ProcessTask();
-					cancelTask = pTask;
-					pTask.execute(result);
-					try {
-						String grid = pTask.get();
-						Intent intent = new Intent(ScanActivity.this,
-								NamePuzzleActivity.class);
-						intent.putExtra(GRID, grid);
-						intent.putExtra(PHOTO, result);
-						startActivity(intent);
-					} catch (CancellationException e) {
-						Log.e(TAG, "Process image cancelled");
-						return;
-					} catch (InterruptedException e) {
-						Log.e(TAG, "Process image interrupted");
-						return;
-					} catch (ExecutionException e) {
-						Log.e(TAG, "Process image execution failed");
-						return;
-					} finally {
-						cancelTask = null;
-					}
-				}
-			};
-
 			@Override
 			public void onAutoFocus(boolean success, Camera camera) {
-				mCamera.takePicture(null, null, mPicture);
+				mCamera.takePicture(null, null, new SaveAndProcessCallback());
 			}
 		});
 	}
@@ -329,7 +328,7 @@ public class ScanActivity extends Activity {
 			String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
 					.format(new Date());
 			return mediaStorageDir.getPath() + File.separator
-					+ "IMG_CrosswordScan_" + timeStamp + ".jpg";
+					+ "IMG_CrosScan_" + timeStamp + ".jpg";
 		}
 
 		private void writeFile(String filePath, byte[] data) {
@@ -370,8 +369,8 @@ public class ScanActivity extends Activity {
 		@Override
 		protected String doInBackground(String... filePaths) {
 			// Use OpenCV to recognize and construct grid
-			String result = // recognizeGrid(filePaths[0]);
-			generateRandomGrid();
+			String result = recognizeGrid(filePaths[0]);
+			// generateRandomGrid();
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -501,10 +500,10 @@ public class ScanActivity extends Activity {
 		private double getPosition(Line line, boolean horizontal) {
 			if (horizontal) {
 				// Return vertical position
-				return (line.y1 + line.y2) / 2; // Midpoint
+				return Math.round((line.y1 + line.y2) / 2); // Midpoint
 			} else {
 				// Return horizontal position
-				return (line.x1 + line.x2) / 2; // Midpoint
+				return Math.round((line.x1 + line.x2) / 2); // Midpoint
 			}
 		}
 
@@ -512,18 +511,18 @@ public class ScanActivity extends Activity {
 		 * Finds largest list of consecutive equally spaced lines
 		 * 
 		 * @param lines
-		 * @param horizontal
+		 * @param hor
 		 * @return result list
 		 */
 		// TODO: Find workaround for suppression
 		@SuppressLint("NewApi")
 		private ArrayList<Line> findEquallySpacedLines(ArrayList<Line> lines,
-				boolean horizontal) {
+				boolean hor) {
 			// Create map of positions of each line
 			TreeMap<Double, Line> positions = new TreeMap<Double, Line>();
-			double target = horizontal ? ScanActivity.horizontal : vertical;
+			double target = hor ? horizontal : vertical;
 			for (Line line : lines) {
-				double position = getPosition(line, horizontal);
+				double position = getPosition(line, hor);
 				if (!positions.containsKey(position)
 						|| Math.abs(findAngle(line) - target) < Math
 								.abs(findAngle(positions.get(position))
@@ -538,7 +537,7 @@ public class ScanActivity extends Activity {
 			// List of equally spaced lines
 			ArrayList<Line> resultList = new ArrayList<Line>();
 			for (double i : positions.keySet()) {
-				for (double j : positions.tailMap(i, false).keySet()) {
+				for (double j : positions.tailMap(i + 1).keySet()) {
 					// Construct temporary list of equally spaced lines
 					ArrayList<Line> tempList = new ArrayList<Line>();
 					double distance = j - i;
@@ -649,6 +648,37 @@ public class ScanActivity extends Activity {
 			}
 			return (min + max) / 2;
 		}
+		
+		private boolean isAllOneColor(double[] cells, double cutoff) {
+			boolean white = false, black = false;
+			for (double d : cells) {
+				if (white && black) {
+					return false;
+				}
+				if (d >= cutoff) {
+					white = true;
+				} else {
+					black = true;
+				}
+			}
+			return true;
+		}
+
+		private boolean isAllOneColor(double[][] cells, int col,
+				double cutoff) {
+			boolean white = false, black = false;
+			for (int i = 0; i < cells.length; i++) {
+				if (white && black) {
+					return false;
+				}
+				if (cells[i][col] >= cutoff) {
+					white = true;
+				} else {
+					black = true;
+				}
+			}
+			return true;
+		}
 
 		private String recognizeGrid(String filePath) {
 			// Read image
@@ -670,6 +700,7 @@ public class ScanActivity extends Activity {
 			Core.flip(img.t(), imgT, amount);
 			Imgproc.resize(imgT, img, amount % 2 == 0 ? img.size() : new Size(
 					img.rows(), img.cols()));
+			imgT.release();
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -698,8 +729,9 @@ public class ScanActivity extends Activity {
 
 			// Find lines using Hough transform
 			Mat lines = new Mat();
-			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, 0, MIN_CELL_SIZE);
+			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, MIN_CELL_SIZE, MIN_CELL_SIZE);
 			Log.i(TAG, "Computed lines");
+			edges.release();
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -712,6 +744,7 @@ public class ScanActivity extends Activity {
 				Line line = new Line(lines.get(0, index));
 				lineSet.add(line);
 			}
+			lines.release();
 			Log.i(TAG, "Detected lines");
 
 			// Check if cancelled
@@ -742,7 +775,7 @@ public class ScanActivity extends Activity {
 
 			// Base orientation on most frequent angle
 			horizontal = angle;
-			vertical = normalize(horizontal + DEGREE_90);
+			vertical = normalize(angle + DEGREE_90);
 
 			// Switch horizontal and vertical if necessary
 			if (Math.abs(horizontal - DEGREE_90) < Math.abs(vertical
@@ -772,9 +805,12 @@ public class ScanActivity extends Activity {
 					return null;
 				}
 			}
+			lineSet.clear();
+			Log.i(TAG, "Created lists of horizontal and vertical lines");
 
 			// Sort horizontal lines
 			Collections.sort(hLines, new LineComparator(true));
+			Log.i(TAG, "Sorted horizontal lines");
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -783,6 +819,7 @@ public class ScanActivity extends Activity {
 
 			// Sort vertical lines
 			Collections.sort(vLines, new LineComparator(false));
+			Log.i(TAG, "Sorted vertical lines");
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -791,6 +828,7 @@ public class ScanActivity extends Activity {
 
 			// Compute largest set of equally spaced horizontal lines
 			ArrayList<Line> hList = findEquallySpacedLines(hLines, true);
+			Log.i(TAG, "Found equally spaced horizontal lines");
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -799,6 +837,7 @@ public class ScanActivity extends Activity {
 
 			// Compute largest set of equally spaced vertical lines
 			ArrayList<Line> vList = findEquallySpacedLines(vLines, false);
+			Log.i(TAG, "Found equally spaced vertical lines");
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -832,9 +871,6 @@ public class ScanActivity extends Activity {
 			Log.i(TAG, "Avg hDistance: " + (diff / vList.size()));
 
 			// Construct grid representation
-			StringBuilder data = new StringBuilder();
-			data.append("version: 1\n");
-			data.append(height + "|").append(width + "|");
 			double[][] cells = new double[height][width];
 			for (int row = 0; row < height; row++) {
 				for (int col = 0; col < width; col++) {
@@ -870,9 +906,71 @@ public class ScanActivity extends Activity {
 					}
 				}
 			}
+			img.release();
+			gray.release();
 
 			// Decide whether cells are black or white
 			double cutoff = findCutoff(cells);
+			// Rows and columns to remove
+			int firstRows = 0, firstCols = 0, lastRows = 0, lastCols = 0;
+			// Count first rows
+			for (int i = 0; i < cells.length && isAllOneColor(cells[i], cutoff); i++) {
+				firstRows++;
+			}
+			// Count last rows
+			for (int i = cells.length - 1; i >= firstRows
+					&& isAllOneColor(cells[i], cutoff); i--) {
+				lastRows++;
+			}
+			// Count first cols
+			for (int j = 0; j < cells[0].length && isAllOneColor(cells, j, cutoff); j++) {
+				firstCols++;
+			}
+			// Count first cols
+			for (int j = cells[0].length - 1; j >= firstCols
+					&& isAllOneColor(cells, j, cutoff); j--) {
+				lastCols++;
+			}
+
+			// Construct new cells
+			height = cells.length - firstRows - lastRows;
+			width = cells[0].length - firstCols - lastCols;
+			double[][] newCells = new double[height][width];
+			// Remove rows
+			if (firstRows > 0 || lastRows > 0) {
+				int index = 0;
+				for (int i = Math.max(firstRows, 0); i < height + firstRows; i++) {
+					newCells[index++] = cells[i];
+				}
+			}
+			// Remove cols
+			if (firstCols > 0 || lastCols > 0) {
+				for (int i = 0; i < newCells.length; i++) {
+					int index = 0;
+					for (int j = Math.max(firstCols, 0); j < height + firstCols; j++) {
+						newCells[i][index++] = cells[i + firstRows][j];
+					}
+				}
+			}
+			System.out.println(height + "x" + width);
+
+			// Construct data
+			StringBuilder data = new StringBuilder();
+			data.append("version: 1\n");
+			data.append(height + "|").append(width + "|");
+			for (int i = 0; i < newCells.length; i++) {
+				for (int j = 0; j < newCells[i].length; j++) {
+					if (newCells[i][j] >= cutoff) {
+						data.append("1");
+						System.out.print("O ");
+					} else {
+						data.append("0");
+						System.out.print("X ");
+					}
+					data.append("0").append("|");
+				}
+				System.out.println();
+			}
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
 					if (cells[i][j] >= cutoff) {
