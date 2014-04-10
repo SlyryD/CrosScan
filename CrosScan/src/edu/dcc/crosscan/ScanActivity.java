@@ -327,8 +327,8 @@ public class ScanActivity extends Activity {
 			// Create a media file name
 			String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
 					.format(new Date());
-			return mediaStorageDir.getPath() + File.separator
-					+ "IMG_CrosScan_" + timeStamp + ".jpg";
+			return mediaStorageDir.getPath() + File.separator + "IMG_CrosScan_"
+					+ timeStamp + ".jpg";
 		}
 
 		private void writeFile(String filePath, byte[] data) {
@@ -648,7 +648,7 @@ public class ScanActivity extends Activity {
 			}
 			return (min + max) / 2;
 		}
-		
+
 		private boolean isAllOneColor(double[] cells, double cutoff) {
 			boolean white = false, black = false;
 			for (double d : cells) {
@@ -664,8 +664,7 @@ public class ScanActivity extends Activity {
 			return true;
 		}
 
-		private boolean isAllOneColor(double[][] cells, int col,
-				double cutoff) {
+		private boolean isAllOneColor(double[][] cells, int col, double cutoff) {
 			boolean white = false, black = false;
 			for (int i = 0; i < cells.length; i++) {
 				if (white && black) {
@@ -729,7 +728,8 @@ public class ScanActivity extends Activity {
 
 			// Find lines using Hough transform
 			Mat lines = new Mat();
-			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, MIN_CELL_SIZE, MIN_CELL_SIZE);
+			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, MIN_CELL_SIZE,
+					MIN_CELL_SIZE);
 			Log.i(TAG, "Computed lines");
 			edges.release();
 
@@ -923,7 +923,8 @@ public class ScanActivity extends Activity {
 				lastRows++;
 			}
 			// Count first cols
-			for (int j = 0; j < cells[0].length && isAllOneColor(cells, j, cutoff); j++) {
+			for (int j = 0; j < cells[0].length
+					&& isAllOneColor(cells, j, cutoff); j++) {
 				firstCols++;
 			}
 			// Count first cols
@@ -960,19 +961,6 @@ public class ScanActivity extends Activity {
 			data.append(height + "|").append(width + "|");
 			for (int i = 0; i < newCells.length; i++) {
 				for (int j = 0; j < newCells[i].length; j++) {
-					if (newCells[i][j] >= cutoff) {
-						data.append("1");
-						System.out.print("O ");
-					} else {
-						data.append("0");
-						System.out.print("X ");
-					}
-					data.append("0").append("|");
-				}
-				System.out.println();
-			}
-			for (int i = 0; i < cells.length; i++) {
-				for (int j = 0; j < cells[i].length; j++) {
 					if (cells[i][j] >= cutoff) {
 						data.append("1").append("|");
 						System.out.print("O ");
@@ -981,10 +969,6 @@ public class ScanActivity extends Activity {
 						System.out.print("X ");
 					}
 					data.append((char) 0).append("|");
-					// Check if cancelled
-					if (isCancelled()) {
-						return null;
-					}
 				}
 				System.out.println();
 			}
