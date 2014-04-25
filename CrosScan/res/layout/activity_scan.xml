@@ -6,8 +6,7 @@
     <FrameLayout
         android:id="@+id/preview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:onClick="focus" >
+        android:layout_height="match_parent" >
     </FrameLayout>
 
     <ImageButton

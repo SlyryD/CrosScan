@@ -59,10 +59,11 @@ public class NamePuzzleActivity extends Activity {
 	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
 
 		@Override
-		public void onCellSelected(Cell cell) {
+		public boolean onCellSelected(Cell cell) {
 			Log.i(TITLE, "Reached on cell selected");
 			cell.toggleColor();
 			puzzleStr = puzzle.serialize();
+			return true;
 		}
 	}
 

@@ -11,6 +11,7 @@ import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,7 +39,7 @@ public class SolvePuzzleActivity extends Activity {
 	private static final int KEYCODE_PHOTO = 273;
 
 	private long mCrosswordGameID;
-	private CrosswordGame mCrosswordGame;
+	private CrosswordGame mGame;
 
 	private CrosswordDatabase mDatabase;
 
@@ -81,23 +82,23 @@ public class SolvePuzzleActivity extends Activity {
 			// activity runs for the first time, read game from database
 			mCrosswordGameID = getIntent().getLongExtra(EXTRA_CROSSWORD_ID, 0);
 			System.out.println("GAME_ID: " + mCrosswordGameID + "!!!!");
-			mCrosswordGame = mDatabase.getCrossword(mCrosswordGameID);
+			mGame = mDatabase.getCrossword(mCrosswordGameID);
 		} else {
 			// activity has been running before, restore its state
-			mCrosswordGame = new CrosswordGame();
-			mCrosswordGame.restoreState(savedInstanceState);
+			mGame = new CrosswordGame();
+			mGame.restoreState(savedInstanceState);
 			mGameTimer.restoreState(savedInstanceState);
 		}
 
-		if (mCrosswordGame.getState() == CrosswordGame.GAME_STATE_NOT_STARTED) {
-			mCrosswordGame.start();
-		} else if (mCrosswordGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
-			mCrosswordGame.resume();
+		if (mGame.getState() == CrosswordGame.GAME_STATE_NOT_STARTED) {
+			mGame.start();
+		} else if (mGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
+			mGame.resume();
 		}
 
 		mCrosswordGrid
 				.setOnCellSelectedListener(new BasicOnCellSelectedListener());
-		mCrosswordGrid.setGame(mCrosswordGame);
+		mCrosswordGrid.setGame(mGame);
 	}
 
 	public void switchAcrossMode(View view) {
@@ -116,8 +117,8 @@ public class SolvePuzzleActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 
-		if (mCrosswordGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
-			mCrosswordGame.resume();
+		if (mGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
+			mGame.resume();
 
 			if (mShowTime) {
 				mGameTimer.start();
@@ -132,7 +133,7 @@ public class SolvePuzzleActivity extends Activity {
 		super.onPause();
 
 		// we will save game to the database as we might not be able to get back
-		mDatabase.updateCrossword(mCrosswordGame);
+		mDatabase.updateCrossword(mGame);
 
 		mGameTimer.stop();
 	}
@@ -150,11 +151,11 @@ public class SolvePuzzleActivity extends Activity {
 
 		mGameTimer.stop();
 
-		if (mCrosswordGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
-			mCrosswordGame.pause();
+		if (mGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
+			mGame.pause();
 		}
 
-		mCrosswordGame.saveState(outState);
+		mGame.saveState(outState);
 		mGameTimer.saveState(outState);
 	}
 
@@ -206,9 +207,9 @@ public class SolvePuzzleActivity extends Activity {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
 									// Restart game
-									mCrosswordGame.reset();
+									mGame.reset();
 									mCrosswordGrid.resetView();
-									mCrosswordGame.start();
+									mGame.start();
 									if (mShowTime) {
 										mGameTimer.start();
 									}
@@ -224,7 +225,7 @@ public class SolvePuzzleActivity extends Activity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-									mDatabase.deleteCrossword(mCrosswordGame
+									mDatabase.deleteCrossword(mGame
 											.getId());
 									SolvePuzzleActivity.this.finish();
 								}
@@ -238,7 +239,7 @@ public class SolvePuzzleActivity extends Activity {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KEYCODE_PHOTO) {
 			Intent intent = new Intent(this, ImageActivity.class);
-			intent.putExtra(ScanActivity.PHOTO, mCrosswordGame.getPhoto());
+			intent.putExtra(ScanActivity.PHOTO, mGame.getPhoto());
 			startActivity(intent);
 		}
 		return super.onKeyDown(keyCode, event);
@@ -249,10 +250,10 @@ public class SolvePuzzleActivity extends Activity {
 	 */
 	private void updateTime() {
 		if (mShowTime) {
-			setTitle(mGameTimeFormatter.format(mCrosswordGame.getTime()) + "\t"
-					+ mCrosswordGame.getTitle());
+			setTitle(mGameTimeFormatter.format(mGame.getTime()) + "\t"
+					+ mGame.getTitle());
 		} else {
-			setTitle(mCrosswordGame.getTitle());
+			setTitle(mGame.getTitle());
 		}
 
 	}
@@ -324,15 +325,16 @@ public class SolvePuzzleActivity extends Activity {
 	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
 
 		@Override
-		public void onCellSelected(Cell cell) {
+		public boolean onCellSelected(Cell cell) {
 			if (!cell.isWhite()) {
-				return;
+				Log.e("SolvePuzzleActivity", "Attempted to select black cell");
+				return false;
 			}
 
 			Entry acrossEntry = cell.getEntry(true);
 			Entry downEntry = cell.getEntry(false);
-			Puzzle puzzle = mCrosswordGame.getPuzzle();
-			boolean acrossMode = mCrosswordGame.isAcrossMode();
+			Puzzle puzzle = mGame.getPuzzle();
+			boolean acrossMode = mGame.isAcrossMode();
 
 			mAcrossClue.setText(acrossEntry == null ? "" : acrossEntry
 					.getClueNum()
@@ -354,6 +356,7 @@ public class SolvePuzzleActivity extends Activity {
 				mDownClue.setTextColor(Color.rgb(50, 50, 255));
 				mAcrossClue.setTextColor(Color.BLACK);
 			}
+			return true;
 		}
 	}
 

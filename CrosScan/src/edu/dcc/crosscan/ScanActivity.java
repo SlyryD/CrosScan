@@ -39,6 +39,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 
 /**
@@ -151,6 +152,7 @@ public class ScanActivity extends Activity {
 	protected void onStart() {
 		Log.i(TAG, "called onStart");
 		super.onStart();
+		preview.setOnClickListener(new FocusListener());
 	}
 
 	@Override
@@ -183,9 +185,28 @@ public class ScanActivity extends Activity {
 		return c; // returns null if camera is unavailable
 	}
 
-	public void focus(View view) {
-		Log.i(TAG, "onTouch logged");
-		mCamera.autoFocus(null);
+	/**
+	 * Respond to button press by taking photo
+	 * 
+	 * @param view
+	 */
+	public void takePhoto(View view) {
+		preview.setOnClickListener(null);
+		// Auto focus before photo
+		mCamera.autoFocus(new AutoFocusCallback() {
+			@Override
+			public void onAutoFocus(boolean success, Camera camera) {
+				mCamera.takePicture(null, null, new SaveAndProcessCallback());
+			}
+		});
+	}
+
+	private class FocusListener implements OnClickListener {
+		@Override
+		public void onClick(View v) {
+			Log.i(TAG, "onTouch logged");
+			mCamera.autoFocus(null);
+		}
 	}
 
 	private class SaveAndProcessCallback implements PictureCallback {
@@ -240,39 +261,20 @@ public class ScanActivity extends Activity {
 		}
 	}
 
-	/**
-	 * Respond to button press by taking photo
-	 * 
-	 * @param view
-	 */
-	public void takePhoto(View view) {
-		// Auto focus before photo
-		mCamera.autoFocus(new AutoFocusCallback() {
-			@Override
-			public void onAutoFocus(boolean success, Camera camera) {
-				mCamera.takePicture(null, null, new SaveAndProcessCallback());
-			}
-		});
-	}
-
 	private class SavePhotoTask extends AsyncTask<byte[], Void, String> {
 
-		final private ProgressDialog dialog = new ProgressDialog(
-				ScanActivity.this);
+		ProgressDialog dialog;
 
 		protected void onPreExecute() {
+			dialog = new ProgressDialog(ScanActivity.this);
 			dialog.setMessage("Saving photo");
 			dialog.show();
+			// TODO: Remove debug
+			Log.i(TAG, "Message thread: " + Thread.currentThread());
 		}
 
 		@Override
 		protected String doInBackground(byte[]... data) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			// Get path of file directory
 			String filePath = getFilePath();
 
@@ -288,6 +290,9 @@ public class ScanActivity extends Activity {
 			if (isCancelled()) {
 				return null;
 			}
+
+			// TODO: Remove debug
+			Log.i(TAG, "Background thread: " + Thread.currentThread());
 
 			// Take photo and return file path
 			return filePath;
@@ -346,6 +351,7 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
 			dialog.dismiss();
 		}
 
@@ -358,16 +364,21 @@ public class ScanActivity extends Activity {
 
 	private class ProcessTask extends AsyncTask<String, Void, String> {
 
-		final private ProgressDialog dialog = new ProgressDialog(
-				ScanActivity.this);
+		ProgressDialog dialog;
 
 		protected void onPreExecute() {
+			dialog = new ProgressDialog(ScanActivity.this);
 			dialog.setMessage("Processing");
 			dialog.show();
+			// TODO: Remove debug
+			Log.i(TAG, "Message thread: " + Thread.currentThread());
 		}
 
 		@Override
 		protected String doInBackground(String... filePaths) {
+			// TODO: Remove debug
+			Log.i(TAG, "Background thread: " + Thread.currentThread());
+
 			// Use OpenCV to recognize and construct grid
 			String result = recognizeGrid(filePaths[0]);
 			// generateRandomGrid();
@@ -646,7 +657,7 @@ public class ScanActivity extends Activity {
 					}
 				}
 			}
-			return (min + max) / 2;
+			return 0.40 * (min + max);
 		}
 
 		private boolean isAllOneColor(double[] cells, double cutoff) {
@@ -980,6 +991,7 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
 			dialog.dismiss();
 		}
 

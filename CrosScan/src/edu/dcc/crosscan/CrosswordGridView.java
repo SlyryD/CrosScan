@@ -27,11 +27,11 @@ public class CrosswordGridView extends View {
 	private float mCellWidth;
 
 	private Cell mSelectedCell;
+	private Cell mDownCell;
 
 	private CrosswordGame mGame;
 	private Puzzle puzzle;
 
-	private OnCellTappedListener mOnCellTappedListener;
 	private OnCellSelectedListener mOnCellSelectedListener;
 
 	private Paint mLinePaint;
@@ -125,15 +125,6 @@ public class CrosswordGridView extends View {
 		}
 
 		postInvalidate();
-	}
-
-	/**
-	 * Registers callback which will be invoked when user taps the cell.
-	 * 
-	 * @param l
-	 */
-	public void setOnCellTappedListener(OnCellTappedListener l) {
-		mOnCellTappedListener = l;
 	}
 
 	public OnCellSelectedListener getOnCellSelectedListener() {
@@ -346,16 +337,11 @@ public class CrosswordGridView extends View {
 		mClueNumTop = mCellWidth / 50.0f;
 	}
 
-	protected void onCellTapped(Cell cell) {
-		if (mOnCellTappedListener != null) {
-			mOnCellTappedListener.onCellTapped(cell);
-		}
-	}
-
-	protected void onCellSelected(Cell cell) {
+	protected boolean onCellSelected(Cell cell) {
 		if (mOnCellSelectedListener != null) {
-			mOnCellSelectedListener.onCellSelected(cell);
+			return mOnCellSelectedListener.onCellSelected(cell);
 		}
+		return false;
 	}
 
 	@Override
@@ -366,6 +352,10 @@ public class CrosswordGridView extends View {
 
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_DOWN:
+			mDownCell = getCellAtPoint(x, y);
+			if (mDownCell == null) {
+				return false;
+			}
 			// downPt.x = event.getX();
 			// downPt.y = event.getY();
 			// startPt = new PointF(getX(), getY());
@@ -380,20 +370,20 @@ public class CrosswordGridView extends View {
 			break;
 		case MotionEvent.ACTION_UP:
 			Cell selected = getCellAtPoint(x, y);
-			if (selected == null) {
+			if (selected == null || selected != mDownCell) {
+				mDownCell = null;
 				return false;
 			}
 
-			if (mGame != null && selected == mSelectedCell) {
-				mGame.setAcrossMode(!mGame.isAcrossMode());
+			if (onCellSelected(selected)) {
+				if (mGame != null && selected == mSelectedCell) {
+					mGame.setAcrossMode(!mGame.isAcrossMode());
+				}
+				mSelectedCell = selected;
+				invalidate(); // Update board when selected cell changes
 			}
-
-			mSelectedCell = selected;
-			invalidate(); // Update board when selected cell changes
-			if (mSelectedCell != null) {
-				onCellTapped(mSelectedCell);
-				onCellSelected(mSelectedCell);
-			}
+			
+			mDownCell = null;
 			break;
 		case MotionEvent.ACTION_CANCEL:
 			// TODO: Do nothing?
@@ -589,20 +579,11 @@ public class CrosswordGridView extends View {
 	}
 
 	/**
-	 * Occurs when user tap the cell.
-	 * 
-	 * @author romario
-	 */
-	public interface OnCellTappedListener {
-		void onCellTapped(Cell cell);
-	}
-
-	/**
 	 * Occurs when user selects the cell.
 	 * 
 	 * @author romario
 	 */
 	public interface OnCellSelectedListener {
-		void onCellSelected(Cell cell);
+		public boolean onCellSelected(Cell cell);
 	}
 }
