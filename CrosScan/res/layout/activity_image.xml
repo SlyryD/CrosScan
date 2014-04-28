@@ -10,7 +10,6 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/image"
-        android:src="@drawable/no_photo" />
+        android:contentDescription="@string/image" />
 
 </LinearLayout>
