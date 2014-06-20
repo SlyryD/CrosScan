@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
@@ -28,7 +27,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -196,6 +195,7 @@ public class ScanActivity extends Activity {
 	}
 
 	private class SaveAndProcessCallback implements PictureCallback {
+		@SuppressLint("NewApi")
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 			// Release camera
@@ -210,6 +210,7 @@ public class ScanActivity extends Activity {
 				result = spTask.get();
 			} catch (CancellationException e) {
 				Log.e(TAG, "Take photo cancelled");
+				ScanActivity.this.recreate();
 				return;
 			} catch (InterruptedException e) {
 				Log.e(TAG, "Take photo interrupted");
@@ -234,6 +235,7 @@ public class ScanActivity extends Activity {
 				startActivity(intent);
 			} catch (CancellationException e) {
 				Log.e(TAG, "Process image cancelled");
+				ScanActivity.this.recreate();
 				return;
 			} catch (InterruptedException e) {
 				Log.e(TAG, "Process image interrupted");
