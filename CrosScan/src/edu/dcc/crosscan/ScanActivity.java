@@ -11,9 +11,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -22,16 +22,17 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,22 +55,12 @@ public class ScanActivity extends Activity {
 			REJECT_GRID = 33;
 	public static final String GRID = "grid";
 	public static final String PHOTO = "photo";
-
-	// OpenCV fields
 	private static final String TAG = "CrosswordScan/ScanActivity";
-	public static double horizontal = 0, vertical = Math.PI / 2;
-	public static final double DEGREE = Math.PI / 180;
-	public static final double DEGREE_90 = Math.PI / 2;
-	public static final double DEGREE_180 = Math.PI;
-	public static final double DEGREE_360 = 2 * Math.PI;
-	public static final double THRESHOLD = 4 * DEGREE;
-	public static final double MIN_CELL_SIZE = 50;
-	public static final double LINE_ERROR = 5;
 
 	// Camera
 	private Camera mCamera;
 	// Camera view
-	private ScanView scanView;
+	private ScanView mPreview;
 	private FrameLayout preview;
 
 	// Task cancel variable
@@ -102,25 +93,23 @@ public class ScanActivity extends Activity {
 		// Initialize activity layout
 		Log.i(TAG, "called onCreate");
 		super.onCreate(savedInstanceState);
-
-		// Set content view
 		setContentView(R.layout.activity_scan);
 
-		preview = (FrameLayout) findViewById(R.id.preview);
-
+		// Create an instance of Camera
 		mCamera = getCameraInstance();
 
-		scanView = new ScanView(this, mCamera);
-
-		preview.addView(scanView);
+		// Create preview and set as content of activity
+		mPreview = new ScanView(this);
+		mPreview.initCamera(mCamera);
+		preview = (FrameLayout) findViewById(R.id.preview);
+		preview.addView(mPreview);
 	}
 
 	@Override
-	protected void onPause() {
-		Log.i(TAG, "called onPause");
-		super.onPause();
-		releaseCamera();
-		scanView.releaseCamera();
+	protected void onStart() {
+		Log.i(TAG, "called onStart");
+		super.onStart();
+		preview.setOnClickListener(new FocusListener());
 	}
 
 	@Override
@@ -131,14 +120,14 @@ public class ScanActivity extends Activity {
 				mLoaderCallback);
 		if (mCamera == null) {
 			mCamera = getCameraInstance();
-			scanView.initCamera(mCamera);
+			mPreview.initCamera(mCamera);
 		}
 	}
 
 	@Override
-	protected void onDestroy() {
-		Log.i(TAG, "called onDestroy");
-		super.onDestroy();
+	protected void onPause() {
+		Log.i(TAG, "called onPause");
+		super.onPause();
 		releaseCamera();
 	}
 
@@ -149,10 +138,9 @@ public class ScanActivity extends Activity {
 	}
 
 	@Override
-	protected void onStart() {
-		Log.i(TAG, "called onStart");
-		super.onStart();
-		preview.setOnClickListener(new FocusListener());
+	protected void onDestroy() {
+		Log.i(TAG, "called onDestroy");
+		super.onDestroy();
 	}
 
 	@Override
@@ -166,7 +154,9 @@ public class ScanActivity extends Activity {
 	}
 
 	private void releaseCamera() {
+		mPreview.releaseCamera();
 		if (mCamera != null) {
+			mCamera.stopPreview();
 			mCamera.release(); // release the camera for other applications
 			mCamera = null;
 		}
@@ -191,14 +181,10 @@ public class ScanActivity extends Activity {
 	 * @param view
 	 */
 	public void takePhoto(View view) {
+		// Once photo taken, view no longer clickable
 		preview.setOnClickListener(null);
-		// Auto focus before photo
-		mCamera.autoFocus(new AutoFocusCallback() {
-			@Override
-			public void onAutoFocus(boolean success, Camera camera) {
-				mCamera.takePicture(null, null, new SaveAndProcessCallback());
-			}
-		});
+		// Take picture
+		mCamera.takePicture(null, null, new SaveAndProcessCallback());
 	}
 
 	private class FocusListener implements OnClickListener {
@@ -266,9 +252,8 @@ public class ScanActivity extends Activity {
 		ProgressDialog dialog;
 
 		protected void onPreExecute() {
-			dialog = new ProgressDialog(ScanActivity.this);
-			dialog.setMessage("Saving photo");
-			dialog.show();
+			dialog = ProgressDialog.show(ScanActivity.this, "Saving photo...",
+					"Press back button to cancel.", true, true);
 			// TODO: Remove debug
 			Log.i(TAG, "Message thread: " + Thread.currentThread());
 		}
@@ -357,8 +342,8 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected void onCancelled() {
-			dialog.dismiss();
 			super.onCancelled();
+			dialog.dismiss();
 		}
 	}
 
@@ -367,9 +352,8 @@ public class ScanActivity extends Activity {
 		ProgressDialog dialog;
 
 		protected void onPreExecute() {
-			dialog = new ProgressDialog(ScanActivity.this);
-			dialog.setMessage("Processing");
-			dialog.show();
+			dialog = ProgressDialog.show(ScanActivity.this, "Processing...",
+					"Press back button to cancel.", true, true);
 			// TODO: Remove debug
 			Log.i(TAG, "Message thread: " + Thread.currentThread());
 		}
@@ -394,34 +378,328 @@ public class ScanActivity extends Activity {
 			return result;
 		}
 
-		private String generateRandomGrid() {
-			Random r = new Random(13254);
-			StringBuilder sb = new StringBuilder();
-			sb.append("13|13|");
-			for (int i = 0; i < 13; i++) {
-				for (int j = 0; j < 13; j++) {
-					sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
-					sb.append("0|");
+		private String recognizeGrid(String filePath) {
+			// Read image
+			Mat img = Highgui.imread(filePath);
+			if (img.empty()) {
+				Log.e(TAG, "Cannot open " + filePath);
+				System.exit(1);
+			}
+			Log.i(TAG, "Read " + filePath);
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Rotate image
+			Core.flip(img.t(), img, mPreview.getDegrees() / 90);
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Matrices
+			Mat gray = new Mat();
+			Mat edges = new Mat();
+			Mat lines = new Mat();
+
+			// Convert image to grayscale
+			Imgproc.cvtColor(img, gray, Imgproc.COLOR_RGB2GRAY);
+			Log.i(TAG, "Converted to grayscale");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Find edges using adaptive threshold
+			Imgproc.adaptiveThreshold(gray, edges, 255,
+					Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV,
+					15, 15);
+			Log.i(TAG, "Detected edges");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Crop to grid bounds
+			Rect rect = findGridBounds(edges);
+			edges = new Mat(edges, rect);
+			gray = new Mat(gray, rect);
+			Log.i(TAG, "Found grid bounds");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Find lines using Hough transform
+			int maxGap = Math.min(rect.height, rect.width);
+			Imgproc.HoughLinesP(edges, lines, 1, Math.PI / 180, 200, 0, maxGap);
+			edges.release();
+			Log.i(TAG, "Detected lines");
+
+			// Error handling
+			if (lines.cols() < 4) {
+				Log.e(TAG, "Not enough lines detected.");
+				// TODO: Display "please retake photo"
+				cancelTask.cancel(true);
+			}
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Collect lines
+			HashSet<Line> lineSet = new HashSet<Line>();
+			for (int index = 0; index < lines.cols(); index++) {
+				Line line = new Line(lines.get(0, index));
+				lineSet.add(line);
+			}
+			lines.release();
+			Log.i(TAG, "Collected lines");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Find most frequent line angle
+			int angle = 0;
+			int[] angleCount = new int[180];
+			for (Line line : lineSet) {
+				int theta = findAngle(line);
+				angleCount[theta] += 1;
+				if (angleCount[theta] > angleCount[angle]) {
+					angle = theta;
 				}
 			}
-			return sb.toString();
+			System.out.println("Found most frequent angle");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Base orientation on most frequent angle
+			int horizontal = angle;
+			int vertical = normalize(angle + 90);
+
+			// Switch horizontal and vertical if necessary
+			// Backwards because of rotation?
+			if (Math.abs(vertical - 90) > Math.abs(horizontal - 90)) {
+				int temp = vertical;
+				vertical = horizontal;
+				horizontal = temp;
+			}
+			Log.i(TAG, horizontal + " " + vertical);
+
+			// Keep horizontal and vertical lines
+			ArrayList<Line> hLines = new ArrayList<Line>();
+			ArrayList<Line> vLines = new ArrayList<Line>();
+			for (Line line : lineSet) {
+				if (closeToAngle(line, horizontal)) {
+					hLines.add(line);
+				} else if (closeToAngle(line, vertical)) {
+					vLines.add(line);
+				}
+			}
+			lineSet.clear();
+			Log.i(TAG, "Created lists of horizontal and vertical lines");
+
+			// Error handling
+			if (hLines.size() < 2 || vLines.size() < 2) {
+				Log.e(TAG, "Not enough lines detected.");
+				// TODO: Display "please retake photo"
+				cancelTask.cancel(true);
+			}
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Sort horizontal lines
+			Collections.sort(hLines, new LineComparator(true));
+			Log.i(TAG, "Sorted horizontal lines");
+
+			// Sort vertical lines
+			Collections.sort(vLines, new LineComparator(false));
+			Log.i(TAG, "Sorted vertical lines");
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Threshold values
+			int minCellSize = Math
+					.round(Math.min(rect.height, rect.width) / 30f);
+			int lineError = Math.round(minCellSize / 4f);
+
+			// Compute largest set of equally spaced horizontal lines
+			ArrayList<Line> hList = findEquallySpacedLines(hLines, true,
+					horizontal, vertical, minCellSize, lineError);
+			Log.i(TAG, "Found equally spaced horizontal lines");
+
+			// Error handling
+			if (hList.size() < 2) {
+				System.err.println("Not enough horizontal lines found.");
+				// TODO: Display "please retake photo"
+				cancelTask.cancel(true);
+			}
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Compute largest set of equally spaced vertical lines
+			ArrayList<Line> vList = findEquallySpacedLines(vLines, false,
+					horizontal, vertical, minCellSize, lineError);
+			Log.i(TAG, "Found equally spaced vertical lines");
+
+			// Error handling
+			if (vList.size() < 2) {
+				System.err.println("Not enough vertical lines found.");
+				// TODO: Display "please retake photo"
+				cancelTask.cancel(true);
+			}
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Get puzzle size
+			int height = hList.size() - 1, width = vList.size() - 1;
+			Log.i(TAG, height + "x" + width);
+
+			// Construct grid representation
+			double[][] cells = new double[height][width];
+			for (int row = 0; row < height; row++) {
+				for (int col = 0; col < width; col++) {
+					// Find bounds of cell
+					int[] topLeft = findIntersection(hList.get(row),
+							vList.get(col));
+					int[] topRight = findIntersection(hList.get(row),
+							vList.get(col + 1));
+					int[] botLeft = findIntersection(hList.get(row + 1),
+							vList.get(col));
+					int[] botRight = findIntersection(hList.get(row + 1),
+							vList.get(col + 1));
+					int[] coords = { Math.max(topLeft[0], botLeft[0]),
+							Math.min(topRight[0], botRight[0]),
+							Math.max(topLeft[1], topRight[1]),
+							Math.min(botLeft[1], botRight[1]) };
+
+					// Calculate average intensity of cell
+					for (int x = Math.max(0, coords[0]); x <= Math.min(
+							coords[1], rect.width); x++) {
+						for (int y = Math.max(0, coords[2]); y <= Math.min(
+								coords[3], rect.height); y++) {
+							try {
+								cells[row][col] += gray.get(y, x)[0];
+							} catch (Exception e) {
+								System.err.println("Unable to get pixel data");
+								break;
+							}
+						}
+					}
+					cells[row][col] /= ((coords[1] - coords[0]) * (coords[3] - coords[2]));
+				}
+			}
+			img.release();
+			gray.release();
+
+			// Check if cancelled
+			if (isCancelled()) {
+				return null;
+			}
+
+			// Decide whether cells are black or white
+			double cutoff = findCutoff(cells);
+
+			// Construct data
+			StringBuilder data = new StringBuilder();
+			data.append("version: 1\n");
+			data.append(height + "|").append(width + "|");
+			for (int i = 0; i < cells.length; i++) {
+				for (int j = 0; j < cells[i].length; j++) {
+					if (cells[i][j] >= cutoff) {
+						data.append("1").append("|");
+					} else {
+						data.append("0").append("|");
+					}
+					data.append((char) 0).append("|");
+				}
+			}
+
+			// Grid representation
+			Log.i(TAG, data.toString());
+			return data.toString();
 		}
 
-		private class Line {
+		/**
+		 * Find rectangular boundaries of grid
+		 * 
+		 * @param thresh
+		 * @return bounds
+		 */
+		private Rect findGridBounds(Mat thresh) {
+			// Keep track of largest area
+			double largestArea = 0;
+			int largestIndex = 0;
+			Rect bounds = new Rect();
 
-			public double x1, y1, x2, y2;
+			// List for storing contours
+			Mat gray = thresh.clone();
+			List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+			Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_CCOMP,
+					Imgproc.CHAIN_APPROX_SIMPLE);
 
-			public Line(double[] line) {
-				this.x1 = line[0];
-				this.y1 = line[1];
-				this.x2 = line[2];
-				this.y2 = line[3];
+			// Iterate through each contour
+			for (int i = 0; i < contours.size(); i++) {
+				// Find the area of contour
+				double area = Imgproc.contourArea(contours.get(i), false);
+				if (area > largestArea) {
+					largestArea = area;
+					System.out.println(i + " area  " + area);
+
+					// Store the index of largest contour
+					largestIndex = i;
+
+					// Find the bounding rectangle for biggest contour
+					bounds = Imgproc.boundingRect(contours.get(i));
+				}
 			}
 
-			@Override
-			public String toString() {
-				return "[" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + "]";
+			// Draw the contour and rectangle
+			Scalar color = new Scalar(255, 0, 0);
+			Imgproc.drawContours(gray, contours, largestIndex, color, 2);
+			Core.rectangle(gray, new Point(bounds.x, bounds.y), new Point(
+					bounds.x + bounds.width, bounds.y + bounds.height), color,
+					2, 8, 0);
+			return bounds;
+		}
+
+		/**
+		 * Returns line angle between 0 and pi radians (exclusive)
+		 * 
+		 * @param line
+		 * @return angle
+		 */
+		private int findAngle(Line line) {
+			double x = line.x1 - line.x2, y = line.y1 - line.y2;
+			if (x == 0) {
+				return 90;
 			}
+			return (int) Math
+					.round(180 * normalize(Math.atan(y / x)) / Math.PI);
 		}
 
 		/**
@@ -431,91 +709,29 @@ public class ScanActivity extends Activity {
 		 * @return normalized angle
 		 */
 		private double normalize(double theta) {
-			return (theta + DEGREE_360) % DEGREE_180;
+			return (theta + (2 * Math.PI)) % Math.PI;
 		}
 
 		/**
-		 * Returns line angle between 0 and pi radians (exclusive)
+		 * Returns equivalent angle between 0 and 180 degrees (exclusive)
 		 * 
-		 * @param line
-		 * @return angle
+		 * @param theta
+		 * @return normalized angle
 		 */
-		private double findAngle(Line line) {
-			double x = line.x1 - line.x2, y = line.y1 - line.y2;
-			if (x == 0) {
-				return DEGREE_90;
-			}
-			return normalize(Math.atan(y / x));
+		private int normalize(int theta) {
+			return (theta + 360) % 180;
 		}
 
 		/**
-		 * Returns whether given line is vertical
-		 * 
-		 * @param line
-		 * @return vertical
-		 */
-		private boolean isVertical(Line line) {
-			double theta = findAngle(line);
-			return Math.abs(theta - vertical) < THRESHOLD
-					|| Math.abs(theta - vertical - DEGREE_180) < THRESHOLD;
-			// theta == vertical;
-		}
-
-		/**
-		 * Returns whether given line is horizontal
+		 * Returns whether given line is close to angle
 		 * 
 		 * @param line
 		 * @return horizontal
 		 */
-		private boolean isHorizontal(Line line) {
-			double theta = findAngle(line);
-			return Math.abs(theta - horizontal) < THRESHOLD
-					|| Math.abs(theta - horizontal - DEGREE_180) < THRESHOLD;
-			// theta == horizontal;
-		}
-
-		/**
-		 * Compares lines based on relative position
-		 * 
-		 * @author Ryan
-		 */
-		private class LineComparator implements Comparator<Line> {
-
-			private boolean horizontal;
-
-			private LineComparator(boolean horizontal) {
-				this.horizontal = horizontal;
-			}
-
-			@Override
-			public int compare(Line line1, Line line2) {
-				double[] comp = { getPosition(line1, horizontal),
-						getPosition(line2, horizontal),
-						getPosition(line1, !horizontal),
-						getPosition(line2, !horizontal) };
-				if (comp[0] == comp[1]) {
-					return comp[2] < comp[3] ? -1 : 1;
-				} else {
-					return comp[0] < comp[1] ? -1 : 1;
-				}
-			}
-		}
-
-		/**
-		 * Returns vertical or horizontal position of line
-		 * 
-		 * @param line
-		 * @param horizontal
-		 * @return position
-		 */
-		private double getPosition(Line line, boolean horizontal) {
-			if (horizontal) {
-				// Return vertical position
-				return Math.round((line.y1 + line.y2) / 2); // Midpoint
-			} else {
-				// Return horizontal position
-				return Math.round((line.x1 + line.x2) / 2); // Midpoint
-			}
+		private boolean closeToAngle(Line line, int angle) {
+			int threshold = 4, theta = findAngle(line);
+			return Math.abs(theta - angle) < threshold
+					|| Math.abs(theta - angle - 180) < threshold;
 		}
 
 		/**
@@ -525,109 +741,134 @@ public class ScanActivity extends Activity {
 		 * @param hor
 		 * @return result list
 		 */
-		// TODO: Find workaround for suppression
-		@SuppressLint("NewApi")
 		private ArrayList<Line> findEquallySpacedLines(ArrayList<Line> lines,
-				boolean hor) {
+				boolean hor, int horizontal, int vertical, int minCellSize,
+				int lineError) {
 			// Create map of positions of each line
-			TreeMap<Double, Line> positions = new TreeMap<Double, Line>();
-			double target = hor ? horizontal : vertical;
+			HashMap<Integer, Line> positions = new HashMap<Integer, Line>();
+			int target = hor ? horizontal : vertical;
 			for (Line line : lines) {
-				double position = getPosition(line, hor);
+				int position = getPosition(line, hor);
 				if (!positions.containsKey(position)
 						|| Math.abs(findAngle(line) - target) < Math
 								.abs(findAngle(positions.get(position))
 										- target)) {
 					positions.put(position, line);
 				}
-				if (isCancelled()) {
-					return null;
-				}
 			}
+			lines.retainAll(positions.values());
 
 			// List of equally spaced lines
 			ArrayList<Line> resultList = new ArrayList<Line>();
-			for (double i : positions.keySet()) {
-				for (double j : positions.tailMap(i + 1).keySet()) {
+			for (int i = 0; i < lines.size(); i++) {
+				for (int j = i + 1; j < lines.size(); j++) {
 					// Construct temporary list of equally spaced lines
 					ArrayList<Line> tempList = new ArrayList<Line>();
-					double distance = j - i;
+					Line line1 = lines.get(i), line2 = lines.get(j);
+					// Keep track of position of last line
+					int currentPos = getPosition(line2, hor);
+					// Calculate distance
+					int distance = currentPos - getPosition(line1, hor);
 					// Rule out small distances between lines
-					if (distance < MIN_CELL_SIZE) {
+					if (distance < minCellSize) {
 						continue;
 					}
 					// Add first couple of lines to set
-					tempList.add(positions.get(i));
-					tempList.add(positions.get(j));
-					// Rule out lines with different angles
-					if (Math.abs(findAngle(tempList.get(0))
-							- findAngle(tempList.get(1))) > DEGREE) {
-						continue;
-					}
-					// Keep track of position of last line
-					double currentPos = j;
-					// Loop until last key
-					while (currentPos < positions.lastKey()) {
-						double nextPos = currentPos + distance;
-						double candidate = nextPos;
+					tempList.add(line1);
+					tempList.add(line2);
+					// Get last key
+					int lastKey = getPosition(lines.get(lines.size() - 1), hor);
+					while (currentPos < lastKey) {
+						int nextPos = currentPos + distance;
+						int candidate = nextPos;
 						if (!positions.containsKey(nextPos)) {
-							Double floor = positions.lowerKey(nextPos), ceil = positions
-									.higherKey(nextPos);
+							// Find lines immediately before and after next
+							// position
+							Integer floor = null, ceil = null;
+							for (int k = j + 1; k < lines.size(); k++) {
+								int pos = getPosition(lines.get(k), hor);
+								if (pos <= nextPos) {
+									floor = pos;
+								}
+								if (pos > nextPos) {
+									ceil = pos;
+									break;
+								}
+							}
 							if (ceil == null) {
 								// Accept floor if in range
 								if (floor == null || floor == currentPos) {
 									break;
-								} else if (nextPos - floor < LINE_ERROR) {
+								} else if (nextPos - floor < lineError) {
 									candidate = floor;
 								} else {
 									break;
 								}
-							} else if (floor == null || floor == currentPos) {
+							} else if (floor == null) {
 								// Accept ceiling if in range
-								if (ceil - nextPos < LINE_ERROR) {
+								if (ceil - nextPos < lineError) {
 									candidate = ceil;
 								} else {
 									break;
 								}
 							} else {
 								// Accept floor then ceiling if in range
-								if (nextPos - floor < LINE_ERROR) {
+								if (nextPos - floor < lineError) {
 									candidate = floor;
-								} else if (ceil - nextPos < LINE_ERROR) {
+								} else if (ceil - nextPos < lineError) {
 									candidate = ceil;
 								} else {
 									break;
 								}
 							}
 						}
+						// TODO: Remove? Angle difference natural
 						// Rule out lines with different angles
-						if (Math.abs(findAngle(positions.get(currentPos))
-								- findAngle(positions.get(candidate))) > DEGREE) {
-							break;
-						} else {
-							tempList.add(positions.get(candidate));
-							currentPos = candidate;
-						}
-						if (isCancelled()) {
-							return null;
-						}
+						// if (Math.abs(findAngle(positions.get(currentPos))
+						// - findAngle(positions.get(candidate))) > DEGREE) {
+						// break;
+						// } else {
+						tempList.add(positions.get(candidate));
+						currentPos = candidate;
+						// }
 					}
 					// Update result list if temporary list is longer
 					if (tempList.size() > resultList.size()) {
 						resultList = tempList;
-					}
-					if (isCancelled()) {
-						return null;
 					}
 				}
 			}
 			return resultList;
 		}
 
-		private double[] findIntersection(Line line1, Line line2) {
-			double[] coords = new double[2];
-			double x[] = { line1.x1, line1.x2, line2.x1, line2.x2 };
-			double y[] = { line1.y1, line1.y2, line2.y1, line2.y2 };
+		/**
+		 * Returns vertical or horizontal position of line
+		 * 
+		 * @param line
+		 * @param horizontal
+		 * @return position
+		 */
+		private int getPosition(Line line, boolean horizontal) {
+			if (horizontal) {
+				// Return vertical position
+				return (int) Math.round((line.y1 + line.y2) / 2.0); // Midpoint
+			} else {
+				// Return horizontal position
+				return (int) Math.round((line.x1 + line.x2) / 2.0); // Midpoint
+			}
+		}
+
+		/**
+		 * Find intersection of given lines
+		 * 
+		 * @param line1
+		 * @param line2
+		 * @return
+		 */
+		private int[] findIntersection(Line line1, Line line2) {
+			int[] coords = new int[2];
+			float[] x = { line1.x1, line1.x2, line2.x1, line2.x2 };
+			float[] y = { line1.y1, line1.y2, line2.y1, line2.y2 };
 			coords[0] = Math.round((x[0] * x[2] * y[1] - x[1] * x[2] * y[0]
 					- x[0] * x[3] * y[1] + x[1] * x[3] * y[0] - x[0] * x[2]
 					* y[3] + x[0] * x[3] * y[2] + x[1] * x[2] * y[3] - x[1]
@@ -645,6 +886,12 @@ public class ScanActivity extends Activity {
 			return coords;
 		}
 
+		/**
+		 * Find cutoff value for labeling black and white cells
+		 * 
+		 * @param cells
+		 * @return cutoff
+		 */
 		private double findCutoff(double[][] cells) {
 			double min = cells[0][0], max = cells[0][0];
 			int rows = cells.length, cols = cells[0].length;
@@ -660,333 +907,17 @@ public class ScanActivity extends Activity {
 			return 0.40 * (min + max);
 		}
 
-		private boolean isAllOneColor(double[] cells, double cutoff) {
-			boolean white = false, black = false;
-			for (double d : cells) {
-				if (white && black) {
-					return false;
-				}
-				if (d >= cutoff) {
-					white = true;
-				} else {
-					black = true;
+		private String generateRandomGrid() {
+			Random r = new Random(13254);
+			StringBuilder sb = new StringBuilder();
+			sb.append("13|13|");
+			for (int i = 0; i < 13; i++) {
+				for (int j = 0; j < 13; j++) {
+					sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
+					sb.append("0|");
 				}
 			}
-			return true;
-		}
-
-		private boolean isAllOneColor(double[][] cells, int col, double cutoff) {
-			boolean white = false, black = false;
-			for (int i = 0; i < cells.length; i++) {
-				if (white && black) {
-					return false;
-				}
-				if (cells[i][col] >= cutoff) {
-					white = true;
-				} else {
-					black = true;
-				}
-			}
-			return true;
-		}
-
-		private String recognizeGrid(String filePath) {
-			// Read image
-			Mat img = Highgui.imread(filePath);
-			Log.i(TAG, "Read " + filePath);
-			if (img.empty()) {
-				Log.e(TAG, "Cannot open " + filePath);
-				System.exit(1);
-			}
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Rotate image
-			Mat imgT = img.t();
-			int amount = scanView.getDegrees() / 90;
-			Core.flip(img.t(), imgT, amount);
-			Imgproc.resize(imgT, img, amount % 2 == 0 ? img.size() : new Size(
-					img.rows(), img.cols()));
-			imgT.release();
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Convert image to grayscale
-			Mat gray = new Mat();
-			Imgproc.cvtColor(img, gray, Imgproc.COLOR_RGB2GRAY);
-			Log.i(TAG, "Converted to grayscale");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Find edges using Canny detector
-			Mat edges = new Mat();
-			Imgproc.Canny(img, edges, 50, 200, 3, false);
-			Log.i(TAG, "Computed edges");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Find lines using Hough transform
-			Mat lines = new Mat();
-			Imgproc.HoughLinesP(edges, lines, 1, DEGREE, 150, MIN_CELL_SIZE,
-					MIN_CELL_SIZE);
-			Log.i(TAG, "Computed lines");
-			edges.release();
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Detect lines
-			HashSet<Line> lineSet = new HashSet<Line>();
-			for (int index = 0; index < lines.cols(); index++) {
-				Line line = new Line(lines.get(0, index));
-				lineSet.add(line);
-			}
-			lines.release();
-			Log.i(TAG, "Detected lines");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Find most frequent line angle
-			double angle = 0;
-			HashMap<Double, Integer> angleCount = new HashMap<Double, Integer>();
-			for (Line line : lineSet) {
-				double theta = findAngle(line);
-				if (angleCount.containsKey(theta)) {
-					angleCount.put(theta, angleCount.get(theta) + 1);
-				} else {
-					angleCount.put(theta, 1);
-				}
-				if (!angleCount.containsKey(angle)
-						|| angleCount.get(theta) > angleCount.get(angle)) {
-					angle = theta;
-				}
-				// Check if cancelled
-				if (isCancelled()) {
-					return null;
-				}
-			}
-			Log.i(TAG, "Found most frequent angle");
-
-			// Base orientation on most frequent angle
-			horizontal = angle;
-			vertical = normalize(angle + DEGREE_90);
-
-			// Switch horizontal and vertical if necessary
-			if (Math.abs(horizontal - DEGREE_90) < Math.abs(vertical
-					- DEGREE_90)) {
-				double temp = vertical;
-				vertical = horizontal;
-				horizontal = temp;
-			}
-			Log.i(TAG, horizontal + " " + vertical);
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Keep horizontal and vertical lines
-			ArrayList<Line> hLines = new ArrayList<Line>();
-			ArrayList<Line> vLines = new ArrayList<Line>();
-			for (Line line : lineSet) {
-				if (isHorizontal(line)) {
-					hLines.add(line);
-				} else if (isVertical(line)) {
-					vLines.add(line);
-				}
-				// Check if cancelled
-				if (isCancelled()) {
-					return null;
-				}
-			}
-			lineSet.clear();
-			Log.i(TAG, "Created lists of horizontal and vertical lines");
-
-			// Sort horizontal lines
-			Collections.sort(hLines, new LineComparator(true));
-			Log.i(TAG, "Sorted horizontal lines");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Sort vertical lines
-			Collections.sort(vLines, new LineComparator(false));
-			Log.i(TAG, "Sorted vertical lines");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Compute largest set of equally spaced horizontal lines
-			ArrayList<Line> hList = findEquallySpacedLines(hLines, true);
-			Log.i(TAG, "Found equally spaced horizontal lines");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Compute largest set of equally spaced vertical lines
-			ArrayList<Line> vList = findEquallySpacedLines(vLines, false);
-			Log.i(TAG, "Found equally spaced vertical lines");
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Get puzzle size
-			int height = hList.size() - 1, width = vList.size() - 1;
-			Log.i(TAG, height + "x" + width);
-
-			// Print differences
-			double diff = 0;
-			for (int i = 1; i < hList.size(); i++) {
-				diff += (getPosition(hList.get(i), true) - getPosition(
-						hList.get(i - 1), true));
-				// Check if cancelled
-				if (isCancelled()) {
-					return null;
-				}
-			}
-			Log.i(TAG, "Avg hDistance: " + (diff / hList.size()));
-			diff = 0;
-			for (int i = 1; i < vList.size(); i++) {
-				diff += (getPosition(vList.get(i), false) - getPosition(
-						vList.get(i - 1), false));
-				// Check if cancelled
-				if (isCancelled()) {
-					return null;
-				}
-			}
-			Log.i(TAG, "Avg hDistance: " + (diff / vList.size()));
-
-			// Construct grid representation
-			double[][] cells = new double[height][width];
-			for (int row = 0; row < height; row++) {
-				for (int col = 0; col < width; col++) {
-					// Find bounds of cell
-					double[] point1 = findIntersection(vList.get(col),
-							hList.get(row));
-					double[] point2 = findIntersection(vList.get(col + 1),
-							hList.get(row + 1));
-					double[] coords = { Math.min(point1[0], img.cols() - 1),
-							Math.min(point2[0], img.cols() - 1),
-							Math.min(point1[1], img.rows() - 1),
-							Math.min(point2[1], img.rows() - 1) };
-
-					// Calculate average intensity of cell
-					for (int x = (int) coords[2]; x <= coords[3]; x++) {
-						for (int y = (int) coords[0]; y <= coords[1]; y++) {
-							try {
-								cells[row][col] += gray.get(x, y)[0];
-							} catch (Exception e) {
-								Log.e(TAG, "Unable to get pixel data");
-								break;
-							}
-							// Check if cancelled
-							if (isCancelled()) {
-								return null;
-							}
-						}
-					}
-					cells[row][col] /= ((coords[1] - coords[0]) * (coords[3] - coords[2]));
-					// Check if cancelled
-					if (isCancelled()) {
-						return null;
-					}
-				}
-			}
-			img.release();
-			gray.release();
-
-			// Decide whether cells are black or white
-			double cutoff = findCutoff(cells);
-			// Rows and columns to remove
-			int firstRows = 0, firstCols = 0, lastRows = 0, lastCols = 0;
-			// Count first rows
-			for (int i = 0; i < cells.length && isAllOneColor(cells[i], cutoff); i++) {
-				firstRows++;
-			}
-			// Count last rows
-			for (int i = cells.length - 1; i >= firstRows
-					&& isAllOneColor(cells[i], cutoff); i--) {
-				lastRows++;
-			}
-			// Count first cols
-			for (int j = 0; j < cells[0].length
-					&& isAllOneColor(cells, j, cutoff); j++) {
-				firstCols++;
-			}
-			// Count first cols
-			for (int j = cells[0].length - 1; j >= firstCols
-					&& isAllOneColor(cells, j, cutoff); j--) {
-				lastCols++;
-			}
-
-			// Construct new cells
-			height = cells.length - firstRows - lastRows;
-			width = cells[0].length - firstCols - lastCols;
-			double[][] newCells = new double[height][width];
-			// Remove rows
-			if (firstRows > 0 || lastRows > 0) {
-				int index = 0;
-				for (int i = Math.max(firstRows, 0); i < height + firstRows; i++) {
-					newCells[index++] = cells[i];
-				}
-			}
-			// Remove cols
-			if (firstCols > 0 || lastCols > 0) {
-				for (int i = 0; i < newCells.length; i++) {
-					int index = 0;
-					for (int j = Math.max(firstCols, 0); j < height + firstCols; j++) {
-						newCells[i][index++] = cells[i + firstRows][j];
-					}
-				}
-			}
-			System.out.println(height + "x" + width);
-
-			// Construct data
-			StringBuilder data = new StringBuilder();
-			data.append("version: 1\n");
-			data.append(height + "|").append(width + "|");
-			for (int i = 0; i < newCells.length; i++) {
-				for (int j = 0; j < newCells[i].length; j++) {
-					if (cells[i][j] >= cutoff) {
-						data.append("1").append("|");
-						System.out.print("O ");
-					} else {
-						data.append("0").append("|");
-						System.out.print("X ");
-					}
-					data.append((char) 0).append("|");
-				}
-				System.out.println();
-			}
-
-			// Grid representation
-			Log.i(TAG, data.toString());
-			return data.toString();
+			return sb.toString();
 		}
 
 		@Override
@@ -997,8 +928,57 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected void onCancelled() {
-			dialog.dismiss();
 			super.onCancelled();
+			dialog.dismiss();
+		}
+
+		/**
+		 * Contains Line data
+		 * 
+		 * @author Ryan
+		 */
+		private class Line {
+
+			public int x1, y1, x2, y2;
+
+			private Line(double[] line) {
+				this.x1 = (int) line[0];
+				this.y1 = (int) line[1];
+				this.x2 = (int) line[2];
+				this.y2 = (int) line[3];
+			}
+
+			@Override
+			public String toString() {
+				return "[" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + "]";
+			}
+		}
+
+		/**
+		 * Compares lines based on relative position
+		 * 
+		 * @author Ryan
+		 */
+		private class LineComparator implements Comparator<Line> {
+
+			private boolean horizontal;
+
+			private LineComparator(boolean horizontal) {
+				this.horizontal = horizontal;
+			}
+
+			@Override
+			public int compare(Line line1, Line line2) {
+				int[] comp = { getPosition(line1, horizontal),
+						getPosition(line2, horizontal),
+						getPosition(line1, !horizontal),
+						getPosition(line2, !horizontal) };
+				if (comp[0] == comp[1]) {
+					return comp[2] - comp[3];
+				} else {
+					return comp[0] - comp[1];
+				}
+			}
 		}
 	}
 
