@@ -378,6 +378,7 @@ public class CrosswordGridView extends View {
 			if (onCellSelected(selected)) {
 				if (mGame != null && selected == mSelectedCell) {
 					mGame.setAcrossMode(!mGame.isAcrossMode());
+					mOnCellSelectedListener.onCellSelected(mSelectedCell);
 				}
 				mSelectedCell = selected;
 				invalidate(); // Update board when selected cell changes
@@ -531,6 +532,7 @@ public class CrosswordGridView extends View {
 
 	public void resetView() {
 		mSelectedCell = puzzle.getFirstWhiteCell();
+		mOnCellSelectedListener.onCellSelected(mSelectedCell);
 	}
 
 	private Entry getNextEntry() {

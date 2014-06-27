@@ -573,6 +573,8 @@ public class Puzzle {
 	protected void onColorChange() {
 		synchronized (changeListeners) {
 			initGrid();
+			// TODO: update clues correctly
+			initClues(null);
 			onChange();
 		}
 	}

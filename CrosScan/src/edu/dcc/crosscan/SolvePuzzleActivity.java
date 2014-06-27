@@ -209,6 +209,7 @@ public class SolvePuzzleActivity extends Activity {
 									// Restart game
 									mGame.reset();
 									mCrosswordGrid.resetView();
+									
 									mGame.start();
 									if (mShowTime) {
 										mGameTimer.start();
