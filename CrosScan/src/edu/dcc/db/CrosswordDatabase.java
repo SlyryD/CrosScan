@@ -11,7 +11,7 @@ import edu.dcc.game.CrosswordGame;
 import edu.dcc.game.Puzzle;
 
 /**
- * Wrapper around CrosswordScans's database.
+ * Wrapper around CrosScans's database.
  * <p/>
  * You have to pass application context when creating instance:
  * <code>CrosswordDatabase db = new CrosswordDatabase(getApplicationContext());</code>
@@ -26,7 +26,7 @@ import edu.dcc.game.Puzzle;
  * @author Ryan
  */
 public class CrosswordDatabase {
-	public static final String DATABASE_NAME = "crosswordscan";
+	public static final String DATABASE_NAME = "crosscan";
 	public static final String CROSSWORD_TABLE_NAME = "crossword";
 	public static final String FOLDER_TABLE_NAME = "folder";
 
@@ -359,12 +359,6 @@ public class CrosswordDatabase {
 			throws CrosswordInvalidFormatException {
 		if (pars.data == null) {
 			throw new CrosswordInvalidFormatException(pars.data);
-		}
-
-		if (!Puzzle.isValid(pars.data, Puzzle.DATA_VERSION_PLAIN)) {
-			if (!Puzzle.isValid(pars.data, Puzzle.DATA_VERSION_1)) {
-				throw new CrosswordInvalidFormatException(pars.data);
-			}
 		}
 
 		if (mInsertCrosswordStatement == null) {

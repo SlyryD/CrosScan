@@ -52,7 +52,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_puzzle_list);
@@ -63,9 +63,9 @@ public class PuzzleListActivity extends ListActivity {
 		mDatabase = new CrosswordDatabase(getApplicationContext());
 
 		Intent intent = getIntent();
-		String title = intent.getStringExtra(NamePuzzleActivity.TITLE);
-		String puzzle = intent.getStringExtra(ScanActivity.GRID);
-		String photo = intent.getStringExtra(ScanActivity.PHOTO);
+		String title = intent.getStringExtra(Constants.EXTRA_TITLE);
+		String puzzle = intent.getStringExtra(Constants.EXTRA_GRID);
+		String photo = intent.getStringExtra(Constants.EXTRA_PHOTO);
 		if (title != null && puzzle != null) {
 			CrosswordGame crossword = new CrosswordGame();
 			crossword.setId(DatabaseHelper.getNextId());
@@ -97,7 +97,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected void onDestroy() {
+	protected final void onDestroy() {
 		super.onDestroy();
 
 		mDatabase.close();
@@ -105,7 +105,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected final void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 
 		outState.putLong("mDeletePuzzleID", mDeletePuzzleID);
@@ -113,7 +113,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected void onRestoreInstanceState(Bundle state) {
+	protected final void onRestoreInstanceState(final Bundle state) {
 		super.onRestoreInstanceState(state);
 
 		mDeletePuzzleID = state.getLong("mDeletePuzzleID");
@@ -121,7 +121,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected Dialog onCreateDialog(int id) {
+	protected final Dialog onCreateDialog(final int id) {
 		switch (id) {
 		case DIALOG_DELETE_PUZZLE:
 			return new AlertDialog.Builder(this)
@@ -130,8 +130,8 @@ public class PuzzleListActivity extends ListActivity {
 					.setMessage(R.string.delete_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int whichButton) {
+								public void onClick(final DialogInterface dialog,
+										final int whichButton) {
 									mDatabase.deleteCrossword(mDeletePuzzleID);
 									updateList();
 								}
@@ -144,8 +144,8 @@ public class PuzzleListActivity extends ListActivity {
 					.setMessage(R.string.reset_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int whichButton) {
+								public void onClick(final DialogInterface dialog,
+										final int whichButton) {
 									CrosswordGame game = mDatabase
 											.getCrossword(mResetPuzzleID);
 									if (game != null) {
@@ -156,13 +156,15 @@ public class PuzzleListActivity extends ListActivity {
 								}
 							}).setNegativeButton(android.R.string.no, null)
 					.create();
+		default:
+			break;
 		}
 		return null;
 	}
 
 	@Override
-	public void onCreateContextMenu(ContextMenu menu, View view,
-			ContextMenuInfo menuInfo) {
+	public final void onCreateContextMenu(final ContextMenu menu, final View view,
+			final ContextMenuInfo menuInfo) {
 		AdapterView.AdapterContextMenuInfo info;
 		try {
 			info = (AdapterView.AdapterContextMenuInfo) menuInfo;
@@ -183,7 +185,7 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	public boolean onContextItemSelected(MenuItem item) {
+	public final boolean onContextItemSelected(final MenuItem item) {
 		AdapterView.AdapterContextMenuInfo info;
 		try {
 			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -202,12 +204,14 @@ public class PuzzleListActivity extends ListActivity {
 		case MENU_ITEM_DELETE:
 			deleteTransition(mDeletePuzzleID = info.id);
 			return true;
+		default:
+			break;
 		}
 		return false;
 	}
 
 	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
+	protected final void onListItemClick(final ListView l, final View v, final int position, final long id) {
 		super.onListItemClick(l, v, position, id);
 		mCursor.moveToPosition((int) id);
 		playTransition(mCursor.getLong(mCursor
@@ -215,20 +219,20 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	/** Called when the user clicks the Play Puzzle button */
-	public void playTransition(long id) {
+	public final void playTransition(final long id) {
 		Intent intent = new Intent(this, SolvePuzzleActivity.class);
-		intent.putExtra(SolvePuzzleActivity.EXTRA_CROSSWORD_ID, id);
+		intent.putExtra(Constants.EXTRA_CROSSWORD_ID, id);
 		startActivity(intent);
 	}
 
 	/** Called when the user clicks the Puzzle Info menu item */
-	public void infoTransition(long id) {
+	public final void infoTransition(final long id) {
 		Intent intent = new Intent(this, PuzzleInfoActivity.class);
-		intent.putExtra(PuzzleInfoActivity.EXTRA_CROSSWORD_ID, id);
+		intent.putExtra(Constants.EXTRA_CROSSWORD_ID, id);
 		startActivity(intent);
 	}
 
-	public void deleteTransition(long id) {
+	public final void deleteTransition(final long id) {
 		showDialog(DIALOG_DELETE_PUZZLE);
 	}
 }

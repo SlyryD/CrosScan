@@ -15,8 +15,8 @@ import edu.dcc.game.Puzzle;
 
 public class NamePuzzleActivity extends Activity {
 
-	public static final String TITLE = "title";
-
+	public static final String TAG = "CrosScan/NamePuzzleActivity";
+	
 	public static final SimpleDateFormat sdf = new SimpleDateFormat(
 			"yyyyMMdd_HHmmss", Locale.US);
 
@@ -27,7 +27,7 @@ public class NamePuzzleActivity extends Activity {
 	private EditText editText;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_name_puzzle);
 		getDataFromScan();
@@ -40,18 +40,21 @@ public class NamePuzzleActivity extends Activity {
 
 	private void getDataFromScan() {
 		Intent intent = getIntent();
-		puzzleStr = intent.getStringExtra(ScanActivity.GRID);
-		photo = intent.getStringExtra(ScanActivity.PHOTO);
+		String[] intentStr = intent.getStringExtra(Constants.EXTRA_PUZZLE).split(
+				"\n");
+		Log.i(TAG, "Photo: " + intentStr[0] + "\nPuzzle: " + intentStr[1]);
+		photo = intentStr[0];
+		puzzleStr = intentStr[1];
 		puzzle = Puzzle.deserialize(puzzleStr);
 	}
 
-	public void puzzleListTransition(View view) {
+	public final void puzzleListTransition(final View view) {
 		Intent intent = new Intent(this, PuzzleListActivity.class);
 		EditText editText = (EditText) findViewById(R.id.crossword_name);
 		String title = editText.getText().toString();
-		intent.putExtra(TITLE, title);
-		intent.putExtra(ScanActivity.GRID, puzzleStr);
-		intent.putExtra(ScanActivity.PHOTO, photo);
+		intent.putExtra(Constants.EXTRA_PHOTO, photo);
+		intent.putExtra(Constants.EXTRA_GRID, puzzleStr);
+		intent.putExtra(Constants.EXTRA_TITLE, title);
 		startActivity(intent);
 		finish();
 	}
@@ -59,8 +62,8 @@ public class NamePuzzleActivity extends Activity {
 	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
 
 		@Override
-		public boolean onCellSelected(Cell cell) {
-			Log.i(TITLE, "Reached on cell selected");
+		public final boolean onCellSelected(final Cell cell) {
+			Log.i(TAG, "Reached on cell selected");
 			cell.toggleColor();
 			puzzleStr = puzzle.serialize();
 			return true;

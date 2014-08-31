@@ -3,6 +3,7 @@ package edu.dcc.game;
 import java.util.StringTokenizer;
 
 import android.util.Log;
+import edu.dcc.crosscan.Constants;
 
 /**
  * A Crossword cell. Every cell is black or white, can contain a value, and can
@@ -29,18 +30,19 @@ public class Cell {
 	 * Creates black or white cell.
 	 */
 	public Cell(boolean white) {
-		this(white, (char) 0, 0);
+		this(white, Constants.CHAR_SPACE);
 	}
 
-	private Cell(boolean white, char value, int clueNum) {
-		if (value != 0 && (value < 65 || value > 90)) {
+	private Cell(boolean white, char value) {
+		if (value != Constants.CHAR_SPACE
+				&& (value < Constants.CHAR_A || value > Constants.CHAR_Z)) {
 			Log.e("Cell", "Value " + value + " (" + Integer.toString(value)
 					+ ") not accepted");
-			throw new IllegalArgumentException("Value must be a capital letter");
+			throw new IllegalArgumentException("Value" + value
+					+ "must be a capital letter");
 		}
 
 		mValue = value;
-		mClueNum = clueNum;
 		mWhite = white;
 	}
 
@@ -103,7 +105,8 @@ public class Cell {
 	 *            Character or 0 if cell is empty.
 	 */
 	public void setValue(char value) {
-		if ((value != 0 && value < 65) || value > 90) {
+		if ((value != Constants.CHAR_SPACE && value < Constants.CHAR_A)
+				|| value > Constants.CHAR_Z) {
 			throw new IllegalArgumentException("Value must be a character.");
 		}
 		mValue = value;
@@ -163,8 +166,8 @@ public class Cell {
 	 * @return
 	 */
 	public static Cell deserialize(StringTokenizer data) {
-		return new Cell(data.nextToken().equals("1"), data.nextToken()
-				.charAt(0), 0);
+		String token = data.nextToken();
+		return new Cell(token.charAt(0) == '1', token.charAt(1));
 	}
 
 	/**
@@ -187,7 +190,7 @@ public class Cell {
 	 * @param data
 	 */
 	public void serialize(StringBuilder data) {
-		data.append(mWhite ? "1" : "0").append("|");
+		data.append(mWhite ? "1" : "0");
 		data.append(mValue).append("|");
 	}
 
@@ -219,6 +222,6 @@ public class Cell {
 	}
 
 	public String toString() {
-		return mWhite ? "(" + (mValue == 0 ? " " : mValue) + ")" : " X ";
+		return mWhite ? "(" + mValue + ")" : " X ";
 	}
 }

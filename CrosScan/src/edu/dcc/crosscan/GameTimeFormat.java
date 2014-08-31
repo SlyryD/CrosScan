@@ -41,7 +41,7 @@ public class GameTimeFormat {
 	 *            Time in milliseconds.
 	 * @return
 	 */
-	public String format(long time) {
+	public final String format(final long time) {
 		mTimeText.setLength(0);
 		if (time > TIME_99_99) {
 			mGameTimeFormatter

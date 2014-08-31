@@ -9,12 +9,12 @@ import android.os.Bundle;
 
 public class ImageActivity extends Activity {
 
-	public static final String TAG = "CrosswordScan/ImageActivity";
+	public static final String TAG = "CrosScan/ImageActivity";
 
 	private PinchImageView imageView;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		// Inflate layout
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image);
@@ -24,18 +24,18 @@ public class ImageActivity extends Activity {
 
 		// Add image to view
 		Intent intent = getIntent();
-		String path = intent.getStringExtra(ScanActivity.PHOTO);
+		String path = intent.getStringExtra(Constants.EXTRA_PHOTO);
 		if (path.equals("null")) {
 			Bitmap photo = BitmapFactory.decodeResource(getResources(),
 					R.drawable.no_photo);
 			imageView.setImageBitmap(photo);
 		} else {
 			Bitmap photo = BitmapFactory.decodeFile(path);
-			imageView.setImageBitmap(rotateBitmap(photo, 90));
+			imageView.setImageBitmap(rotateBitmap(photo, Constants.DEGREES_90));
 		}
 	}
 
-	private Bitmap rotateBitmap(Bitmap source, float angle) {
+	private Bitmap rotateBitmap(final Bitmap source, final float angle) {
 		Matrix matrix = new Matrix();
 		matrix.postRotate(angle);
 		return Bitmap.createBitmap(source, 0, 0, source.getWidth(),

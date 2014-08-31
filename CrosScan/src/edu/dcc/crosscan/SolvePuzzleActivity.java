@@ -28,8 +28,6 @@ import edu.dcc.game.Puzzle;
 
 public class SolvePuzzleActivity extends Activity {
 
-	public static final String EXTRA_CROSSWORD_ID = "crossword_id";
-
 	public static final int MENU_ITEM_RESTART = Menu.FIRST;
 	public static final int MENU_ITEM_DELETE = Menu.FIRST + 1;
 
@@ -56,7 +54,7 @@ public class SolvePuzzleActivity extends Activity {
 	private GameTimeFormat mGameTimeFormatter = new GameTimeFormat();
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_solve_puzzle);
@@ -80,7 +78,7 @@ public class SolvePuzzleActivity extends Activity {
 		// create crossword game instance
 		if (savedInstanceState == null) {
 			// activity runs for the first time, read game from database
-			mCrosswordGameID = getIntent().getLongExtra(EXTRA_CROSSWORD_ID, 0);
+			mCrosswordGameID = getIntent().getLongExtra(Constants.EXTRA_CROSSWORD_ID, 0);
 			System.out.println("GAME_ID: " + mCrosswordGameID + "!!!!");
 			mGame = mDatabase.getCrossword(mCrosswordGameID);
 		} else {
@@ -101,20 +99,20 @@ public class SolvePuzzleActivity extends Activity {
 		mCrosswordGrid.setGame(mGame);
 	}
 
-	public void switchAcrossMode(View view) {
+	public final void switchAcrossMode(final View view) {
 		mCrosswordGrid.switchAcrossMode();
 	}
 
-	public void previousClue(View view) {
+	public final void previousClue(final View view) {
 		mCrosswordGrid.nextClue(false);
 	}
 
-	public void nextClue(View view) {
+	public final void nextClue(final View view) {
 		mCrosswordGrid.nextClue(true);
 	}
 
 	@Override
-	protected void onResume() {
+	protected final void onResume() {
 		super.onResume();
 
 		if (mGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
@@ -129,7 +127,7 @@ public class SolvePuzzleActivity extends Activity {
 	}
 
 	@Override
-	protected void onPause() {
+	protected final void onPause() {
 		super.onPause();
 
 		// we will save game to the database as we might not be able to get back
@@ -139,14 +137,14 @@ public class SolvePuzzleActivity extends Activity {
 	}
 
 	@Override
-	protected void onDestroy() {
+	protected final void onDestroy() {
 		super.onDestroy();
 
 		mDatabase.close();
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected final void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 
 		mGameTimer.stop();
@@ -160,7 +158,7 @@ public class SolvePuzzleActivity extends Activity {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public final boolean onCreateOptionsMenu(final Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
 		menu.add(0, MENU_ITEM_RESTART, 0, R.string.restart).setIcon(
@@ -182,7 +180,7 @@ public class SolvePuzzleActivity extends Activity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public final boolean onOptionsItemSelected(final MenuItem item) {
 		switch (item.getItemId()) {
 		case MENU_ITEM_RESTART:
 			showDialog(DIALOG_RESTART);
@@ -190,12 +188,14 @@ public class SolvePuzzleActivity extends Activity {
 		case MENU_ITEM_DELETE:
 			showDialog(DIALOG_DELETE_PUZZLE);
 			return true;
+		default:
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
-	protected Dialog onCreateDialog(int id) {
+	protected final Dialog onCreateDialog(final int id) {
 		switch (id) {
 		case DIALOG_RESTART:
 			return new AlertDialog.Builder(this)
@@ -204,8 +204,8 @@ public class SolvePuzzleActivity extends Activity {
 					.setMessage(R.string.restart_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int whichButton) {
+								public void onClick(final DialogInterface dialog,
+										final int whichButton) {
 									// Restart game
 									mGame.reset();
 									mCrosswordGrid.resetView();
@@ -224,23 +224,25 @@ public class SolvePuzzleActivity extends Activity {
 					.setMessage(R.string.delete_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int whichButton) {
+								public void onClick(final DialogInterface dialog,
+										final int whichButton) {
 									mDatabase.deleteCrossword(mGame
 											.getId());
 									SolvePuzzleActivity.this.finish();
 								}
 							}).setNegativeButton(android.R.string.no, null)
 					.create();
+		default:
+			break;
 		}
 		return null;
 	}
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	public final boolean onKeyDown(final int keyCode, final KeyEvent event) {
 		if (keyCode == KEYCODE_PHOTO) {
 			Intent intent = new Intent(this, ImageActivity.class);
-			intent.putExtra(ScanActivity.PHOTO, mGame.getPhoto());
+			intent.putExtra(Constants.EXTRA_PHOTO, mGame.getPhoto());
 			startActivity(intent);
 		}
 		return super.onKeyDown(keyCode, event);
@@ -268,7 +270,7 @@ public class SolvePuzzleActivity extends Activity {
 		 * 
 		 * @param targetActivity
 		 */
-		public BasicOnKeyboardActionListener(Activity targetActivity) {
+		public BasicOnKeyboardActionListener(final Activity targetActivity) {
 			mTargetActivity = targetActivity;
 		}
 
@@ -293,24 +295,24 @@ public class SolvePuzzleActivity extends Activity {
 		}
 
 		@Override
-		public void onText(CharSequence text) {
+		public void onText(final CharSequence text) {
 			// Do nothing
 		}
 
 		@Override
-		public void onRelease(int primaryCode) {
+		public void onRelease(final int primaryCode) {
 			// Do nothing
 		}
 
 		@Override
-		public void onPress(int primaryCode) {
+		public void onPress(final int primaryCode) {
 			// Do nothing
 		}
 
 		@Override
-		public void onKey(int primaryCode, int[] keyCodes) {
+		public final void onKey(final int primaryCode, final int[] keyCodes) {
 			long eventTime = System.currentTimeMillis();
-			int metaState = 193;
+			int metaState = KeyEvent.META_SHIFT_MASK;
 			if (primaryCode == KeyEvent.KEYCODE_DEL
 					|| primaryCode == KEYCODE_PHOTO) {
 				metaState = 0;
@@ -326,7 +328,7 @@ public class SolvePuzzleActivity extends Activity {
 	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
 
 		@Override
-		public boolean onCellSelected(Cell cell) {
+		public final boolean onCellSelected(final Cell cell) {
 			if (!cell.isWhite()) {
 				Log.e("SolvePuzzleActivity", "Attempted to select black cell");
 				return false;
@@ -344,17 +346,18 @@ public class SolvePuzzleActivity extends Activity {
 			mDownClue.setText(downEntry == null ? "" : downEntry.getClueNum()
 					+ "d. " + puzzle.getClue(downEntry.getClueNum(), false));
 
+			final int blue = Color.rgb(50, 50, 255);
 			if (downEntry == null) {
-				mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+				mAcrossClue.setTextColor(blue);
 				mDownClue.setTextColor(Color.BLACK);
 			} else if (acrossEntry == null) {
-				mDownClue.setTextColor(Color.rgb(50, 50, 255));
+				mDownClue.setTextColor(blue);
 				mAcrossClue.setTextColor(Color.BLACK);
 			} else if (acrossMode) {
-				mAcrossClue.setTextColor(Color.rgb(50, 50, 255));
+				mAcrossClue.setTextColor(blue);
 				mDownClue.setTextColor(Color.BLACK);
 			} else if (!acrossMode) {
-				mDownClue.setTextColor(Color.rgb(50, 50, 255));
+				mDownClue.setTextColor(blue);
 				mAcrossClue.setTextColor(Color.BLACK);
 			}
 			return true;
@@ -367,13 +370,13 @@ public class SolvePuzzleActivity extends Activity {
 
 		private final SolvePuzzleActivity activity;
 
-		public GameTimer(SolvePuzzleActivity activity) {
+		public GameTimer(final SolvePuzzleActivity activity) {
 			super(1000);
 			this.activity = activity;
 		}
 
 		@Override
-		protected boolean step(int count, long time) {
+		protected boolean step(final int count, final long time) {
 			activity.updateTime();
 
 			// Run until explicitly stopped.

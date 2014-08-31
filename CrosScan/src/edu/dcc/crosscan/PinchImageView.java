@@ -35,11 +35,11 @@ public class PinchImageView extends View {
 	private float touchX, touchY;
 	private int mode = NORMAL;
 
-	public PinchImageView(Context context) {
+	public PinchImageView(final Context context) {
 		this(context, null);
 	}
 
-	public PinchImageView(Context context, AttributeSet attrs) {
+	public PinchImageView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 		
 		// Initializing variables
@@ -84,7 +84,7 @@ public class PinchImageView extends View {
 
 	@SuppressLint("NewApi")
 	@Override
-	protected void onDraw(Canvas canvas) {
+	protected final void onDraw(final Canvas canvas) {
 		canvas.save();
 		canvas.drawColor(0, Mode.CLEAR);
 		canvas.drawColor(Color.BLACK);
@@ -100,13 +100,13 @@ public class PinchImageView extends View {
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event) {
+	public final boolean onTouchEvent(final MotionEvent event) {
 		scaleGesture.onTouchEvent(event);
 		gestures.onTouchEvent(event);
 		return true;
 	}
 
-	public void setImageBitmap(Bitmap photo) {
+	public final void setImageBitmap(final Bitmap photo) {
 		// Initializing variables
 		image = photo;
 		initialize();
@@ -114,7 +114,7 @@ public class PinchImageView extends View {
 
 	public class ScaleListener implements OnScaleGestureListener {
 		@Override
-		public boolean onScale(ScaleGestureDetector detector) {
+		public final boolean onScale(final ScaleGestureDetector detector) {
 			Matrix transformationMatrix = new Matrix();
 			float focusX = detector.getFocusX();
 			float focusY = detector.getFocusY();
@@ -138,7 +138,7 @@ public class PinchImageView extends View {
 		}
 
 		@Override
-		public boolean onScaleBegin(ScaleGestureDetector detector) {
+		public final boolean onScaleBegin(final ScaleGestureDetector detector) {
 			mode = ZOOM;
 			lastFocusX = detector.getFocusX();
 			lastFocusY = detector.getFocusY();
@@ -146,7 +146,7 @@ public class PinchImageView extends View {
 		}
 
 		@Override
-		public void onScaleEnd(ScaleGestureDetector detector) {
+		public final void onScaleEnd(final ScaleGestureDetector detector) {
 			mode = NORMAL;
 		}
 
@@ -156,56 +156,56 @@ public class PinchImageView extends View {
 			GestureDetector.OnDoubleTapListener {
 
 		@Override
-		public boolean onDown(MotionEvent e) {
+		public final boolean onDown(final MotionEvent e) {
 			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
-		public boolean onScroll(MotionEvent downEvent,
-				MotionEvent currentEvent, float distanceX, float distanceY) {
-			drawMatrix.postTranslate(-2 * distanceX, -2 * distanceY);
+		public final boolean onScroll(final MotionEvent downEvent,
+				final MotionEvent currentEvent, final float distanceX, final float distanceY) {
+			drawMatrix.postTranslate(-4 * distanceX, -4 * distanceY);
 			invalidate();
 			return true;
 		}
 
 		@Override
-		public boolean onDoubleTap(MotionEvent arg0) {
+		public final boolean onDoubleTap(final MotionEvent arg0) {
 			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
-		public boolean onDoubleTapEvent(MotionEvent e) {
+		public final boolean onDoubleTapEvent(final MotionEvent e) {
 			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
-		public boolean onSingleTapConfirmed(MotionEvent e) {
+		public final boolean onSingleTapConfirmed(final MotionEvent e) {
 			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
-		public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-				float arg3) {
+		public final boolean onFling(final MotionEvent arg0, final MotionEvent arg1, final float arg2,
+				final float arg3) {
 			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
-		public void onLongPress(MotionEvent arg0) {
+		public void onLongPress(final MotionEvent arg0) {
 			// TODO Auto-generated method stub
 		}
 
 		@Override
-		public void onShowPress(MotionEvent e) {
+		public void onShowPress(final MotionEvent e) {
 			// TODO Auto-generated method stub
 		}
 
 		@Override
-		public boolean onSingleTapUp(MotionEvent e) {
+		public final boolean onSingleTapUp(final MotionEvent e) {
 			// TODO Auto-generated method stub
 			return false;
 		}

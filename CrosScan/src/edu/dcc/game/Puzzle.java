@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 import android.util.Log;
+import edu.dcc.crosscan.Constants;
 
 /**
  * Consists of grid and clues
@@ -35,20 +35,8 @@ public class Puzzle {
 	// Puzzle change listeners
 	private final List<OnChangeListener> changeListeners = new ArrayList<OnChangeListener>();
 
-	// Data validation fields
-	/**
-	 * String is expected to be in format "00|00|10...", where each number
-	 * represents cell color or value
-	 */
-	public static int DATA_VERSION_PLAIN = 0;
-	/**
-	 * See {@link #DATA_PATTERN_VERSION_1} and {@link #serialize()}.
-	 */
-	public static int DATA_VERSION_1 = 1;
-	private static Pattern DATA_PATTERN_VERSION_PLAIN = Pattern
-			.compile("^\\d*$");
-	private static Pattern DATA_PATTERN_VERSION_1 = Pattern
-			.compile("^version: 1\\n(?#grid_size)\\d\\|((?#white)[01]\\|(?#value)\\w\\|)*$");
+	// String is expected to be in format "0 |0 |1 ...", where each number
+	// represents cell color or value.
 
 	/* Constructors */
 
@@ -69,7 +57,7 @@ public class Puzzle {
 		// Initialize clues
 		initClues(clues);
 
-		Log.i("CrosswordScan/Puzzle", "Puzzle instantiated");
+		Log.i("CrosScan/Puzzle", "Puzzle instantiated");
 	}
 
 	/**
@@ -339,7 +327,7 @@ public class Puzzle {
 		for (int row = 0; row < height; row++) {
 			for (int col = 0; col < width; col++) {
 				char value = grid[row][col].getValue();
-				if (value != 0) {
+				if (value != Constants.CHAR_SPACE) {
 					valueCount++;
 				}
 			}
@@ -394,17 +382,7 @@ public class Puzzle {
 	 */
 	public static Puzzle deserialize(String data) {
 		Log.i("Puzzle", data.toString());
-		String[] lines = data.split("\n");
-		if (lines.length == 0) {
-			throw new IllegalArgumentException(
-					"Cannot deserialize crossword, data corrupted.");
-		}
-
-		if (lines[0].equals("version: 1")) {
-			return deserialize(new StringTokenizer(lines[1], "|"));
-		} else {
-			return fromString(new StringTokenizer(lines[0], "|"));
-		}
+		return deserialize(new StringTokenizer(data, "|"));
 	}
 
 	/**
@@ -443,46 +421,6 @@ public class Puzzle {
 	}
 
 	/**
-	 * Creates grid instance from given string. String is expected to be in
-	 * format "1A|1B|1C|00|00|00|00|...|", where each number represents cell
-	 * color and each letter its entry.
-	 * 
-	 * @param data
-	 * @return grid
-	 */
-	public static Puzzle fromString(StringTokenizer data) {
-		// Get grid size
-		int height = Integer.parseInt(data.nextToken());
-		int width = Integer.parseInt(data.nextToken());
-
-		// Get grid
-		Cell[][] grid = new Cell[height][width];
-		for (int row = 0; row < height; row++) {
-			for (int col = 0; col < width; col++) {
-				String token = data.nextToken();
-				char color = token.charAt(0), value = 0;
-				Cell cell = new Cell(color == '1');
-				if ((token.charAt(1) >= 65 && token.charAt(1) <= 90)) {
-					value = token.charAt(1);
-				}
-				cell.setValue(value);
-				grid[row][col] = cell;
-			}
-		}
-
-		// Get clues
-		if (!data.hasMoreTokens()) {
-			return new Puzzle(height, width, grid, null);
-		}
-		ArrayList<String> clues = new ArrayList<String>();
-		while (data.hasMoreTokens()) {
-			clues.add(data.nextToken());
-		}
-
-		return new Puzzle(height, width, grid, clues);
-	}
-
-	/**
 	 * Serialize puzzle
 	 * 
 	 * @return string
@@ -500,7 +438,6 @@ public class Puzzle {
 	 * @return
 	 */
 	public void serialize(StringBuilder data) {
-		data.append("version: 1\n");
 		data.append(height + "|");
 		data.append(width + "|");
 		for (int row = 0; row < height; row++) {
@@ -603,28 +540,4 @@ public class Puzzle {
 		 */
 		void onChange();
 	}
-
-	/*
-	 * Data validation methods
-	 */
-
-	/**
-	 * Returns true, if given <code>data</code> conform to format of given data
-	 * version.
-	 * 
-	 * @param data
-	 * @param dataVersion
-	 * @return
-	 */
-	public static boolean isValid(String data, int dataVersion) {
-		if (dataVersion == DATA_VERSION_PLAIN) {
-			return DATA_PATTERN_VERSION_PLAIN.matcher(data).matches();
-		} else if (dataVersion == DATA_VERSION_1) {
-			return DATA_PATTERN_VERSION_1.matcher(data).matches();
-		} else {
-			throw new IllegalArgumentException("Unknown version: "
-					+ dataVersion);
-		}
-	}
-
 }

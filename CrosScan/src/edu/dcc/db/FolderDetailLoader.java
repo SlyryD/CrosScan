@@ -52,7 +52,7 @@ public class FolderDetailLoader {
 						}
 					});
 				} catch (Exception e) {
-					// this is some unimportant background stuff, do not fail
+					// Unimportant background stuff, do not fail
 					Log.e(TAG, "Error occured while loading full folder info.",
 							e);
 				}

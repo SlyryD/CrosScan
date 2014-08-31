@@ -1,2 +1,0 @@
-edu.dcc.crosswordscan.CrosswordGridView:
-Moved from game package

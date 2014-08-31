@@ -49,7 +49,7 @@ abstract class Timer extends Handler {
 	 * @param ival
 	 *            Tick interval in ms.
 	 */
-	public Timer(long ival) {
+	public Timer(final long ival) {
 		mTickInterval = ival;
 		mIsRunning = false;
 		mAccumTime = 0;
@@ -67,8 +67,9 @@ abstract class Timer extends Handler {
 	 * call super.start().
 	 */
 	public void start() {
-		if (mIsRunning)
+		if (mIsRunning) {
 			return;
+		}
 
 		mIsRunning = true;
 
@@ -169,8 +170,9 @@ abstract class Timer extends Handler {
 					// it for a tick after now. (Otherwise we'd end
 					// up with a zillion events queued.)
 					mNextTime += mTickInterval;
-					if (mNextTime <= now)
+					if (mNextTime <= now) {
 						mNextTime += mTickInterval;
+					}
 					postAtTime(runner, mNextTime);
 				} else {
 					mIsRunning = false;
@@ -193,7 +195,7 @@ abstract class Timer extends Handler {
 	 *            A Bundle in which to place any state information we wish to
 	 *            save.
 	 */
-	void saveState(Bundle outState) {
+	void saveState(final Bundle outState) {
 		// Accumulate all time up to now, so we know where we're saving.
 		if (mIsRunning) {
 			long now = SystemClock.uptimeMillis();
@@ -216,7 +218,7 @@ abstract class Timer extends Handler {
 	 * @return true if the state was restored OK; false if the saved state was
 	 *         incompatible with the current configuration.
 	 */
-	boolean restoreState(Bundle map) {
+	boolean restoreState(final Bundle map) {
 		return restoreState(map, true);
 	}
 
@@ -231,7 +233,7 @@ abstract class Timer extends Handler {
 	 * @return true if the state was restored OK; false if the saved state was
 	 *         incompatible with the current configuration.
 	 */
-	boolean restoreState(Bundle map, boolean run) {
+	boolean restoreState(final Bundle map, final boolean run) {
 		mTickInterval = map.getLong("tickInterval");
 		mIsRunning = map.getBoolean("isRunning");
 		mTickCount = map.getInt("tickCount");
@@ -240,10 +242,11 @@ abstract class Timer extends Handler {
 
 		// If we were running, restart if requested, else stop.
 		if (mIsRunning) {
-			if (run)
+			if (run) {
 				start();
-			else
+			} else {
 				mIsRunning = false;
+			}
 		}
 
 		return true;

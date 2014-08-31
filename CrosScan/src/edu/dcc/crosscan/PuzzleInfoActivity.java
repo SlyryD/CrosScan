@@ -16,12 +16,10 @@ import edu.dcc.game.CrosswordGame;
 
 public class PuzzleInfoActivity extends ListActivity {
 
-	public static final String EXTRA_CROSSWORD_ID = "id";
-
 	private CrosswordDatabase mDatabase;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_puzzle_info);
 		setTitle(R.string.puzzle_info);
@@ -29,7 +27,7 @@ public class PuzzleInfoActivity extends ListActivity {
 		mDatabase = new CrosswordDatabase(getApplicationContext());
 
 		CrosswordGame game = mDatabase.getCrossword(getIntent().getLongExtra(
-				EXTRA_CROSSWORD_ID, 1));
+				Constants.EXTRA_CROSSWORD_ID, 1));
 
 		InfoItem[] items = new InfoItem[] {
 				new InfoItem("Title", game.getTitle()),
@@ -55,7 +53,7 @@ public class PuzzleInfoActivity extends ListActivity {
 		public String header;
 		public String footer;
 
-		public InfoItem(String header, String footer) {
+		public InfoItem(final String header, final String footer) {
 			this.header = header;
 			this.footer = footer;
 		}
@@ -63,14 +61,14 @@ public class PuzzleInfoActivity extends ListActivity {
 		/**
 		 * @return the header
 		 */
-		public String getHeader() {
+		public final String getHeader() {
 			return header;
 		}
 
 		/**
 		 * @return the footer
 		 */
-		public String getFooter() {
+		public final String getFooter() {
 			return footer;
 		}
 
@@ -79,14 +77,14 @@ public class PuzzleInfoActivity extends ListActivity {
 	public class InfoItemAdapter extends ArrayAdapter<InfoItem> {
 		private InfoItem[] items;
 
-		public InfoItemAdapter(Context context, int textViewResourceId,
-				InfoItem[] items) {
+		public InfoItemAdapter(final Context context, final int textViewResourceId,
+				final InfoItem[] items) {
 			super(context, textViewResourceId, items);
 			this.items = items;
 		}
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
+		public final View getView(final int position, final View convertView, final ViewGroup parent) {
 			View view = convertView;
 			if (view == null) {
 				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);

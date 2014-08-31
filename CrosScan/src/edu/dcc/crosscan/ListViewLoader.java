@@ -33,7 +33,7 @@ public class ListViewLoader extends ListActivity implements
 			+ " != '' ))";
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		// Create a progress bar to display while the list loads
@@ -65,7 +65,7 @@ public class ListViewLoader extends ListActivity implements
 	}
 
 	// Called when a new Loader needs to be created
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+	public final Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
 		// Now create and return a CursorLoader that will take care of
 		// creating a Cursor for the data being displayed.
 		return new CursorLoader(this, ContactsContract.Data.CONTENT_URI,
@@ -73,7 +73,7 @@ public class ListViewLoader extends ListActivity implements
 	}
 
 	// Called when a previously created loader has finished loading
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+	public final void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 		// Swap the new cursor in. (The framework will take care of closing the
 		// old cursor once we return.)
 		mAdapter.swapCursor(data);
@@ -81,7 +81,7 @@ public class ListViewLoader extends ListActivity implements
 
 	// Called when a previously created loader is reset, making the data
 	// unavailable
-	public void onLoaderReset(Loader<Cursor> loader) {
+	public final void onLoaderReset(final Loader<Cursor> loader) {
 		// This is called when the last Cursor provided to onLoadFinished()
 		// above is about to be closed. We need to make sure we are no
 		// longer using it.
@@ -89,7 +89,7 @@ public class ListViewLoader extends ListActivity implements
 	}
 
 	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
+	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
 		// Do something when a list item is clicked
 	}
 }

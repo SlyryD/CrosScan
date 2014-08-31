@@ -16,7 +16,7 @@ import edu.dcc.game.Puzzle;
 import edu.dcc.game.Puzzle.OnChangeListener;
 
 /**
- * Crossword grid view
+ * Crossword grid view.
  * 
  * @author Ryan
  */
@@ -48,11 +48,11 @@ public class CrosswordGridView extends View {
 	// PointF downPt = new PointF(); // Record position on down
 	// PointF startPt = new PointF(); // Record start position of view
 
-	public CrosswordGridView(Context context) {
+	public CrosswordGridView(final Context context) {
 		this(context, null);
 	}
 
-	public CrosswordGridView(Context context, AttributeSet attrs) {
+	public CrosswordGridView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 
 		setFocusable(true);
@@ -94,20 +94,20 @@ public class CrosswordGridView extends View {
 		a.recycle();
 	}
 
-	public Cell getSelectedCell() {
+	public final Cell getSelectedCell() {
 		return mSelectedCell;
 	}
 
-	public void setGame(CrosswordGame game) {
+	public final void setGame(final CrosswordGame game) {
 		mGame = game;
 		setPuzzle(game.getPuzzle());
 	}
 
-	public Puzzle getPuzzle() {
+	public final Puzzle getPuzzle() {
 		return puzzle;
 	}
 
-	public void setPuzzle(Puzzle puzzle) {
+	public final void setPuzzle(final Puzzle puzzle) {
 		this.puzzle = puzzle;
 
 		if (this.puzzle != null) {
@@ -127,7 +127,7 @@ public class CrosswordGridView extends View {
 		postInvalidate();
 	}
 
-	public OnCellSelectedListener getOnCellSelectedListener() {
+	public final OnCellSelectedListener getOnCellSelectedListener() {
 		return mOnCellSelectedListener;
 	}
 
@@ -137,62 +137,62 @@ public class CrosswordGridView extends View {
 	 * 
 	 * @param l
 	 */
-	public void setOnCellSelectedListener(OnCellSelectedListener l) {
+	public final void setOnCellSelectedListener(final OnCellSelectedListener l) {
 		mOnCellSelectedListener = l;
 	}
 
-	public int getLineColor() {
+	public final int getLineColor() {
 		return mLinePaint.getColor();
 	}
 
-	public void setLineColor(int color) {
+	public final void setLineColor(final int color) {
 		mLinePaint.setColor(color);
 	}
 
-	public int getTextColor() {
+	public final int getTextColor() {
 		return mCellValuePaint.getColor();
 	}
 
-	public void setTextColor(int color) {
+	public final void setTextColor(final int color) {
 		mCellValuePaint.setColor(color);
 	}
 
-	public int getTextColorClueNum() {
+	public final int getTextColorClueNum() {
 		return mClueNumPaint.getColor();
 	}
 
-	public void setTextColorClueNum(int color) {
+	public final void setTextColorClueNum(final int color) {
 		mClueNumPaint.setColor(color);
 	}
 
-	public int getBackgroundColorBlackCell() {
+	public final int getBackgroundColorBlackCell() {
 		return mBackgroundColorBlackCell.getColor();
 	}
 
-	public void setBackgroundColorBlackCell(int color) {
+	public final void setBackgroundColorBlackCell(final int color) {
 		mBackgroundColorBlackCell.setColor(color);
 	}
 
-	public int getBackgroundColorEntry() {
+	public final int getBackgroundColorEntry() {
 		return mBackgroundColorEntry.getColor();
 	}
 
-	public void setBackgroundColorEntry(int color) {
+	public final void setBackgroundColorEntry(final int color) {
 		mBackgroundColorEntry.setColor(color);
 		mBackgroundColorEntry.setAlpha(100);
 	}
 
-	public int getBackgroundColorSelected() {
+	public final int getBackgroundColorSelected() {
 		return mBackgroundColorSelected.getColor();
 	}
 
-	public void setBackgroundColorSelected(int color) {
+	public final void setBackgroundColorSelected(final int color) {
 		mBackgroundColorSelected.setColor(color);
 		mBackgroundColorSelected.setAlpha(100);
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
+	protected final void onDraw(final Canvas canvas) {
 		super.onDraw(canvas);
 
 		int width = getWidth() - getPaddingLeft() - getPaddingRight();
@@ -231,12 +231,11 @@ public class CrosswordGridView extends View {
 
 					// Draw cell text
 					char value = cell.getValue();
-					if (value != 0) {
+					if (value != Constants.CHAR_SPACE) {
 						canvas.drawText(String.valueOf(value), cellLeft
 								+ mNumberLeft + 1, cellTop + mNumberTop
 								- valueAscent + 4, mCellValuePaint);
 					}
-
 				}
 			}
 
@@ -277,7 +276,8 @@ public class CrosswordGridView extends View {
 	}
 
 	@Override
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+	protected final void onMeasure(final int widthMeasureSpec,
+			final int heightMeasureSpec) {
 		int widthMode = MeasureSpec.getMode(widthMeasureSpec);
 		int widthSize = MeasureSpec.getSize(widthMeasureSpec);
 		int heightMode = MeasureSpec.getMode(heightMeasureSpec);
@@ -337,7 +337,7 @@ public class CrosswordGridView extends View {
 		mClueNumTop = mCellWidth / 50.0f;
 	}
 
-	protected boolean onCellSelected(Cell cell) {
+	protected final boolean onCellSelected(final Cell cell) {
 		if (mOnCellSelectedListener != null) {
 			return mOnCellSelectedListener.onCellSelected(cell);
 		}
@@ -345,7 +345,7 @@ public class CrosswordGridView extends View {
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event) {
+	public final boolean onTouchEvent(final MotionEvent event) {
 
 		int x = (int) event.getX();
 		int y = (int) event.getY();
@@ -383,7 +383,7 @@ public class CrosswordGridView extends View {
 				mSelectedCell = selected;
 				invalidate(); // Update board when selected cell changes
 			}
-			
+
 			mDownCell = null;
 			break;
 		case MotionEvent.ACTION_CANCEL:
@@ -399,7 +399,7 @@ public class CrosswordGridView extends View {
 	}
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	public final boolean onKeyDown(final int keyCode, final KeyEvent event) {
 		if (mGame == null) {
 			return false;
 		}
@@ -412,7 +412,7 @@ public class CrosswordGridView extends View {
 		} else if (keyCode == KeyEvent.KEYCODE_DEL) {
 			// Clear value in selected cell
 			if (mSelectedCell != null) {
-				if (mSelectedCell.getValue() == 0) {
+				if (mSelectedCell.getValue() == Constants.CHAR_SPACE) {
 					if (mGame.isAcrossMode() ? !moveCellSelection(-1, 0)
 							: !moveCellSelection(0, -1)) {
 						Entry previousEntry = getPreviousEntry();
@@ -429,7 +429,7 @@ public class CrosswordGridView extends View {
 		return false;
 	}
 
-	private void setCellValue(Cell cell, char value) {
+	private void setCellValue(final Cell cell, final char value) {
 		if (cell.isWhite()) {
 			if (mGame != null) {
 				mGame.setCellValue(cell, value);
@@ -443,7 +443,7 @@ public class CrosswordGridView extends View {
 	 * Moves selected cell by one. If cell is full, move to next empty white
 	 * cell. If edge or black cell is reached, selection moves to next entry.
 	 */
-	public void moveCellSelection() {
+	public final void moveCellSelection() {
 		boolean acrossMode = mGame.isAcrossMode();
 		Cell original = mSelectedCell;
 		do {
@@ -455,7 +455,8 @@ public class CrosswordGridView extends View {
 				Cell nextCell = getNextEntry().getCell(0);
 				moveCellSelectionTo(nextCell.getRow(), nextCell.getColumn());
 			}
-		} while (mSelectedCell.getValue() != 0 && mSelectedCell != original);
+		} while (mSelectedCell.getValue() != Constants.CHAR_SPACE
+				&& mSelectedCell != original);
 		postInvalidate();
 	}
 
@@ -468,7 +469,7 @@ public class CrosswordGridView extends View {
 	 * @param vy
 	 *            Vertical offset, by which move selected cell.
 	 */
-	private boolean moveCellSelection(int vx, int vy) {
+	private boolean moveCellSelection(final int vx, final int vy) {
 		int newRow = 0;
 		int newCol = 0;
 
@@ -489,7 +490,7 @@ public class CrosswordGridView extends View {
 	 *            Column index of cell which should be selected.
 	 * @return True, if cell was successfully selected.
 	 */
-	private boolean moveCellSelectionTo(int row, int col) {
+	private boolean moveCellSelectionTo(final int row, final int col) {
 		if (col >= 0 && col < puzzle.getWidth() && row >= 0
 				&& row < puzzle.getHeight()) {
 			Cell newCell = puzzle.getCell(row, col);
@@ -505,7 +506,7 @@ public class CrosswordGridView extends View {
 		return false;
 	}
 
-	public void switchAcrossMode() {
+	public final void switchAcrossMode() {
 		mGame.setAcrossMode(!mGame.isAcrossMode());
 		invalidate();
 		if (mSelectedCell != null) {
@@ -513,7 +514,7 @@ public class CrosswordGridView extends View {
 		}
 	}
 
-	public void nextClue(boolean next) {
+	public final void nextClue(final boolean next) {
 		// Get next or previous entry
 		Entry entry = next ? getNextEntry() : getPreviousEntry();
 
@@ -521,7 +522,7 @@ public class CrosswordGridView extends View {
 		boolean found = false;
 		int index = 0;
 		while (index < entry.getLength() && !found) {
-			found = entry.getCell(index).getValue() == 0;
+			found = entry.getCell(index).getValue() == Constants.CHAR_SPACE;
 			index++;
 		}
 
@@ -530,7 +531,7 @@ public class CrosswordGridView extends View {
 		moveCellSelectionTo(cell.getRow(), cell.getColumn());
 	}
 
-	public void resetView() {
+	public final void resetView() {
 		mSelectedCell = puzzle.getFirstWhiteCell();
 		mOnCellSelectedListener.onCellSelected(mSelectedCell);
 	}
@@ -564,7 +565,7 @@ public class CrosswordGridView extends View {
 	 * @param y
 	 * @return cell at point
 	 */
-	private Cell getCellAtPoint(int x, int y) {
+	private Cell getCellAtPoint(final int x, final int y) {
 		// Take into account padding
 		int lx = x - getPaddingLeft();
 		int ly = y - getPaddingTop();
@@ -586,6 +587,6 @@ public class CrosswordGridView extends View {
 	 * @author romario
 	 */
 	public interface OnCellSelectedListener {
-		public boolean onCellSelected(Cell cell);
+		boolean onCellSelected(Cell cell);
 	}
 }

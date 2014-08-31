@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
@@ -27,20 +27,27 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 /**
  * Activity that allows user to scan crossword puzzles.
@@ -49,219 +56,373 @@ import android.widget.FrameLayout;
  */
 public class ScanActivity extends Activity {
 
-	// Request codes
+	/**
+	 * Request codes.
+	 */
 	public static final int CAMERA_REQUEST = 11, CONFIRM_GRID = 22,
 			REJECT_GRID = 33;
-	public static final String GRID = "grid";
-	public static final String PHOTO = "photo";
-	private static final String TAG = "CrosswordScan/ScanActivity";
 
-	// Camera
-	private Camera mCamera;
-	// Camera view
-	private ScanView mPreview;
-	private FrameLayout preview;
+	/**
+	 * ScanActivity tag.
+	 */
+	private static final String TAG = "CrosScan/ScanActivity";
 
-	// Task cancel variable
-	private AsyncTask<?, ?, ?> cancelTask;
+	/**
+	 * Layout that holds preview.
+	 */
+	private FrameLayout previewFrame;
 
+	/**
+	 * View that shows camera frames.
+	 */
+	private SurfaceView preview;
+
+	/**
+	 * Surface wrapper.
+	 */
+	private SurfaceHolder previewHolder;
+
+	/**
+	 * Android camera hardware.
+	 */
+	private Camera camera;
+
+	/**
+	 * Whether camera is sending frames.
+	 */
+	private boolean inPreview;
+
+	/**
+	 * Whether camera is configured.
+	 */
+	private boolean cameraConfigured;
+
+	/**
+	 * Callback for when picture is taken.
+	 */
+	private Camera.PictureCallback photoCallback = new ProcessPictureCallback();
+
+	/**
+	 * Callback for when surface is created, changed, or destroyed.
+	 */
+	private SurfaceHolder.Callback surfaceCallback = new SurfaceCallback();
+
+	/**
+	 * Loads OpenCV.
+	 */
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
-		public void onManagerConnected(int status) {
+		public void onManagerConnected(final int status) {
 			switch (status) {
-			case LoaderCallbackInterface.SUCCESS: {
+			case LoaderCallbackInterface.SUCCESS:
 				/* Enable camera view to start receiving frames */
 				Log.i(TAG, "OpenCV loaded successfully");
-			}
 				break;
-			default: {
+			default:
 				super.onManagerConnected(status);
-			}
 				break;
 			}
 		}
 	};
 
+	/**
+	 * Log activity initialization and catch unhandled exceptions.
+	 */
 	public ScanActivity() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
+
+		// Make sure camera releases on crash
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			public void uncaughtException(final Thread t, final Throwable ex) {
+				Log.wtf(TAG, ex);
+				if (camera != null) {
+					if (inPreview) {
+						camera.stopPreview();
+					}
+					camera.release();
+					camera = null;
+					inPreview = false;
+				}
+			}
+		});
 	}
 
-	/** Called when the activity is first created. */
+	/*
+	 * Called when the activity is first created.
+	 * 
+	 * @param savedInstanceState
+	 * 
+	 * @see android.app.Activity#onCreate(android.os.Bundle)
+	 */
+	@SuppressWarnings("deprecation")
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public final void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
 		// Initialize activity layout
 		Log.i(TAG, "called onCreate");
-		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_scan);
 
-		// Create an instance of Camera
-		mCamera = getCameraInstance();
+		// Create surface view and get holder
+		preview = new SurfaceView(this);
+		previewHolder = preview.getHolder();
+		previewHolder.addCallback(surfaceCallback);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		}
 
-		// Create preview and set as content of activity
-		mPreview = new ScanView(this);
-		mPreview.initCamera(mCamera);
-		preview = (FrameLayout) findViewById(R.id.preview);
-		preview.addView(mPreview);
+		// Add surface view to activity
+		previewFrame = (FrameLayout) findViewById(R.id.previewFrame);
+		previewFrame.addView(preview);
 	}
 
 	@Override
-	protected void onStart() {
+	protected final void onStart() {
+		// Runs every time activity is opened
 		Log.i(TAG, "called onStart");
 		super.onStart();
-		preview.setOnClickListener(new FocusListener());
 	}
 
 	@Override
-	protected void onResume() {
-		Log.i(TAG, "called onResume");
+	protected final void onResume() {
 		super.onResume();
+
+		Log.i(TAG, "called onResume");
+
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_8, this,
 				mLoaderCallback);
-		if (mCamera == null) {
-			mCamera = getCameraInstance();
-			mPreview.initCamera(mCamera);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+			Camera.CameraInfo info = new Camera.CameraInfo();
+
+			for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
+				Camera.getCameraInfo(i, info);
+
+				if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+					camera = Camera.open(i);
+				}
+			}
 		}
+
+		if (camera == null) {
+			camera = Camera.open();
+		}
+
+		startPreview();
 	}
 
 	@Override
-	protected void onPause() {
+	protected final void onPause() {
 		Log.i(TAG, "called onPause");
+
+		if (inPreview) {
+			camera.stopPreview();
+			preview.setOnClickListener(null);
+		}
+
+		camera.release();
+		camera = null;
+		inPreview = false;
+
 		super.onPause();
-		releaseCamera();
 	}
 
 	@Override
-	protected void onStop() {
+	protected final void onStop() {
 		Log.i(TAG, "called onStop");
 		super.onStop();
 	}
 
 	@Override
-	protected void onDestroy() {
+	protected final void onDestroy() {
 		Log.i(TAG, "called onDestroy");
 		super.onDestroy();
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK && cancelTask != null) {
-			cancelTask.cancel(true);
-			return true;
+	/**
+	 * Gets best camera preview size.
+	 * 
+	 * @param width
+	 * @param height
+	 * @param parameters
+	 * @return size
+	 */
+	private Camera.Size getBestPreviewSize(final int width, final int height,
+			final Camera.Parameters parameters) {
+		Camera.Size result = null;
+
+		for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
+			if (size.width <= width && size.height <= height) {
+				if (result == null) {
+					result = size;
+				} else {
+					int resultArea = result.width * result.height;
+					int newArea = size.width * size.height;
+
+					if (newArea > resultArea) {
+						result = size;
+					}
+				}
+			}
 		}
 
-		return super.onKeyDown(keyCode, event);
-	}
-
-	private void releaseCamera() {
-		mPreview.releaseCamera();
-		if (mCamera != null) {
-			mCamera.stopPreview();
-			mCamera.release(); // release the camera for other applications
-			mCamera = null;
-		}
-	}
-
-	/** A safe way to get an instance of the Camera object. */
-	public static Camera getCameraInstance() {
-		Camera c = null;
-		try {
-			c = Camera.open(); // attempt to get a Camera instance
-			Log.i(TAG, "Camera available");
-		} catch (Exception e) {
-			// Camera is not available (in use or does not exist)
-			Log.e(TAG, "Camera unavailable");
-		}
-		return c; // returns null if camera is unavailable
+		return result;
 	}
 
 	/**
-	 * Respond to button press by taking photo
+	 * Initialize camera preview.
 	 * 
-	 * @param view
+	 * @param width
+	 * @param height
 	 */
-	public void takePhoto(View view) {
-		// Once photo taken, view no longer clickable
-		preview.setOnClickListener(null);
-		// Take picture
-		mCamera.takePicture(null, null, new SaveAndProcessCallback());
+	private void initPreview(final int width, final int height) {
+		if (camera != null && previewHolder.getSurface() != null) {
+			try {
+				camera.setPreviewDisplay(previewHolder);
+			} catch (Throwable t) {
+				Log.e(TAG, "Exception in setPreviewDisplay()", t);
+				Toast.makeText(ScanActivity.this, t.getMessage(),
+						Toast.LENGTH_LONG).show();
+			}
+
+			if (!cameraConfigured) {
+				Camera.Parameters parameters = camera.getParameters();
+				Camera.Size size = getBestPreviewSize(width, height, parameters);
+
+				if (size != null) {
+					parameters.setPreviewSize(size.width, size.height);
+					parameters.setPictureFormat(ImageFormat.JPEG);
+					camera.setParameters(parameters);
+					cameraConfigured = true;
+				}
+			}
+		}
 	}
 
+	/**
+	 * Start camera preview.
+	 */
+	private void startPreview() {
+		if (cameraConfigured && camera != null) {
+			camera.setDisplayOrientation(Constants.DEGREES_90);
+			camera.startPreview();
+			preview.setOnClickListener(new FocusListener());
+			inPreview = true;
+		}
+	}
+
+	/**
+	 * Handles changes to preview surface.
+	 * 
+	 * @author Ryan
+	 */
+	private class SurfaceCallback implements SurfaceHolder.Callback {
+
+		@Override
+		public void surfaceCreated(final SurfaceHolder holder) {
+			Log.e(TAG, "Surface created");
+		}
+
+		@Override
+		public void surfaceChanged(final SurfaceHolder holder,
+				final int format, final int width, final int height) {
+			Log.e(TAG, "Surface changed");
+			initPreview(width, height);
+			startPreview();
+		}
+
+		@Override
+		public void surfaceDestroyed(final SurfaceHolder holder) {
+			Log.e(TAG, "Surface destroyed");
+		}
+	}
+
+	/**
+	 * Callback preview clicked.
+	 * 
+	 * @author Ryan
+	 */
 	private class FocusListener implements OnClickListener {
 		@Override
-		public void onClick(View v) {
+		public void onClick(final View v) {
 			Log.i(TAG, "onTouch logged");
-			mCamera.autoFocus(null);
+			if (inPreview) {
+				camera.autoFocus(new Camera.AutoFocusCallback() {
+					@Override
+					public void onAutoFocus(final boolean success,
+							final Camera camera) {
+						camera.takePicture(null, null, photoCallback);
+					}
+				});
+			}
 		}
 	}
 
-	private class SaveAndProcessCallback implements PictureCallback {
-		@SuppressLint("NewApi")
+	/**
+	 * Callback for when picture is taken.
+	 * 
+	 * @author Ryan
+	 */
+	private class ProcessPictureCallback implements PictureCallback {
 		@Override
-		public void onPictureTaken(byte[] data, Camera camera) {
-			// Release camera
-			releaseCamera();
-
-			// Save photo
-			SavePhotoTask spTask = new SavePhotoTask();
-			cancelTask = spTask;
-			spTask.execute(data);
-			String result = null;
-			try {
-				result = spTask.get();
-			} catch (CancellationException e) {
-				Log.e(TAG, "Take photo cancelled");
-				ScanActivity.this.recreate();
-				return;
-			} catch (InterruptedException e) {
-				Log.e(TAG, "Take photo interrupted");
-				return;
-			} catch (ExecutionException e) {
-				Log.e(TAG, "Take photo execution failed");
-				return;
-			} finally {
-				cancelTask = null;
-			}
-
+		public void onPictureTaken(final byte[] data, final Camera camera) {
 			// Process photo
 			ProcessTask pTask = new ProcessTask();
-			cancelTask = pTask;
-			pTask.execute(result);
+			Log.i(TAG, "Call execute thread: " + Thread.currentThread());
+			pTask.execute(data);
 			try {
-				String grid = pTask.get();
+				String puzzle = pTask.get();
 				Intent intent = new Intent(ScanActivity.this,
 						NamePuzzleActivity.class);
-				intent.putExtra(GRID, grid);
-				intent.putExtra(PHOTO, result);
+				intent.putExtra(Constants.EXTRA_PUZZLE, puzzle);
 				startActivity(intent);
 			} catch (CancellationException e) {
-				Log.e(TAG, "Process image cancelled");
-				ScanActivity.this.recreate();
+				Log.e(TAG, "Processing cancelled", e);
+				camera.startPreview();
+				inPreview = true;
 				return;
 			} catch (InterruptedException e) {
-				Log.e(TAG, "Process image interrupted");
+				Log.e(TAG, "Processing interrupted", e);
 				return;
 			} catch (ExecutionException e) {
-				Log.e(TAG, "Process image execution failed");
+				Log.e(TAG, "Processing execution failed", e);
 				return;
-			} finally {
-				cancelTask = null;
 			}
 		}
 	}
 
-	private class SavePhotoTask extends AsyncTask<byte[], Void, String> {
+	/**
+	 * Handles image processing with OpenCV.
+	 * 
+	 * @author Ryan
+	 */
+	private class ProcessTask extends AsyncTask<byte[], Void, String> {
 
-		ProgressDialog dialog;
+		/**
+		 * Progress dialog for tasks.
+		 */
+		private ProgressDialog dialog;
 
+		@Override
 		protected void onPreExecute() {
-			dialog = ProgressDialog.show(ScanActivity.this, "Saving photo...",
-					"Press back button to cancel.", true, true);
+			dialog = ProgressDialog.show(ScanActivity.this, "Processing...",
+					"Press back button to cancel.", true, true,
+					new OnCancelListener() {
+						@Override
+						public void onCancel(DialogInterface dialog) {
+							ProcessTask.this.cancel(true);
+						}
+					});
+			// dialog = ProgressDialog.show(getBaseContext(), "Hello", "Hello");
 			// TODO: Remove debug
 			Log.i(TAG, "Message thread: " + Thread.currentThread());
 		}
 
 		@Override
-		protected String doInBackground(byte[]... data) {
+		protected String doInBackground(final byte[]... data) {
+			// TODO: Remove debug
+			Log.i(TAG, "Background thread: " + Thread.currentThread());
+
 			// Get path of file directory
 			String filePath = getFilePath();
 
@@ -273,23 +434,51 @@ public class ScanActivity extends Activity {
 			// Write file
 			writeFile(filePath, data[0]);
 
+			// Use OpenCV to recognize and construct grid
+			String result = recognizeGrid(filePath);
+			// generateRandomGrid();
+
 			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
+			// if (isCancelled()) {
+			// return null;
+			// }
 
-			// TODO: Remove debug
-			Log.i(TAG, "Background thread: " + Thread.currentThread());
+			// TODO: Use OCR to recognize clues
 
-			// Take photo and return file path
-			return filePath;
+			// Return string representation of puzzle
+			return filePath + "\n" + result;
+		}
+
+		// private String generateRandomGrid() {
+		// Random r = new Random(13254);
+		// StringBuilder sb = new StringBuilder();
+		// sb.append("13|13|");
+		// for (int i = 0; i < 13; i++) {
+		// for (int j = 0; j < 13; j++) {
+		// sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
+		// sb.append(Constants.CHAR_SPACE).append("|");
+		// }
+		// }
+		// return sb.toString();
+		// }
+
+		@Override
+		protected void onPostExecute(final String result) {
+			super.onPostExecute(result);
+			dialog.dismiss();
+		}
+
+		@Override
+		protected void onCancelled() {
+			super.onCancelled();
+			dialog.dismiss();
 		}
 
 		/**
 		 * Create a File for saving the image
 		 * 
 		 * @param type
-		 * @return
+		 * @return file path
 		 */
 		private String getFilePath() {
 			// Find directory for photo storage
@@ -298,22 +487,12 @@ public class ScanActivity extends Activity {
 							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
 					"edu.dcc.crosscan");
 
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
 			// Create the storage directory if it does not exist
 			if (!mediaStorageDir.exists()) {
 				if (!mediaStorageDir.mkdirs()) {
-					Log.d(TAG, "failed to create directory");
+					Log.e(TAG, "failed to create directory");
 					return null;
 				}
-			}
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
 			}
 
 			// Create a media file name
@@ -323,7 +502,13 @@ public class ScanActivity extends Activity {
 					+ timeStamp + ".jpg";
 		}
 
-		private void writeFile(String filePath, byte[] data) {
+		/**
+		 * Writes image file.
+		 * 
+		 * @param filePath
+		 * @param data
+		 */
+		private void writeFile(final String filePath, final byte[] data) {
 			try {
 				// Create stream
 				FileOutputStream fos = new FileOutputStream(filePath);
@@ -336,56 +521,18 @@ public class ScanActivity extends Activity {
 			}
 		}
 
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-		}
-
-		@Override
-		protected void onCancelled() {
-			super.onCancelled();
-			dialog.dismiss();
-		}
-	}
-
-	private class ProcessTask extends AsyncTask<String, Void, String> {
-
-		ProgressDialog dialog;
-
-		protected void onPreExecute() {
-			dialog = ProgressDialog.show(ScanActivity.this, "Processing...",
-					"Press back button to cancel.", true, true);
-			// TODO: Remove debug
-			Log.i(TAG, "Message thread: " + Thread.currentThread());
-		}
-
-		@Override
-		protected String doInBackground(String... filePaths) {
-			// TODO: Remove debug
-			Log.i(TAG, "Background thread: " + Thread.currentThread());
-
-			// Use OpenCV to recognize and construct grid
-			String result = recognizeGrid(filePaths[0]);
-			// generateRandomGrid();
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// TODO: Use OCR to recognize clues
-
-			// Return string representation of puzzle
-			return result;
-		}
-
-		private String recognizeGrid(String filePath) {
+		/**
+		 * Uses computer vision to recognize crossword grid.
+		 * 
+		 * @param filePath
+		 * @return string representation of grid
+		 */
+		private String recognizeGrid(final String filePath) {
 			// Read image
 			Mat img = Highgui.imread(filePath);
 			if (img.empty()) {
 				Log.e(TAG, "Cannot open " + filePath);
-				System.exit(1);
+				cancel(true);
 			}
 			Log.i(TAG, "Read " + filePath);
 
@@ -395,7 +542,7 @@ public class ScanActivity extends Activity {
 			}
 
 			// Rotate image
-			Core.flip(img.t(), img, mPreview.getDegrees() / 90);
+			Core.flip(img.t(), img, 1);
 
 			// Check if cancelled
 			if (isCancelled()) {
@@ -440,7 +587,8 @@ public class ScanActivity extends Activity {
 
 			// Find lines using Hough transform
 			int maxGap = Math.min(rect.height, rect.width);
-			Imgproc.HoughLinesP(edges, lines, 1, Math.PI / 180, 200, 0, maxGap);
+			Imgproc.HoughLinesP(edges, lines, 1, Math.PI
+					/ Constants.DEGREES_180, 200, 0, maxGap);
 			edges.release();
 			Log.i(TAG, "Detected lines");
 
@@ -448,7 +596,7 @@ public class ScanActivity extends Activity {
 			if (lines.cols() < 4) {
 				Log.e(TAG, "Not enough lines detected.");
 				// TODO: Display "please retake photo"
-				cancelTask.cancel(true);
+				cancel(true);
 			}
 
 			// Check if cancelled
@@ -472,7 +620,7 @@ public class ScanActivity extends Activity {
 
 			// Find most frequent line angle
 			int angle = 0;
-			int[] angleCount = new int[180];
+			int[] angleCount = new int[Constants.DEGREES_180];
 			for (Line line : lineSet) {
 				int theta = findAngle(line);
 				angleCount[theta] += 1;
@@ -489,11 +637,12 @@ public class ScanActivity extends Activity {
 
 			// Base orientation on most frequent angle
 			int horizontal = angle;
-			int vertical = normalize(angle + 90);
+			int vertical = normalize(angle + Constants.DEGREES_90);
 
 			// Switch horizontal and vertical if necessary
 			// Backwards because of rotation?
-			if (Math.abs(vertical - 90) > Math.abs(horizontal - 90)) {
+			if (Math.abs(vertical - Constants.DEGREES_90) > Math.abs(horizontal
+					- Constants.DEGREES_90)) {
 				int temp = vertical;
 				vertical = horizontal;
 				horizontal = temp;
@@ -517,7 +666,7 @@ public class ScanActivity extends Activity {
 			if (hLines.size() < 2 || vLines.size() < 2) {
 				Log.e(TAG, "Not enough lines detected.");
 				// TODO: Display "please retake photo"
-				cancelTask.cancel(true);
+				cancel(true);
 			}
 
 			// Check if cancelled
@@ -552,7 +701,7 @@ public class ScanActivity extends Activity {
 			if (hList.size() < 2) {
 				System.err.println("Not enough horizontal lines found.");
 				// TODO: Display "please retake photo"
-				cancelTask.cancel(true);
+				cancel(true);
 			}
 
 			// Check if cancelled
@@ -569,7 +718,7 @@ public class ScanActivity extends Activity {
 			if (vList.size() < 2) {
 				System.err.println("Not enough vertical lines found.");
 				// TODO: Display "please retake photo"
-				cancelTask.cancel(true);
+				cancel(true);
 			}
 
 			// Check if cancelled
@@ -628,16 +777,15 @@ public class ScanActivity extends Activity {
 
 			// Construct data
 			StringBuilder data = new StringBuilder();
-			data.append("version: 1\n");
 			data.append(height + "|").append(width + "|");
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
 					if (cells[i][j] >= cutoff) {
-						data.append("1").append("|");
+						data.append("1");
 					} else {
-						data.append("0").append("|");
+						data.append("0");
 					}
-					data.append((char) 0).append("|");
+					data.append(Constants.CHAR_SPACE).append("|");
 				}
 			}
 
@@ -647,12 +795,12 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Find rectangular boundaries of grid
+		 * Find rectangular boundaries of grid.
 		 * 
 		 * @param thresh
 		 * @return bounds
 		 */
-		private Rect findGridBounds(Mat thresh) {
+		private Rect findGridBounds(final Mat thresh) {
 			// Keep track of largest area
 			double largestArea = 0;
 			int largestIndex = 0;
@@ -690,62 +838,64 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Returns line angle between 0 and pi radians (exclusive)
+		 * Returns line angle between 0 and pi radians (exclusive).
 		 * 
 		 * @param line
 		 * @return angle
 		 */
-		private int findAngle(Line line) {
+		private int findAngle(final Line line) {
 			double x = line.x1 - line.x2, y = line.y1 - line.y2;
 			if (x == 0) {
-				return 90;
+				return Constants.DEGREES_90;
 			}
-			return (int) Math
-					.round(180 * normalize(Math.atan(y / x)) / Math.PI);
+			return (int) Math.round(Constants.DEGREES_180
+					* normalize(Math.atan(y / x)) / Math.PI);
 		}
 
 		/**
-		 * Returns equivalent angle between 0 and pi radians (exclusive)
+		 * Returns equivalent angle between 0 and pi radians (exclusive).
 		 * 
 		 * @param theta
 		 * @return normalized angle
 		 */
-		private double normalize(double theta) {
+		private double normalize(final double theta) {
 			return (theta + (2 * Math.PI)) % Math.PI;
 		}
 
 		/**
-		 * Returns equivalent angle between 0 and 180 degrees (exclusive)
+		 * Returns equivalent angle between 0 and 180 degrees (exclusive).
 		 * 
 		 * @param theta
 		 * @return normalized angle
 		 */
-		private int normalize(int theta) {
-			return (theta + 360) % 180;
+		private int normalize(final int theta) {
+			return (theta + 360) % Constants.DEGREES_180;
 		}
 
 		/**
-		 * Returns whether given line is close to angle
+		 * Returns whether given line is close to angle.
 		 * 
 		 * @param line
 		 * @return horizontal
 		 */
-		private boolean closeToAngle(Line line, int angle) {
+		private boolean closeToAngle(final Line line, final int angle) {
 			int threshold = 4, theta = findAngle(line);
 			return Math.abs(theta - angle) < threshold
-					|| Math.abs(theta - angle - 180) < threshold;
+					|| Math.abs(theta - angle - Constants.DEGREES_180) < threshold;
 		}
 
 		/**
-		 * Finds largest list of consecutive equally spaced lines
+		 * Finds largest list of consecutive equally spaced lines.
 		 * 
 		 * @param lines
 		 * @param hor
 		 * @return result list
 		 */
-		private ArrayList<Line> findEquallySpacedLines(ArrayList<Line> lines,
-				boolean hor, int horizontal, int vertical, int minCellSize,
-				int lineError) {
+		@SuppressLint("UseSparseArrays")
+		private ArrayList<Line> findEquallySpacedLines(
+				final ArrayList<Line> lines, final boolean hor,
+				final int horizontal, final int vertical,
+				final int minCellSize, final int lineError) {
 			// Create map of positions of each line
 			HashMap<Integer, Line> positions = new HashMap<Integer, Line>();
 			int target = hor ? horizontal : vertical;
@@ -844,13 +994,13 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Returns vertical or horizontal position of line
+		 * Returns vertical or horizontal position of line.
 		 * 
 		 * @param line
 		 * @param horizontal
 		 * @return position
 		 */
-		private int getPosition(Line line, boolean horizontal) {
+		private int getPosition(final Line line, final boolean horizontal) {
 			if (horizontal) {
 				// Return vertical position
 				return (int) Math.round((line.y1 + line.y2) / 2.0); // Midpoint
@@ -861,13 +1011,13 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Find intersection of given lines
+		 * Find intersection of given lines.
 		 * 
 		 * @param line1
 		 * @param line2
 		 * @return
 		 */
-		private int[] findIntersection(Line line1, Line line2) {
+		private int[] findIntersection(final Line line1, final Line line2) {
 			int[] coords = new int[2];
 			float[] x = { line1.x1, line1.x2, line2.x1, line2.x2 };
 			float[] y = { line1.y1, line1.y2, line2.y1, line2.y2 };
@@ -889,12 +1039,12 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Find cutoff value for labeling black and white cells
+		 * Find cutoff value for labeling black and white cells.
 		 * 
 		 * @param cells
 		 * @return cutoff
 		 */
-		private double findCutoff(double[][] cells) {
+		private double findCutoff(final double[][] cells) {
 			double min = cells[0][0], max = cells[0][0];
 			int rows = cells.length, cols = cells[0].length;
 			for (int row = 0; row < rows; row++) {
@@ -909,41 +1059,34 @@ public class ScanActivity extends Activity {
 			return 0.40 * (min + max);
 		}
 
-		private String generateRandomGrid() {
-			Random r = new Random(13254);
-			StringBuilder sb = new StringBuilder();
-			sb.append("13|13|");
-			for (int i = 0; i < 13; i++) {
-				for (int j = 0; j < 13; j++) {
-					sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
-					sb.append("0|");
-				}
-			}
-			return sb.toString();
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-		}
-
-		@Override
-		protected void onCancelled() {
-			super.onCancelled();
-			dialog.dismiss();
-		}
+		// private String generateRandomGrid() {
+		// Random r = new Random(13254);
+		// StringBuilder sb = new StringBuilder();
+		// sb.append("13|13|");
+		// for (int i = 0; i < 13; i++) {
+		// for (int j = 0; j < 13; j++) {
+		// sb.append(r.nextBoolean() && r.nextBoolean() ? "0" : "1");
+		// sb.append(Constants.CHAR_SPACE).append("|");
+		// }
+		// }
+		// return sb.toString();
+		// }
 
 		/**
-		 * Contains Line data
+		 * Contains Line data.
 		 * 
 		 * @author Ryan
 		 */
-		private class Line {
+		private final class Line {
 
 			public int x1, y1, x2, y2;
 
-			private Line(double[] line) {
+			/**
+			 * Constructs line from coordinate double array.
+			 * 
+			 * @param line
+			 */
+			private Line(final double[] line) {
 				this.x1 = (int) line[0];
 				this.y1 = (int) line[1];
 				this.x2 = (int) line[2];
@@ -957,20 +1100,28 @@ public class ScanActivity extends Activity {
 		}
 
 		/**
-		 * Compares lines based on relative position
+		 * Compares lines based on relative position.
 		 * 
 		 * @author Ryan
 		 */
-		private class LineComparator implements Comparator<Line> {
+		private final class LineComparator implements Comparator<Line> {
 
+			/**
+			 * Whether to compare horizontal or vertical lines.
+			 */
 			private boolean horizontal;
 
-			private LineComparator(boolean horizontal) {
+			/**
+			 * Constructs line comparator.
+			 * 
+			 * @param horizontal
+			 */
+			private LineComparator(final boolean horizontal) {
 				this.horizontal = horizontal;
 			}
 
 			@Override
-			public int compare(Line line1, Line line2) {
+			public int compare(final Line line1, final Line line2) {
 				int[] comp = { getPosition(line1, horizontal),
 						getPosition(line2, horizontal),
 						getPosition(line1, !horizontal),
