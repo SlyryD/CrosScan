@@ -422,7 +422,7 @@ public class CrosswordGridView extends View {
 								previousCell.getColumn());
 					}
 				}
-				setCellValue(mSelectedCell, (char) 0);
+				setCellValue(mSelectedCell, Constants.CHAR_SPACE);
 			}
 		}
 

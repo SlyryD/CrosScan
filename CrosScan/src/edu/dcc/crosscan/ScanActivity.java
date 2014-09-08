@@ -34,7 +34,10 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
-import android.graphics.ImageFormat;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.AsyncTask;
@@ -42,11 +45,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 /**
@@ -66,11 +69,6 @@ public class ScanActivity extends Activity {
 	 * ScanActivity tag.
 	 */
 	private static final String TAG = "CrosScan/ScanActivity";
-
-	/**
-	 * Layout that holds preview.
-	 */
-	private FrameLayout previewFrame;
 
 	/**
 	 * View that shows camera frames.
@@ -93,19 +91,29 @@ public class ScanActivity extends Activity {
 	private boolean inPreview;
 
 	/**
-	 * Whether camera is configured.
+	 * Whether photo is processing
 	 */
-	private boolean cameraConfigured;
+	private boolean processing;
 
 	/**
-	 * Callback for when picture is taken.
+	 * Keeps track of screen rotation when picture is taken.
 	 */
-	private Camera.PictureCallback photoCallback = new ProcessPictureCallback();
+	private float rotationWhenTaken;
 
 	/**
 	 * Callback for when surface is created, changed, or destroyed.
 	 */
 	private SurfaceHolder.Callback surfaceCallback = new SurfaceCallback();
+
+	/**
+	 * Callback for when autofocus occurs.
+	 */
+	private Camera.AutoFocusCallback focusCallback = new FocusCallback();
+
+	/**
+	 * Callback for when picture is taken.
+	 */
+	private Camera.PictureCallback photoCallback = new PhotoCallback();
 
 	/**
 	 * Loads OpenCV.
@@ -163,61 +171,35 @@ public class ScanActivity extends Activity {
 		Log.i(TAG, "called onCreate");
 		setContentView(R.layout.activity_scan);
 
-		// Create surface view and get holder
-		preview = new SurfaceView(this);
+		// Get surface view and holder
+		preview = (SurfaceView) findViewById(R.id.preview);
 		previewHolder = preview.getHolder();
 		previewHolder.addCallback(surfaceCallback);
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		}
-
-		// Add surface view to activity
-		previewFrame = (FrameLayout) findViewById(R.id.previewFrame);
-		previewFrame.addView(preview);
 	}
 
 	@Override
-	protected final void onStart() {
-		// Runs every time activity is opened
-		Log.i(TAG, "called onStart");
-		super.onStart();
-	}
-
-	@Override
-	protected final void onResume() {
+	public final void onResume() {
 		super.onResume();
-
 		Log.i(TAG, "called onResume");
 
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_8, this,
 				mLoaderCallback);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-			Camera.CameraInfo info = new Camera.CameraInfo();
-
-			for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
-				Camera.getCameraInfo(i, info);
-
-				if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-					camera = Camera.open(i);
-				}
-			}
-		}
-
-		if (camera == null) {
-			camera = Camera.open();
-		}
-
+		// Obtain camera and start preview
+		camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+		initPreview();
 		startPreview();
 	}
 
 	@Override
-	protected final void onPause() {
+	public final void onPause() {
 		Log.i(TAG, "called onPause");
 
 		if (inPreview) {
 			camera.stopPreview();
-			preview.setOnClickListener(null);
 		}
 
 		camera.release();
@@ -228,55 +210,31 @@ public class ScanActivity extends Activity {
 	}
 
 	@Override
-	protected final void onStop() {
-		Log.i(TAG, "called onStop");
-		super.onStop();
-	}
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		Log.d(TAG, "On configuration changed called");
 
-	@Override
-	protected final void onDestroy() {
-		Log.i(TAG, "called onDestroy");
-		super.onDestroy();
+		// Find current camera configuration
+		initPreview();
 	}
 
 	/**
-	 * Gets best camera preview size.
+	 * When photo button pressed, focus and take photo.
 	 * 
-	 * @param width
-	 * @param height
-	 * @param parameters
-	 * @return size
+	 * @param view
 	 */
-	private Camera.Size getBestPreviewSize(final int width, final int height,
-			final Camera.Parameters parameters) {
-		Camera.Size result = null;
-
-		for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
-			if (size.width <= width && size.height <= height) {
-				if (result == null) {
-					result = size;
-				} else {
-					int resultArea = result.width * result.height;
-					int newArea = size.width * size.height;
-
-					if (newArea > resultArea) {
-						result = size;
-					}
-				}
-			}
+	public void takePhoto(View view) {
+		if (inPreview) {
+			camera.autoFocus(focusCallback);
 		}
-
-		return result;
 	}
 
 	/**
 	 * Initialize camera preview.
-	 * 
-	 * @param width
-	 * @param height
 	 */
-	private void initPreview(final int width, final int height) {
+	private void initPreview() {
 		if (camera != null && previewHolder.getSurface() != null) {
+			// Set display to camera preview
 			try {
 				camera.setPreviewDisplay(previewHolder);
 			} catch (Throwable t) {
@@ -285,28 +243,63 @@ public class ScanActivity extends Activity {
 						Toast.LENGTH_LONG).show();
 			}
 
-			if (!cameraConfigured) {
-				Camera.Parameters parameters = camera.getParameters();
-				Camera.Size size = getBestPreviewSize(width, height, parameters);
-
-				if (size != null) {
-					parameters.setPreviewSize(size.width, size.height);
-					parameters.setPictureFormat(ImageFormat.JPEG);
-					camera.setParameters(parameters);
-					cameraConfigured = true;
-				}
-			}
+			// Change camera configuration
+			camera.setDisplayOrientation(getRotation());
 		}
+
+		// Change button configuration
+		Camera.CameraInfo info = new Camera.CameraInfo();
+		Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
+		int rotation = getWindowManager().getDefaultDisplay().getRotation();
+		int center = RelativeLayout.CENTER_HORIZONTAL;
+		int align = RelativeLayout.ALIGN_PARENT_BOTTOM;
+		switch (rotation) {
+		case Surface.ROTATION_90:
+			center = RelativeLayout.CENTER_VERTICAL;
+			align = RelativeLayout.ALIGN_PARENT_RIGHT;
+			break;
+		case Surface.ROTATION_180:
+			center = RelativeLayout.CENTER_HORIZONTAL;
+			align = RelativeLayout.ALIGN_PARENT_TOP;
+			break;
+		case Surface.ROTATION_270:
+			center = RelativeLayout.CENTER_VERTICAL;
+			align = RelativeLayout.ALIGN_PARENT_LEFT;
+			break;
+		}
+
+		View button = findViewById(R.id.take_photo);
+		RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) button
+				.getLayoutParams();
+		for (int i = 0; i < layoutParams.getRules().length; i++) {
+			layoutParams.addRule(i, 0);
+		}
+
+		layoutParams.addRule(center, RelativeLayout.TRUE);
+		layoutParams.addRule(align, RelativeLayout.TRUE);
+		button.setLayoutParams(layoutParams);
+	}
+
+	/**
+	 * Get rotation degree of preview based on orientation and degrees.
+	 * 
+	 * @return rotation degrees
+	 */
+	private int getRotation() {
+		// Find current camera configuration
+		Camera.CameraInfo info = new Camera.CameraInfo();
+		Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
+		int rotation = getWindowManager().getDefaultDisplay().getRotation();
+		int degrees = 90 * rotation;
+		return (info.orientation - degrees + 360) % 360;
 	}
 
 	/**
 	 * Start camera preview.
 	 */
 	private void startPreview() {
-		if (cameraConfigured && camera != null) {
-			camera.setDisplayOrientation(Constants.DEGREES_90);
+		if (camera != null) {
 			camera.startPreview();
-			preview.setOnClickListener(new FocusListener());
 			inPreview = true;
 		}
 	}
@@ -319,42 +312,29 @@ public class ScanActivity extends Activity {
 	private class SurfaceCallback implements SurfaceHolder.Callback {
 
 		@Override
-		public void surfaceCreated(final SurfaceHolder holder) {
-			Log.e(TAG, "Surface created");
+		public void surfaceCreated(SurfaceHolder holder) {
+			Log.i(TAG, "Surface created");
 		}
 
 		@Override
-		public void surfaceChanged(final SurfaceHolder holder,
-				final int format, final int width, final int height) {
-			Log.e(TAG, "Surface changed");
-			initPreview(width, height);
+		public void surfaceChanged(SurfaceHolder holder, int format, int width,
+				int height) {
+			Log.i(TAG, "Surface changed");
+			initPreview();
 			startPreview();
 		}
 
 		@Override
-		public void surfaceDestroyed(final SurfaceHolder holder) {
-			Log.e(TAG, "Surface destroyed");
+		public void surfaceDestroyed(SurfaceHolder holder) {
+			Log.i(TAG, "Surface destroyed");
 		}
 	}
 
-	/**
-	 * Callback preview clicked.
-	 * 
-	 * @author Ryan
-	 */
-	private class FocusListener implements OnClickListener {
+	private class FocusCallback implements Camera.AutoFocusCallback {
+
 		@Override
-		public void onClick(final View v) {
-			Log.i(TAG, "onTouch logged");
-			if (inPreview) {
-				camera.autoFocus(new Camera.AutoFocusCallback() {
-					@Override
-					public void onAutoFocus(final boolean success,
-							final Camera camera) {
-						camera.takePicture(null, null, photoCallback);
-					}
-				});
-			}
+		public void onAutoFocus(boolean success, Camera camera) {
+			camera.takePicture(null, null, photoCallback);
 		}
 	}
 
@@ -363,9 +343,14 @@ public class ScanActivity extends Activity {
 	 * 
 	 * @author Ryan
 	 */
-	private class ProcessPictureCallback implements PictureCallback {
+	private class PhotoCallback implements PictureCallback {
 		@Override
 		public void onPictureTaken(final byte[] data, final Camera camera) {
+			// Prepare to rotate photo
+			Camera.CameraInfo info = new Camera.CameraInfo();
+			Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
+			rotationWhenTaken = getRotation();
+
 			// Process photo
 			ProcessTask pTask = new ProcessTask();
 			Log.i(TAG, "Call execute thread: " + Thread.currentThread());
@@ -405,6 +390,7 @@ public class ScanActivity extends Activity {
 
 		@Override
 		protected void onPreExecute() {
+			super.onPreExecute();
 			dialog = ProgressDialog.show(ScanActivity.this, "Processing...",
 					"Press back button to cancel.", true, true,
 					new OnCancelListener() {
@@ -431,8 +417,17 @@ public class ScanActivity extends Activity {
 				return null;
 			}
 
+			// Get bitmap and rotate if necessary
+			Bitmap src = BitmapFactory.decodeByteArray(data[0], 0,
+					data[0].length);
+			Matrix matrix = new Matrix();
+			matrix.setRotate(rotationWhenTaken, src.getWidth() / 2.0f,
+					src.getHeight() / 2.0f);
+			Bitmap target = Bitmap.createBitmap(src, 0, 0, src.getWidth(),
+					src.getHeight(), matrix, false);
+
 			// Write file
-			writeFile(filePath, data[0]);
+			writeFile(filePath, target);
 
 			// Use OpenCV to recognize and construct grid
 			String result = recognizeGrid(filePath);
@@ -508,11 +503,12 @@ public class ScanActivity extends Activity {
 		 * @param filePath
 		 * @param data
 		 */
-		private void writeFile(final String filePath, final byte[] data) {
+		private void writeFile(final String filePath, final Bitmap data) {
 			try {
-				// Create stream
+				// Write data to stream
 				FileOutputStream fos = new FileOutputStream(filePath);
-				fos.write(data);
+				data.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+				fos.flush();
 				fos.close();
 			} catch (FileNotFoundException e) {
 				Log.d(TAG, "File not found: " + e.getMessage());
@@ -535,14 +531,6 @@ public class ScanActivity extends Activity {
 				cancel(true);
 			}
 			Log.i(TAG, "Read " + filePath);
-
-			// Check if cancelled
-			if (isCancelled()) {
-				return null;
-			}
-
-			// Rotate image
-			Core.flip(img.t(), img, 1);
 
 			// Check if cancelled
 			if (isCancelled()) {

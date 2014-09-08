@@ -362,7 +362,7 @@ public class Puzzle {
 	public void reset() {
 		for (int row = 0; row < height; row++) {
 			for (int col = 0; col < width; col++) {
-				grid[row][col].setValue((char) 0);
+				grid[row][col].setValue(Constants.CHAR_SPACE);
 			}
 		}
 

@@ -3,6 +3,9 @@ package edu.dcc.game;
 import android.os.Bundle;
 import android.os.SystemClock;
 
+/**
+ * @author Ryan
+ */
 public class CrosswordGame {
 
 	public static final int GAME_STATE_PLAYING = 0;

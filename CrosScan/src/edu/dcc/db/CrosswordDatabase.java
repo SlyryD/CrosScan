@@ -410,6 +410,7 @@ public class CrosswordDatabase {
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 		db.delete(CROSSWORD_TABLE_NAME, CrosswordColumns._ID + "="
 				+ crosswordID, null);
+		// TODO: Remove photo
 	}
 
 	public void close() {
