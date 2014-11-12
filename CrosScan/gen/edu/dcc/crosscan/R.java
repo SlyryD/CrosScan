@@ -153,24 +153,22 @@ containing a value of this type.
         public static final int key_height=0x7f080002;
     }
     public static final class drawable {
-        public static final int camera=0x7f020000;
-        public static final int check=0x7f020001;
-        public static final int crosscan_icon=0x7f020002;
-        public static final int crossword_grid=0x7f020003;
-        public static final int crossword_icon=0x7f020004;
-        public static final int gradient=0x7f020005;
-        public static final int help=0x7f020006;
-        public static final int ic_launcher=0x7f020007;
-        public static final int left=0x7f020008;
-        public static final int no_photo=0x7f020009;
-        public static final int right=0x7f02000a;
-        public static final int scanner_icon=0x7f02000b;
-        public static final int sym_keyboard_camera=0x7f02000c;
-        public static final int sym_keyboard_delete=0x7f02000d;
-        public static final int take_photo=0x7f02000e;
-        public static final int take_photo_pressed=0x7f02000f;
-        public static final int take_photo_selector=0x7f020010;
-        public static final int x_icon=0x7f020011;
+        public static final int crosscan_icon=0x7f020000;
+        public static final int crossword_grid=0x7f020001;
+        public static final int crossword_icon=0x7f020002;
+        public static final int gradient=0x7f020003;
+        public static final int help=0x7f020004;
+        public static final int ic_launcher=0x7f020005;
+        public static final int left=0x7f020006;
+        public static final int no_photo=0x7f020007;
+        public static final int right=0x7f020008;
+        public static final int scanner_icon=0x7f020009;
+        public static final int sym_keyboard_camera=0x7f02000a;
+        public static final int sym_keyboard_delete=0x7f02000b;
+        public static final int take_photo=0x7f02000c;
+        public static final int take_photo_pressed=0x7f02000d;
+        public static final int take_photo_selector=0x7f02000e;
+        public static final int x_icon=0x7f02000f;
     }
     public static final class id {
         public static final int across_clue=0x7f050013;

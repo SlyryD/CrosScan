@@ -59,6 +59,13 @@ public class NamePuzzleActivity extends Activity {
 		finish();
 	}
 
+	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
+		
+		// TODO: Delete photo
+	}
+
 	public class BasicOnCellSelectedListener implements OnCellSelectedListener {
 
 		@Override

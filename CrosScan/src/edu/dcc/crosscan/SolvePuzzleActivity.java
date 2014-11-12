@@ -228,6 +228,9 @@ public class SolvePuzzleActivity extends Activity {
 										final int whichButton) {
 									mDatabase.deleteCrossword(mGame
 											.getId());
+									
+									// TODO: Delete photo
+									
 									SolvePuzzleActivity.this.finish();
 								}
 							}).setNegativeButton(android.R.string.no, null)

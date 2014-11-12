@@ -36,8 +36,7 @@
         android:layout_marginRight="12dp"
         android:layout_marginTop="12dp"
         android:adjustViewBounds="true"
-        android:contentDescription="@string/crossword_grid"
-        android:src="@drawable/crossword_grid" />
+        android:contentDescription="@string/crossword_grid" />
 
     <TextView
         android:id="@+id/grid_correct"

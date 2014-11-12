@@ -133,6 +133,9 @@ public class PuzzleListActivity extends ListActivity {
 								public void onClick(final DialogInterface dialog,
 										final int whichButton) {
 									mDatabase.deleteCrossword(mDeletePuzzleID);
+									
+									// TODO: Delete photo
+									
 									updateList();
 								}
 							}).setNegativeButton(android.R.string.no, null)

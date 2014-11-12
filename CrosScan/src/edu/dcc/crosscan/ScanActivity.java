@@ -20,6 +20,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
@@ -93,6 +94,7 @@ public class ScanActivity extends Activity {
 	/**
 	 * Whether photo is processing
 	 */
+	// TODO: Stop preview rotation while processing
 	private boolean processing;
 
 	/**
@@ -636,6 +638,8 @@ public class ScanActivity extends Activity {
 				horizontal = temp;
 			}
 			Log.i(TAG, horizontal + " " + vertical);
+			
+			// TODO: Rotate image (perspective) along with lines
 
 			// Keep horizontal and vertical lines
 			ArrayList<Line> hLines = new ArrayList<Line>();
@@ -761,14 +765,14 @@ public class ScanActivity extends Activity {
 			}
 
 			// Decide whether cells are black or white
-			double cutoff = findCutoff(cells);
+			adjustColors(cells);
 
 			// Construct data
 			StringBuilder data = new StringBuilder();
 			data.append(height + "|").append(width + "|");
 			for (int i = 0; i < cells.length; i++) {
 				for (int j = 0; j < cells[i].length; j++) {
-					if (cells[i][j] >= cutoff) {
+					if (cells[i][j] != 0) {
 						data.append("1");
 					} else {
 						data.append("0");
@@ -1025,26 +1029,34 @@ public class ScanActivity extends Activity {
 							* y[1]));
 			return coords;
 		}
-
-		/**
-		 * Find cutoff value for labeling black and white cells.
-		 * 
-		 * @param cells
-		 * @return cutoff
-		 */
-		private double findCutoff(final double[][] cells) {
-			double min = cells[0][0], max = cells[0][0];
+		
+		private void adjustColors(final double[][] cells) {
+			// Initialize grayscale mat
 			int rows = cells.length, cols = cells[0].length;
+			Mat colorMat = new Mat(cells.length, cells[0].length, CvType.CV_8UC1);
+
+			// Put average cell colors into mat
 			for (int row = 0; row < rows; row++) {
 				for (int col = 0; col < cols; col++) {
-					if (cells[row][col] < min) {
-						min = cells[row][col];
-					} else if (cells[row][col] > max) {
-						max = cells[row][col];
-					}
+					colorMat.put(row, col, cells[row][col]);
 				}
 			}
-			return 0.40 * (min + max);
+
+			// Find colors using adaptive threshold
+			Imgproc.adaptiveThreshold(colorMat, colorMat, 255,
+					Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 3, 15);
+
+			// Put values back into array
+			for (int row = 0; row < rows; row++) {
+				for (int col = 0; col < cols; col++) {
+					cells[row][col] = colorMat.get(row, col)[0];
+				}
+			}
+			
+			// Release mat
+			System.out.println("Got colors");
+			Highgui.imwrite("color-mat.jpg", colorMat);
+			colorMat.release();
 		}
 
 		// private String generateRandomGrid() {
