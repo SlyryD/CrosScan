@@ -194,17 +194,31 @@ public class CrosswordGridView extends View {
 	@Override
 	protected final void onDraw(final Canvas canvas) {
 		super.onDraw(canvas);
-
-		int width = getWidth() - getPaddingLeft() - getPaddingRight();
-		int height = getHeight() - getPaddingTop() - getPaddingBottom();
-
-		// Draw cells
-		int cellLeft, cellTop;
+		
 		if (puzzle != null) {
+			// Get puzzle height and width
+			int puzzleHeight = puzzle.getHeight();
+			int puzzleWidth = puzzle.getWidth();
+
+			int height, width;
+			if (puzzleHeight > puzzleWidth) {
+				height = getHeight();
+				width = Math.round(((float) height) * puzzleWidth / puzzleHeight);
+				height -= getPaddingTop() + getPaddingBottom();
+				width -= getPaddingLeft() + getPaddingRight();
+			} else {
+				width = getWidth();
+				height = Math.round(((float) width) * puzzleHeight / puzzleWidth);
+				width -= getPaddingLeft() + getPaddingRight();
+				height -= getPaddingTop() + getPaddingBottom();
+			}
+
+			// Draw cells
+			int cellLeft, cellTop;
 			float valueAscent = mCellValuePaint.ascent();
 			float clueNumAscent = mClueNumPaint.ascent();
-			for (int row = 0; row < puzzle.getHeight(); row++) {
-				for (int col = 0; col < puzzle.getWidth(); col++) {
+			for (int row = 0; row < puzzleHeight; row++) {
+				for (int col = 0; col < puzzleWidth; col++) {
 					Cell cell = puzzle.getCell(row, col);
 
 					cellLeft = Math
@@ -262,7 +276,7 @@ public class CrosswordGridView extends View {
 			}
 
 			// draw vertical lines
-			for (int col = 0; col <= puzzle.getWidth(); col++) {
+			for (int col = 0; col <= puzzleWidth; col++) {
 				float x = (col * mCellWidth) + getPaddingLeft();
 				canvas.drawLine(x, getPaddingTop(), x, height, mLinePaint);
 			}

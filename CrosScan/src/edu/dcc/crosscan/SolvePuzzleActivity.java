@@ -28,8 +28,9 @@ import edu.dcc.game.Puzzle;
 
 public class SolvePuzzleActivity extends Activity {
 
-	public static final int MENU_ITEM_RESTART = Menu.FIRST;
-	public static final int MENU_ITEM_DELETE = Menu.FIRST + 1;
+	public static final int MENU_ITEM_INFO = Menu.FIRST;
+	public static final int MENU_ITEM_RESTART = Menu.FIRST + 1;
+	public static final int MENU_ITEM_DELETE = Menu.FIRST + 2;
 
 	private static final int DIALOG_RESTART = 0;
 	private static final int DIALOG_DELETE_PUZZLE = 1;
@@ -78,7 +79,8 @@ public class SolvePuzzleActivity extends Activity {
 		// create crossword game instance
 		if (savedInstanceState == null) {
 			// activity runs for the first time, read game from database
-			mCrosswordGameID = getIntent().getLongExtra(Constants.EXTRA_CROSSWORD_ID, 0);
+			mCrosswordGameID = getIntent().getLongExtra(
+					Constants.EXTRA_CROSSWORD_ID, 0);
 			System.out.println("GAME_ID: " + mCrosswordGameID + "!!!!");
 			mGame = mDatabase.getCrossword(mCrosswordGameID);
 		} else {
@@ -163,7 +165,8 @@ public class SolvePuzzleActivity extends Activity {
 
 		menu.add(0, MENU_ITEM_RESTART, 0, R.string.restart).setIcon(
 				android.R.drawable.ic_menu_rotate);
-		menu.add(0, MENU_ITEM_DELETE, 1, R.string.delete_puzzle).setIcon(
+		menu.add(0, MENU_ITEM_INFO, 1, R.string.puzzle_info);
+		menu.add(0, MENU_ITEM_DELETE, 2, R.string.delete_puzzle).setIcon(
 				android.R.drawable.ic_delete);
 
 		// Generate any additional actions that can be performed on the
@@ -185,6 +188,11 @@ public class SolvePuzzleActivity extends Activity {
 		case MENU_ITEM_RESTART:
 			showDialog(DIALOG_RESTART);
 			return true;
+		case MENU_ITEM_INFO:
+			Intent intent = new Intent(this, PuzzleInfoActivity.class);
+			intent.putExtra(Constants.EXTRA_CROSSWORD_ID, mGame.getId());
+			startActivity(intent);
+			return true;
 		case MENU_ITEM_DELETE:
 			showDialog(DIALOG_DELETE_PUZZLE);
 			return true;
@@ -204,12 +212,13 @@ public class SolvePuzzleActivity extends Activity {
 					.setMessage(R.string.restart_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(final DialogInterface dialog,
+								public void onClick(
+										final DialogInterface dialog,
 										final int whichButton) {
 									// Restart game
 									mGame.reset();
 									mCrosswordGrid.resetView();
-									
+
 									mGame.start();
 									if (mShowTime) {
 										mGameTimer.start();
@@ -224,13 +233,13 @@ public class SolvePuzzleActivity extends Activity {
 					.setMessage(R.string.delete_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(final DialogInterface dialog,
+								public void onClick(
+										final DialogInterface dialog,
 										final int whichButton) {
-									mDatabase.deleteCrossword(mGame
-											.getId());
-									
+									mDatabase.deleteCrossword(mGame.getId());
+
 									// TODO: Delete photo
-									
+
 									SolvePuzzleActivity.this.finish();
 								}
 							}).setNegativeButton(android.R.string.no, null)

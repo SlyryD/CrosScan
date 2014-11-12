@@ -31,7 +31,6 @@ public class PuzzleListActivity extends ListActivity {
 	public static final int MENU_ITEM_DELETE = Menu.FIRST + 2;
 
 	private static final int DIALOG_DELETE_PUZZLE = 0;
-	private static final int DIALOG_RESET_PUZZLE = 1;
 
 	private long mFolderID;
 
@@ -130,31 +129,13 @@ public class PuzzleListActivity extends ListActivity {
 					.setMessage(R.string.delete_puzzle_confirm)
 					.setPositiveButton(android.R.string.yes,
 							new DialogInterface.OnClickListener() {
-								public void onClick(final DialogInterface dialog,
+								public void onClick(
+										final DialogInterface dialog,
 										final int whichButton) {
 									mDatabase.deleteCrossword(mDeletePuzzleID);
-									
+
 									// TODO: Delete photo
-									
-									updateList();
-								}
-							}).setNegativeButton(android.R.string.no, null)
-					.create();
-		case DIALOG_RESET_PUZZLE:
-			return new AlertDialog.Builder(this)
-					.setIcon(android.R.drawable.ic_menu_rotate)
-					.setTitle(R.string.restart)
-					.setMessage(R.string.reset_puzzle_confirm)
-					.setPositiveButton(android.R.string.yes,
-							new DialogInterface.OnClickListener() {
-								public void onClick(final DialogInterface dialog,
-										final int whichButton) {
-									CrosswordGame game = mDatabase
-											.getCrossword(mResetPuzzleID);
-									if (game != null) {
-										game.reset();
-										mDatabase.updateCrossword(game);
-									}
+
 									updateList();
 								}
 							}).setNegativeButton(android.R.string.no, null)
@@ -166,8 +147,8 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	public final void onCreateContextMenu(final ContextMenu menu, final View view,
-			final ContextMenuInfo menuInfo) {
+	public final void onCreateContextMenu(final ContextMenu menu,
+			final View view, final ContextMenuInfo menuInfo) {
 		AdapterView.AdapterContextMenuInfo info;
 		try {
 			info = (AdapterView.AdapterContextMenuInfo) menuInfo;
@@ -214,7 +195,8 @@ public class PuzzleListActivity extends ListActivity {
 	}
 
 	@Override
-	protected final void onListItemClick(final ListView l, final View v, final int position, final long id) {
+	protected final void onListItemClick(final ListView l, final View v,
+			final int position, final long id) {
 		super.onListItemClick(l, v, position, id);
 		mCursor.moveToPosition((int) id);
 		playTransition(mCursor.getLong(mCursor
