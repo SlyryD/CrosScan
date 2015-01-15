@@ -24,6 +24,7 @@ public class Puzzle {
 	private Cell firstWhiteCell; // First white cell
 
 	// Puzzle clues
+	private ArrayList<String> clues;
 	private TreeMap<Integer, String> acrossClues;
 	private TreeMap<Integer, String> downClues;
 
@@ -34,8 +35,6 @@ public class Puzzle {
 
 	// Puzzle change listeners
 	private final List<OnChangeListener> changeListeners = new ArrayList<OnChangeListener>();
-
-	private boolean fakeClues = true;
 
 	// String is expected to be in format "0 |0 |1 ...", where each number
 	// represents cell color or value.
@@ -49,15 +48,17 @@ public class Puzzle {
 	 * @param grid
 	 * @param clues
 	 */
-	public Puzzle(int height, int width, Cell[][] grid, List<String> clues) {
-		// Initialize grid and entries
+	public Puzzle(int height, int width, Cell[][] grid, ArrayList<String> clues) {
 		this.height = height;
 		this.width = width;
 		this.grid = grid;
+		this.clues = clues;
+
+		// Initialize grid and entries
 		initGrid();
 
 		// Initialize clues
-		initClues(clues);
+		initClues();
 
 		Log.i("CrosScan/Puzzle", "Puzzle instantiated");
 	}
@@ -69,7 +70,7 @@ public class Puzzle {
 	 * @param cells
 	 * @param clues
 	 */
-	public Puzzle(int height, int width, int[][] cells, List<String> clues) {
+	public Puzzle(int height, int width, int[][] cells, ArrayList<String> clues) {
 		this(height, width, convertIntsToCells(height, width, cells), clues);
 	}
 
@@ -146,7 +147,7 @@ public class Puzzle {
 	 * 
 	 * @param clues
 	 */
-	private void initClues(List<String> clues) {
+	private void initClues() {
 		acrossClues = new TreeMap<Integer, String>();
 		downClues = new TreeMap<Integer, String>();
 
@@ -158,13 +159,20 @@ public class Puzzle {
 				downClues.put(clueNum, "DOWN CLUE");
 			}
 		} else {
-			fakeClues = false;
 			int i = 0;
 			for (int clueNum : acrossEntries.keySet()) {
-				acrossClues.put(clueNum, clues.get(i++));
+				try {
+					acrossClues.put(clueNum, clues.get(i++));
+				} catch (java.lang.IndexOutOfBoundsException e) {
+					acrossClues.put(clueNum, "ACROSS CLUE");
+				}
 			}
 			for (int clueNum : downEntries.keySet()) {
-				downClues.put(clueNum, clues.get(i++));
+				try {
+					downClues.put(clueNum, clues.get(i++));
+				} catch (java.lang.IndexOutOfBoundsException e) {
+					downClues.put(clueNum, "DOWN CLUE");
+				}
 			}
 		}
 	}
@@ -514,9 +522,7 @@ public class Puzzle {
 		synchronized (changeListeners) {
 			initGrid();
 			// TODO: update clues correctly
-			if (fakeClues) {
-				initClues(null);
-			}
+			initClues();
 			onChange();
 		}
 	}
