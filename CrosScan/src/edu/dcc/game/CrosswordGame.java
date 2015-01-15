@@ -210,12 +210,12 @@ public class CrosswordGame {
 	}
 
 	/**
-	 * Resets game.
+	 * Restarts game.
 	 */
-	public void reset() {
+	public void restart() {
 		state = GAME_STATE_NOT_STARTED;
 		setTime(0);
-		setLastPlayed(0);
+		setLastPlayed(System.currentTimeMillis());
 		puzzle.reset();
 		acrossMode = true;
 	}

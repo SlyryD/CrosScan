@@ -28,15 +28,17 @@ public class PuzzleListActivity extends ListActivity {
 
 	public static final int MENU_ITEM_PLAY = Menu.FIRST;
 	public static final int MENU_ITEM_INFO = Menu.FIRST + 1;
-	public static final int MENU_ITEM_DELETE = Menu.FIRST + 2;
+	public static final int MENU_ITEM_RESTART = Menu.FIRST + 2;
+	public static final int MENU_ITEM_DELETE = Menu.FIRST + 3;
 
-	private static final int DIALOG_DELETE_PUZZLE = 0;
+	private static final int DIALOG_RESTART_PUZZLE = 0;
+	private static final int DIALOG_DELETE_PUZZLE = 1;
 
 	private long mFolderID;
 
 	// input parameters for dialogs
+	private long mRestartPuzzleID;
 	private long mDeletePuzzleID;
-	private long mResetPuzzleID;
 
 	private ArrayAdapter<String> mAdapter;
 	private Cursor mCursor;
@@ -47,7 +49,24 @@ public class PuzzleListActivity extends ListActivity {
 	 * Updates whole list.
 	 */
 	private void updateList() {
+		// Query database
 		mCursor = mDatabase.getCrosswordList(mFolderID);
+
+		// Create list of results
+		ArrayList<String> sData = new ArrayList<String>();
+
+		// Check if our result was valid.
+		if (mCursor.moveToFirst()) {
+			int titleCol = mCursor.getColumnIndex(CrosswordColumns.TITLE);
+			// cursor left as it came from the database because it starts at the
+			// row before the first row
+			do {
+				sData.add(mCursor.getString(titleCol));
+			} while (mCursor.moveToNext());
+		}
+		mAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, sData);
+		setListAdapter(mAdapter);
 	}
 
 	@Override
@@ -77,22 +96,14 @@ public class PuzzleListActivity extends ListActivity {
 		mFolderDetailLoader = new FolderDetailLoader(getApplicationContext());
 
 		mFolderID = 1;
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
 
 		// Update list
 		updateList();
-
-		int titleCol = mCursor.getColumnIndex(CrosswordColumns.TITLE);
-		// Check if our result was valid.
-		mCursor.moveToFirst();
-		// cursor left as it came from the database because it starts at the
-		// row before the first row
-		ArrayList<String> sData = new ArrayList<String>();
-		do {
-			sData.add(mCursor.getString(titleCol));
-		} while (mCursor.moveToNext());
-		mAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, sData);
-		setListAdapter(mAdapter);
 	}
 
 	@Override
@@ -107,21 +118,38 @@ public class PuzzleListActivity extends ListActivity {
 	protected final void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 
+		outState.putLong("mRestartPuzzleID", mRestartPuzzleID);
 		outState.putLong("mDeletePuzzleID", mDeletePuzzleID);
-		outState.putLong("mResetPuzzleID", mResetPuzzleID);
 	}
 
 	@Override
 	protected final void onRestoreInstanceState(final Bundle state) {
 		super.onRestoreInstanceState(state);
 
+		mRestartPuzzleID = state.getLong("mRestartPuzzleID");
 		mDeletePuzzleID = state.getLong("mDeletePuzzleID");
-		mResetPuzzleID = state.getLong("mResetPuzzleID");
 	}
 
 	@Override
 	protected final Dialog onCreateDialog(final int id) {
 		switch (id) {
+		case DIALOG_RESTART_PUZZLE:
+			return new AlertDialog.Builder(this)
+					.setIcon(android.R.drawable.ic_menu_rotate)
+					.setTitle(R.string.restart)
+					.setMessage(R.string.restart_puzzle_confirm)
+					.setPositiveButton(android.R.string.yes,
+							new DialogInterface.OnClickListener() {
+								public void onClick(
+										final DialogInterface dialog,
+										final int whichButton) {
+									CrosswordGame game = mDatabase
+											.getCrossword(mRestartPuzzleID);
+									game.restart();
+									mDatabase.updateCrossword(game);
+								}
+							}).setNegativeButton(android.R.string.no, null)
+					.create();
 		case DIALOG_DELETE_PUZZLE:
 			return new AlertDialog.Builder(this)
 					.setIcon(android.R.drawable.ic_delete)
@@ -132,11 +160,14 @@ public class PuzzleListActivity extends ListActivity {
 								public void onClick(
 										final DialogInterface dialog,
 										final int whichButton) {
-									mDatabase.deleteCrossword(mDeletePuzzleID);
+									try {
+										mDatabase
+												.deleteCrossword(mDeletePuzzleID);
 
-									// TODO: Delete photo
-
-									updateList();
+										// TODO: Delete photo
+									} finally {
+										updateList();
+									}
 								}
 							}).setNegativeButton(android.R.string.no, null)
 					.create();
@@ -165,7 +196,8 @@ public class PuzzleListActivity extends ListActivity {
 		// Add menu items
 		menu.add(0, MENU_ITEM_PLAY, 0, R.string.play_puzzle);
 		menu.add(0, MENU_ITEM_INFO, 1, R.string.puzzle_info);
-		menu.add(0, MENU_ITEM_DELETE, 2, R.string.delete_puzzle);
+		menu.add(0, MENU_ITEM_RESTART, 3, R.string.restart);
+		menu.add(0, MENU_ITEM_DELETE, 4, R.string.delete_puzzle);
 	}
 
 	@Override
@@ -178,15 +210,24 @@ public class PuzzleListActivity extends ListActivity {
 			return false;
 		}
 
+		mCursor.moveToPosition((int) info.id);
+
+		long puzzleId = mCursor.getLong(mCursor
+				.getColumnIndex(CrosswordColumns._ID));
 		switch (item.getItemId()) {
 		case MENU_ITEM_PLAY:
-			playTransition(info.id);
+			playTransition(puzzleId);
 			return true;
 		case MENU_ITEM_INFO:
-			infoTransition(info.id);
+			infoTransition(puzzleId);
+			return true;
+		case MENU_ITEM_RESTART:
+			mRestartPuzzleID = puzzleId;
+			restartTransition(info.id);
 			return true;
 		case MENU_ITEM_DELETE:
-			deleteTransition(mDeletePuzzleID = info.id);
+			mDeletePuzzleID = puzzleId;
+			deleteTransition(info.id);
 			return true;
 		default:
 			break;
@@ -219,5 +260,9 @@ public class PuzzleListActivity extends ListActivity {
 
 	public final void deleteTransition(final long id) {
 		showDialog(DIALOG_DELETE_PUZZLE);
+	}
+
+	public final void restartTransition(final long id) {
+		showDialog(DIALOG_RESTART_PUZZLE);
 	}
 }

@@ -264,7 +264,7 @@ public class CrosswordDatabase {
 		qb.setTables(CROSSWORD_TABLE_NAME);
 		qb.appendWhere(CrosswordColumns.FOLDER_ID + "=" + folderID);
 		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-		return qb.query(db, null, null, null, null, null, "created DESC");
+		return qb.query(db, null, null, null, null, null, "created ASC");
 	}
 
 	/**

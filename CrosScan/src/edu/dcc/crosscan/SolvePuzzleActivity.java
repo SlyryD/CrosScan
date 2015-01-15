@@ -36,6 +36,8 @@ public class SolvePuzzleActivity extends Activity {
 	private static final int DIALOG_DELETE_PUZZLE = 1;
 
 	private static final int KEYCODE_PHOTO = 273;
+	
+	private static final String TAG = "CrosScan/SolvePuzzleActivity";
 
 	private long mCrosswordGameID;
 	private CrosswordGame mGame;
@@ -57,6 +59,8 @@ public class SolvePuzzleActivity extends Activity {
 	@Override
 	protected final void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		Log.i(TAG, "onCreate");
 
 		setContentView(R.layout.activity_solve_puzzle);
 
@@ -75,7 +79,7 @@ public class SolvePuzzleActivity extends Activity {
 
 		mDatabase = new CrosswordDatabase(getApplicationContext());
 		mGameTimer = new GameTimer(this);
-
+		
 		// create crossword game instance
 		if (savedInstanceState == null) {
 			// activity runs for the first time, read game from database
@@ -116,6 +120,8 @@ public class SolvePuzzleActivity extends Activity {
 	@Override
 	protected final void onResume() {
 		super.onResume();
+		
+		Log.i(TAG, "onResume");
 
 		if (mGame.getState() == CrosswordGame.GAME_STATE_PLAYING) {
 			mGame.resume();
@@ -131,6 +137,8 @@ public class SolvePuzzleActivity extends Activity {
 	@Override
 	protected final void onPause() {
 		super.onPause();
+		
+		Log.i(TAG, "onPause");
 
 		// we will save game to the database as we might not be able to get back
 		mDatabase.updateCrossword(mGame);
@@ -141,6 +149,8 @@ public class SolvePuzzleActivity extends Activity {
 	@Override
 	protected final void onDestroy() {
 		super.onDestroy();
+		
+		Log.i(TAG, "onDestroy");
 
 		mDatabase.close();
 	}
@@ -148,6 +158,8 @@ public class SolvePuzzleActivity extends Activity {
 	@Override
 	protected final void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
+		
+		Log.i(TAG, "onSaveInstanceState");
 
 		mGameTimer.stop();
 
@@ -216,7 +228,7 @@ public class SolvePuzzleActivity extends Activity {
 										final DialogInterface dialog,
 										final int whichButton) {
 									// Restart game
-									mGame.reset();
+									mGame.restart();
 									mCrosswordGrid.resetView();
 
 									mGame.start();

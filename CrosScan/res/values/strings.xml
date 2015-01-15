@@ -33,7 +33,7 @@
     <string name="puzzle_info">Puzzle Info</string>
     <string name="delete_puzzle">Delete Puzzle</string>
     <string name="delete_puzzle_confirm">Are you sure you want to delete selected puzzle?</string>
-    <string name="reset_puzzle_confirm">Are you sure you want to reset selected puzzle?</string>
+    <string name="restart_puzzle_confirm">Are you sure you want to restart selected puzzle?</string>
     <string name="no_puzzles">No puzzles</string>
     <string name="one_puzzle">1 puzzle</string>
     <string name="n_puzzles">%s puzzles</string>
