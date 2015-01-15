@@ -35,6 +35,8 @@ public class Puzzle {
 	// Puzzle change listeners
 	private final List<OnChangeListener> changeListeners = new ArrayList<OnChangeListener>();
 
+	private boolean fakeClues = true;
+
 	// String is expected to be in format "0 |0 |1 ...", where each number
 	// represents cell color or value.
 
@@ -156,6 +158,7 @@ public class Puzzle {
 				downClues.put(clueNum, "DOWN CLUE");
 			}
 		} else {
+			fakeClues = false;
 			int i = 0;
 			for (int clueNum : acrossEntries.keySet()) {
 				acrossClues.put(clueNum, clues.get(i++));
@@ -511,7 +514,9 @@ public class Puzzle {
 		synchronized (changeListeners) {
 			initGrid();
 			// TODO: update clues correctly
-			initClues(null);
+			if (fakeClues) {
+				initClues(null);
+			}
 			onChange();
 		}
 	}
